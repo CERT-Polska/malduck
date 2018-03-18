@@ -3,7 +3,7 @@
 # See the file 'docs/LICENSE.txt' for copying permission.
 
 from roach.crypto.aes import AES
-from roach.short import aes
+from roach import aes
 
 def test_aes128cbc():
     assert AES("A"*16, "B"*16).decrypt("C"*16) == (
