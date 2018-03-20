@@ -4,4 +4,4 @@
 
 from roach.hash.sha import md5, sha1, sha224, sha384, sha256, sha512
 from roach.short import aes, rc4, pe, aplib
-from roach.string.ops import asciiz
+from roach.string.ops import asciiz, pad
