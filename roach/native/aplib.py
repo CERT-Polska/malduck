@@ -11,16 +11,21 @@ try:
 except ImportError as e:
     aplib = None
 
-def unpack(buf, length=None):
+def unpack(buf, length=None, maxsz=32*1024*1024):
     if not aplib:
         raise RuntimeError("aplib can't be used on your platform!")
 
     if not length:
         length = len(buf) * 2
 
-    while True:
+    if buf.startswith("AP32"):
+        fn = aplib.aPsafe_depack
+    else:
+        fn = aplib.aP_depack_asm_safe
+
+    while length < maxsz:
         out = ctypes.create_string_buffer(length)
-        ret = aplib.aPsafe_depack(buf, len(buf), out, length)
+        ret = fn(buf, len(buf), out, length)
         if ret > 0:
             break
         length *= 2
