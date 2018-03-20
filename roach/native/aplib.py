@@ -11,7 +11,7 @@ try:
 except ImportError as e:
     aplib = None
 
-def unpack(buf, length=None, maxsz=32*1024*1024):
+def unpack(buf, length=None, maxsz=4*1024*1024):
     if not aplib:
         raise RuntimeError("aplib can't be used on your platform!")
 

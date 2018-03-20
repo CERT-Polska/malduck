@@ -27,3 +27,4 @@ AJYAAAAAAAAAAAAAAAAAAEAAAEAK
     assert img.sections[-1].get_file_offset() == 0x298
     assert img.is32bit is True
     assert img.is64bit is False
+    assert img.section(".text").VirtualAddress == 0x1000

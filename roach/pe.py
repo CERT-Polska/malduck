@@ -38,3 +38,8 @@ class PE(object):
         return (
             self.optional_header.Magic == pefile.OPTIONAL_HEADER_MAGIC_PE_PLUS
         )
+
+    def section(self, name):
+        for section in self.pe.sections:
+            if section.Name.rstrip("\x00") == name:
+                return section
