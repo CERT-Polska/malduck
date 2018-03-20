@@ -5,8 +5,11 @@
 from roach import aplib
 
 def test_aplib():
-    assert aplib("".join(chr(int(_, 16)) for _ in """
-41 50 33 32 18 00 00 00  0d 00 00 00 bc 9a 62 9b
-0b 00 00 00 85 11 4a 0d  68 38 65 6c 8e 6f 20 77
-6e 72 ec 64 00
-""".split())) == "hello world"
+    assert aplib(
+        "QVAzMhgAAAANAAAAvJpimwsAAACFEUoNaDhlbI5vIHducuxkAA==".decode("base64")
+    ) == "hello world"
+
+    assert aplib("""
+QVAzMhgAAABGAAAAf+p8HwEAEAA5iu7QQacB19//yAF9ff/8hwHX3//IAX19//yHAdff/8gBfX3/
+/IcB19//yAF9ff/8hwHX3//IAX19//yHAdff/8gBXXf/2QqAAA==
+""".strip().decode("base64")) == "A"*1024*1024 + "\n"
