@@ -4,6 +4,7 @@
 
 from roach.crypto.aes import AES
 from roach.crypto.rc import RC4
+from roach.pe import PE
 
 class aes(object):
     def __init__(self, mode):
@@ -30,3 +31,4 @@ class rc4_(object):
     __call__ = decrypt = encrypt = rc4
 
 rc4 = rc4_()
+pe = PE
