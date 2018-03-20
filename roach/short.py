@@ -2,6 +2,7 @@
 # This file is part of Roach - https://github.com/jbremer/roach.
 # See the file 'docs/LICENSE.txt' for copying permission.
 
+from roach.compression.aplib import aPLib
 from roach.crypto.aes import AES
 from roach.crypto.rc import RC4
 from roach.pe import PE
@@ -32,3 +33,4 @@ class rc4_(object):
 
 rc4 = rc4_()
 pe = PE
+aplib = aPLib()

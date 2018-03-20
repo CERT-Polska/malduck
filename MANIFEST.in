@@ -1,0 +1,6 @@
+graft roach
+recursive-exclude * *.pyc *.pyo
+include roach/native/components/aplib-32.dll
+include roach/native/components/aplib-32.so
+include roach/native/components/aplib-64.dll
+include roach/native/components/aplib-64.so
