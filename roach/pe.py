@@ -18,9 +18,23 @@ class PE(object):
         return self.pe.NT_HEADERS
 
     @property
+    def file_header(self):
+        return self.pe.FILE_HEADER
+
+    @property
     def optional_header(self):
         return self.pe.OPTIONAL_HEADER
 
     @property
     def sections(self):
         return self.pe.sections
+
+    @property
+    def is32bit(self):
+        return self.optional_header.Magic == pefile.OPTIONAL_HEADER_MAGIC_PE
+
+    @property
+    def is64bit(self):
+        return (
+            self.optional_header.Magic == pefile.OPTIONAL_HEADER_MAGIC_PE_PLUS
+        )
