@@ -2,6 +2,7 @@
 # This file is part of Roach - https://github.com/jbremer/roach.
 # See the file 'docs/LICENSE.txt' for copying permission.
 
-from roach.hash.sha import md5, sha1, sha224, sha384, sha256, sha512
-from roach.short import aes, rc4
-from roach.string.ops import asciiz
+from roach import asciiz
+
+def test_asciiz():
+    assert asciiz("hello\x00world") == "hello"
