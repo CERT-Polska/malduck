@@ -1,4 +1,5 @@
 .idea/
 roach.egg-info/
 .cache/
+.coverage
 *.pyc

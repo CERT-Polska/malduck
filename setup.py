@@ -23,6 +23,7 @@ setup(
     include_package_data=True,
     install_requires=[
         "cryptography>=2.1",
+        "pycrypto",
     ],
     extras_require={
         ":sys_platform == 'win32'": [

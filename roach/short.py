@@ -3,6 +3,7 @@
 # See the file 'docs/LICENSE.txt' for copying permission.
 
 from roach.crypto.aes import AES
+from roach.crypto.rc import RC4
 
 class aes(object):
     def __init__(self, mode):
@@ -20,3 +21,12 @@ class aes(object):
         @staticmethod
         def decrypt(key=None, iv=None, data=None):
             return aes("ecb").decrypt(key, iv, data)
+
+class rc4_(object):
+    @staticmethod
+    def rc4(key, data):
+        return RC4(key).encrypt(data)
+
+    __call__ = decrypt = encrypt = rc4
+
+rc4 = rc4_()
