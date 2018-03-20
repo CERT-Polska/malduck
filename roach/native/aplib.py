@@ -29,5 +29,7 @@ def unpack(buf, length=None, maxsz=4*1024*1024):
         if ret > 0:
             break
         length *= 2
+    if ret < 0:
+        return
 
     return out.raw[:ret]

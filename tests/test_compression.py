@@ -20,3 +20,5 @@ QVAzMhgAAABGAAAAf+p8HwEAEAA5iu7QQacB19//yAF9ff/8hwHX3//IAX19//yHAdff/8gBfX3/
 QacB19//yAF9ff/8hwHX3//IAX19//yHAdff/8gBfX3//IcB19//yAF9ff/
 8hwHX3//IAX19//yH\nAdff/8gBXXf/2QqAAA==
 """.decode("base64")) == "A"*1024*1024 + "\n"
+
+    assert aplib("helloworld") is None
