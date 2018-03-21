@@ -5,7 +5,10 @@
 from roach.compression.aplib import aPLib
 from roach.crypto.aes import AES
 from roach.crypto.rc import RC4
+from roach.disasm import Instruction
 from roach.pe import PE
+from roach.procmem import ProcessMemory
+from roach.string.ops import Padding
 
 class aes(object):
     def __init__(self, mode):
@@ -34,3 +37,6 @@ class rc4_(object):
 rc4 = rc4_()
 pe = PE
 aplib = aPLib()
+procmem = ProcessMemory
+pad = Padding("pkcs7")
+insn = Instruction

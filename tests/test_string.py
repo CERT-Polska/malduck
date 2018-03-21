@@ -10,3 +10,6 @@ def test_asciiz():
 def test_pad():
     assert pad("hello!!1", 8) == "hello!!1"
     assert pad("hello", 8) == "hello\x03\x03\x03"
+    assert pad.pkcs7("hello!", 8) == "hello!\x02\x02"
+    assert pad.null("hi", 4) == "hi\x00\x00"
+    assert pad.null("foo_bar!", 8) == "foo_bar!"
