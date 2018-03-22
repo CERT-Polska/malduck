@@ -130,7 +130,10 @@ class ProcessMemory(object):
         """Reads a continuous buffer with address and length."""
         ret = []
         while length:
-            a, l = self.addr_range(addr)
+            r = self.addr_range(addr)
+            if not r:
+                break
+            a, l = r
             l = min(a + l - addr, length)
             ret.append(self.read(self.v2p(addr), l))
             addr, length = addr + l, length - l
@@ -203,3 +206,48 @@ class ProcessMemory(object):
 
     def disasmv(self, addr, size):
         return disasm(self.readv(addr, size), addr)
+
+    def findmz(self, addr):
+        """Locates the MZ header based on an address."""
+        addr &= ~0xffff
+        while True:
+            buf = self.readv(addr, 2)
+            if not buf:
+                return
+            if buf == "MZ":
+                return addr
+            addr -= 0x10000
+
+class ProcessMemoryPE(ProcessMemory):
+    """Wrapper around ProcessMemory for reading in-memory PE files."""
+
+    def __init__(self, p, imgbase, load=True):
+        self.imgbase = imgbase
+
+        if p.__class__ == ProcessMemoryPE:
+            raise RuntimeError("object already procmempe!")
+
+        # Upgrade existing ProcessMemory instance.
+        if p.__class__ == ProcessMemory:
+            self.f = p.f
+            self.m = p.m
+            self.load = p.load
+            self._regions = p.regions
+        else:
+            ProcessMemory.__init__(p, load)
+
+    def __len__(self):
+        r = self.regions[-1]
+        return r.addr + r.size
+
+    def __getitem__(self, item):
+        if isinstance(item, (int, long)):
+            return self.readv(self.imgbase + item, 1)
+
+        if item.start is None:
+            start = self.imgbase
+            stop = item.stop
+        else:
+            start = self.imgbase + item.start
+            stop = item.stop - item.start
+        return self.readv(start, stop)

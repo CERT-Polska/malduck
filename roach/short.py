@@ -7,7 +7,7 @@ from roach.crypto.aes import AES
 from roach.crypto.rc import RC4
 from roach.disasm import Instruction
 from roach.pe import PE
-from roach.procmem import ProcessMemory
+from roach.procmem import ProcessMemory, ProcessMemoryPE
 from roach.string.ops import Padding
 
 class aes(object):
@@ -38,5 +38,6 @@ rc4 = rc4_()
 pe = PE
 aplib = aPLib()
 procmem = ProcessMemory
+procmempe = ProcessMemoryPE
 pad = Padding("pkcs7")
 insn = Instruction

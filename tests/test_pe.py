@@ -28,3 +28,10 @@ AJYAAAAAAAAAAAAAAAAAAEAAAEAK
     assert img.is32bit is True
     assert img.is64bit is False
     assert img.section(".text").VirtualAddress == 0x1000
+
+def test_calc_exe():
+    p = pe(open("tests/files/calc.exe", "rb").read(), fast_load=False)
+    assert p.is32bit is True
+    data = p.resource("WEVT_TEMPLATE")
+    assert data.startswith("CRIM")
+    assert len(data) == 4750

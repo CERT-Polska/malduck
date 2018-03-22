@@ -3,4 +3,5 @@ roach.egg-info/
 .cache/
 .coverage
 dist/
+.pytest_cache/
 *.pyc

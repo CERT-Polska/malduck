@@ -6,7 +6,7 @@ import os
 import struct
 import tempfile
 
-from roach import procmem, pad, insn, PAGE_READWRITE
+from roach import procmem, procmempe, pad, pe, insn, PAGE_READWRITE
 
 def test_procmem_dummy_dmp():
     p = procmem("tests/files/dummy.dmp")
@@ -51,6 +51,22 @@ def test_procmem_dummy_dmp():
     assert p.uint64p(p.v2p(0x41410ff8)) == 0x4141414141414141
     assert p.uint64v(0x41410ffe) == 0x4242424242424141
     assert p.p2v(p.v2p(0x41411414)) == 0x41411414
+
+def test_calc_dmp():
+    p = procmem("tests/files/calc.dmp")
+    assert p.findmz(0x129abc) == 0xd0000
+    p = procmempe(p, 0xd0000)
+    assert p[0] == "M" and p[1] == "Z" and p[:2] == "MZ"
+    # Old/regular method with PE header.
+    assert pe(p.readv(p.imgbase, 0x1000)).dos_header.e_lfanew == 0xd8
+    assert p[0xd8:0xdc] == "PE\x00\x00"
+
+    assert pe(p).is32bit is True
+    d = pe(p).optional_header.DATA_DIRECTORY[2]
+    assert d.VirtualAddress == 0x59000 and d.Size == 0x62798
+    data = pe(p).resource("WEVT_TEMPLATE")
+    assert data.startswith("CRIM")
+    assert len(data) == 4750
 
 def test_methods():
     fd, filepath = tempfile.mkstemp()

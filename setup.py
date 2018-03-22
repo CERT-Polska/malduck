@@ -23,6 +23,7 @@ setup(
     include_package_data=True,
     install_requires=[
         "cryptography>=2.1",
+        "pefile2==1.2.11",
         "pycrypto",
     ],
     extras_require={
