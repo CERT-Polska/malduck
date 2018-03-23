@@ -48,6 +48,17 @@ class Region(object):
             "offset": self.offset,
         }
 
+    def __cmp__(self, other):
+        if not isinstance(other, Region):
+            raise RuntimeError("not a region object!")
+
+        # TODO Include the offset in this comparison?
+        return not (
+            self.addr == other.addr and self.size == other.size and
+            self.state == other.state and self.type_ == other.type_ and
+            self.protect == other.protect
+        )
+
 class ProcessMemory(object):
     """Wrapper object to operate on process memory dumps."""
 
@@ -222,7 +233,8 @@ class ProcessMemoryPE(ProcessMemory):
     """Wrapper around ProcessMemory for reading in-memory PE files."""
 
     def __init__(self, p, imgbase, load=True):
-        self.imgbase = imgbase
+        if not imgbase:
+            raise RuntimeError("invalid image base!")
 
         if p.__class__ == ProcessMemoryPE:
             raise RuntimeError("object already procmempe!")
@@ -234,7 +246,10 @@ class ProcessMemoryPE(ProcessMemory):
             self.load = p.load
             self._regions = p.regions
         else:
-            ProcessMemory.__init__(p, load)
+            ProcessMemory.__init__(self, p, load)
+
+        self.imgbase = imgbase
+        self._pe = None
 
     def __len__(self):
         r = self.regions[-1]
@@ -251,3 +266,20 @@ class ProcessMemoryPE(ProcessMemory):
             start = self.imgbase + item.start
             stop = item.stop - item.start
         return self.readv(start, stop)
+
+    @property
+    def pe(self):
+        if not self._pe:
+            from roach.pe import PE
+            self._pe = PE(self)
+        return self._pe
+
+    @staticmethod
+    def fromaddr(filepath, addr):
+        p = ProcessMemory(filepath)
+        return ProcessMemoryPE(p, p.findmz(addr))
+
+    @staticmethod
+    def fromoffset(filepath, offset):
+        p = ProcessMemory(filepath)
+        return ProcessMemoryPE(p, p.findmz(p.p2v(offset)))

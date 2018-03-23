@@ -2,7 +2,7 @@
 # This file is part of Roach - https://github.com/jbremer/roach.
 # See the file 'docs/LICENSE.txt' for copying permission.
 
-from roach import aes, rc4
+from roach import aes, rc4, rsa
 
 def test_aes():
     # Note that ECB doesn't use the IV.
@@ -27,3 +27,17 @@ def test_rc4():
         "45a01f645fc35b383552544b9bf5".decode("hex")
     )
     assert rc4("hello", "world") == "783ecd96cf".decode("hex")
+
+def test_rsa():
+    rsa.import_key("""
+MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC5cagCPVB7LiX3UI5N3WRQJqTLe5RPrhFj79/U
+7AY+ziYQrKhSaIQG7KWuLAZj4sKRyRyZK1te0Ekb1UGkYn3b1YTQtXojaakq5p4WyHFvhfNPjSlJ
+ClIt4QC/NZ9uS2FRee8ONEKODrcgevzcd+lbNy/mGAB7yW9XgP06YzfOyQIDAQAB
+    """.decode("base64")).exportKey() == """
+-----BEGIN PUBLIC KEY-----
+MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC5cagCPVB7LiX3UI5N3WRQJqTL
+e5RPrhFj79/U7AY+ziYQrKhSaIQG7KWuLAZj4sKRyRyZK1te0Ekb1UGkYn3b1YTQ
+tXojaakq5p4WyHFvhfNPjSlJClIt4QC/NZ9uS2FRee8ONEKODrcgevzcd+lbNy/m
+GAB7yW9XgP06YzfOyQIDAQAB
+-----END PUBLIC KEY-----
+""".strip()

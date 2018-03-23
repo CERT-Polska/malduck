@@ -54,6 +54,7 @@ def test_procmem_dummy_dmp():
 
 def test_calc_dmp():
     p = procmem("tests/files/calc.dmp")
+    assert p.regions == procmempe("tests/files/calc.dmp", 0xd0000).regions
     assert p.findmz(0x129abc) == 0xd0000
     p = procmempe(p, 0xd0000)
     assert p[0] == "M" and p[1] == "Z" and p[:2] == "MZ"
@@ -67,6 +68,13 @@ def test_calc_dmp():
     data = pe(p).resource("WEVT_TEMPLATE")
     assert data.startswith("CRIM")
     assert len(data) == 4750
+
+    p = procmempe.fromaddr("tests/files/calc.dmp", 0xe9999)
+    assert p.imgbase == 0xd0000
+
+    p = procmempe.fromoffset("tests/files/calc.dmp", 0x12345)
+    assert p.imgbase == 0xd0000
+    assert p.pe.is32bit is True
 
 def test_methods():
     fd, filepath = tempfile.mkstemp()

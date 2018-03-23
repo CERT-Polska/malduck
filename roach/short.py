@@ -5,6 +5,7 @@
 from roach.compression.aplib import aPLib
 from roach.crypto.aes import AES
 from roach.crypto.rc import RC4
+from roach.crypto.rsa import RSA
 from roach.disasm import Instruction
 from roach.pe import PE
 from roach.procmem import ProcessMemory, ProcessMemoryPE
@@ -41,3 +42,4 @@ procmem = ProcessMemory
 procmempe = ProcessMemoryPE
 pad = Padding("pkcs7")
 insn = Instruction
+rsa = RSA()
