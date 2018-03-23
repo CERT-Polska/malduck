@@ -4,14 +4,28 @@
 
 import struct
 
-def int16(s):
-    return struct.unpack("h", s)[0]
+def _worker(fmt, width, value):
+    if isinstance(value, (int, long)):
+        return struct.pack(fmt, value)
 
-def uint16(s):
-    return struct.unpack("H", s)[0]
+    count = len(value) / width
+    ret = struct.unpack(fmt*count, value)
+    return ret[0] if count == 1 else ret
 
-def int32(s):
-    return struct.unpack("i", s)[0]
+def int16(value):
+    return _worker("h", 2, value)
 
-def uint32(s):
-    return struct.unpack("I", s)[0]
+def uint16(value):
+    return _worker("H", 2, value)
+
+def int32(value):
+    return _worker("i", 4, value)
+
+def uint32(value):
+    return _worker("I", 4, value)
+
+def int64(value):
+    return _worker("q", 8, value)
+
+def uint64(value):
+    return _worker("Q", 8, value)
