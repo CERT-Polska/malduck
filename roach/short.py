@@ -9,6 +9,7 @@ from roach.crypto.rsa import RSA
 from roach.disasm import Instruction
 from roach.pe import PE
 from roach.procmem import ProcessMemory, ProcessMemoryPE
+from roach.string.inet import IPv4
 from roach.string.ops import Padding
 
 class aes(object):
@@ -43,3 +44,4 @@ procmempe = ProcessMemoryPE
 pad = Padding("pkcs7")
 insn = Instruction
 rsa = RSA()
+ipv4 = IPv4

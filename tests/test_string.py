@@ -2,7 +2,7 @@
 # This file is part of Roach - https://github.com/jbremer/roach.
 # See the file 'docs/LICENSE.txt' for copying permission.
 
-from roach import asciiz, pad
+from roach import asciiz, pad, ipv4
 
 def test_asciiz():
     assert asciiz("hello\x00world") == "hello"
@@ -13,3 +13,6 @@ def test_pad():
     assert pad.pkcs7("hello!", 8) == "hello!\x02\x02"
     assert pad.null("hi", 4) == "hi\x00\x00"
     assert pad.null("foo_bar!", 8) == "foo_bar!"
+
+def test_ipv4():
+    assert str(ipv4("ABCD")) == "65.66.67.68"
