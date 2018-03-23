@@ -2,7 +2,7 @@
 # This file is part of Roach - https://github.com/jbremer/roach.
 # See the file 'docs/LICENSE.txt' for copying permission.
 
-from roach import asciiz, pad, ipv4
+from roach import asciiz, pad, ipv4, int16, uint16, int32, uint32
 
 def test_asciiz():
     assert asciiz("hello\x00world") == "hello"
@@ -16,3 +16,14 @@ def test_pad():
 
 def test_ipv4():
     assert str(ipv4("ABCD")) == "65.66.67.68"
+
+def test_bin():
+    assert int16("AB") == 0x4241
+    assert int16("\xff\xff") == -1
+    assert uint16("AB") == 0x4241
+    assert uint16("\xff\xff") == 0xffff
+
+    assert int32("ABCD") == 0x44434241
+    assert int32("\xff\xff\xff\xff") == -1
+    assert uint32("ABCD") == 0x44434241
+    assert uint32("\xff\xff\xff\xff") == 0xffffffff
