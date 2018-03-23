@@ -250,6 +250,7 @@ class ProcessMemoryPE(ProcessMemory):
 
         self.imgbase = imgbase
         self._pe = None
+        self._imgend = None
 
     def __len__(self):
         r = self.regions[-1]
@@ -273,6 +274,17 @@ class ProcessMemoryPE(ProcessMemory):
             from roach.pe import PE
             self._pe = PE(self)
         return self._pe
+
+    @property
+    def imgend(self):
+        if not self._imgend:
+            # TODO Is this good enough? What about OptionalHeader.SizeOfImage?
+            section = self.pe.sections[-1]
+            self._imgend = (
+                self.imgbase +
+                section.VirtualAddress + section.Misc_VirtualSize
+            )
+        return self._imgend
 
     @staticmethod
     def fromaddr(filepath, addr):

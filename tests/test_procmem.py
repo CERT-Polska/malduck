@@ -69,8 +69,12 @@ def test_calc_dmp():
     assert data.startswith("CRIM")
     assert len(data) == 4750
 
+    # In this case imgbase + OptionalHeader.SizeOfImage adds up to 0x190000.
+    # TODO Should we take the upper bound, lower bound, or depending on whether
+    # in-between is completely filled with zeroes?
     p = procmempe.fromaddr("tests/files/calc.dmp", 0xe9999)
     assert p.imgbase == 0xd0000
+    assert p.imgend == 0x18fb3c
 
     p = procmempe.fromoffset("tests/files/calc.dmp", 0x12345)
     assert p.imgbase == 0xd0000
