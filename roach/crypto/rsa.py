@@ -6,4 +6,4 @@ from Crypto.PublicKey import RSA as RSA_
 
 class RSA(object):
     def import_key(self, data):
-        return RSA_.importKey(data)
+        return RSA_.importKey(data).exportKey()
