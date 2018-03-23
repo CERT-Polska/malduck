@@ -29,3 +29,7 @@ def int64(value):
 
 def uint64(value):
     return _worker("Q", 8, value)
+
+# TODO Do we need any love on top of this?
+unpack = struct.unpack
+pack = struct.pack

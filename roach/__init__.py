@@ -4,7 +4,6 @@
 
 from roach.disasm import disasm
 from roach.hash.sha import md5, sha1, sha224, sha384, sha256, sha512
-from roach.string.bin import int16, uint16, int32, uint32, int64, uint64
 from roach.string.ops import asciiz
 
 from roach.procmem import (
@@ -14,4 +13,8 @@ from roach.procmem import (
 
 from roach.short import (
     aes, rc4, pe, aplib, procmem, procmempe, pad, insn, rsa, ipv4
+)
+
+from roach.string.bin import (
+    int16, uint16, int32, uint32, int64, uint64, pack, unpack
 )

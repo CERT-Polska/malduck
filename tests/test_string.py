@@ -3,7 +3,8 @@
 # See the file 'docs/LICENSE.txt' for copying permission.
 
 from roach import (
-    asciiz, pad, ipv4, int16, uint16, int32, uint32, int64, uint64
+    asciiz, pad, ipv4, int16, uint16, int32, uint32, int64, uint64, pack,
+    unpack
 )
 
 def test_asciiz():
@@ -65,3 +66,11 @@ def test_bin_reverse():
     assert int64(-1) == "\xff\xff\xff\xff\xff\xff\xff\xff"
     assert uint64(0x8877665544332211) == "\x11\x22\x33\x44\x55\x66\x77\x88"
     assert uint64(0xffffffffffffffff) == "\xff\xff\xff\xff\xff\xff\xff\xff"
+
+def test_pack():
+    assert pack(
+        "HHIQ", 0x4141, 0x4141, 0x41414141, 0x4141414141414141
+    ) == "A"*16
+    assert unpack("HHIQ", "A"*16) == (
+        0x4141, 0x4141, 0x41414141, 0x4141414141414141
+    )
