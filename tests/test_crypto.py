@@ -2,7 +2,7 @@
 # This file is part of Roach - https://github.com/jbremer/roach.
 # See the file 'docs/LICENSE.txt' for copying permission.
 
-from roach import aes, des3, rc4, rsa
+from roach import aes, des3, rc4, rsa, xor
 
 def test_aes():
     # Note that ECB doesn't use the IV.
@@ -32,6 +32,14 @@ def test_rc4():
         "45a01f645fc35b383552544b9bf5".decode("hex")
     )
     assert rc4("hello", "world") == "783ecd96cf".decode("hex")
+
+def test_xor():
+    assert xor(
+        "\x97\x9a\x93\x93\x90\xdf\x88\x90\x8d\x93\x9b", 0xff
+    ) == "hello world"
+    assert xor(
+        "\x00\x0cM\x04\x06\x01\x1f\x06S\x04\r", "hi!"
+    ) == "hello world"
 
 def test_rsa():
     assert rsa.import_key("""
