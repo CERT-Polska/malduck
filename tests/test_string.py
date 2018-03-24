@@ -20,6 +20,24 @@ def test_pad():
 def test_ipv4():
     assert str(ipv4("ABCD")) == "65.66.67.68"
 
+    assert ipv4("ABC") is None
+    assert bool(ipv4("ABC")) is False
+    assert bool(ipv4("ABCD")) is True
+    assert bool(ipv4("ABCDE")) is False
+    assert bool(ipv4("1.2.3.4")) is True
+    assert bool(ipv4("123.234.32.41")) is True
+    assert bool(ipv4("323.234.32.41")) is False
+    assert ipv4("1.2.3.4") == "1.2.3.4"
+    assert ipv4("123.234.32.41") == "123.234.32.41"
+    assert ipv4("255.255.255.255") == "255.255.255.255"
+
+    assert ipv4("256.255.255.255") is None
+    assert ipv4("255.256.255.255") is None
+    assert ipv4("255.255.256.255") is None
+    assert ipv4("255.255.255.256") is None
+
+    assert ipv4(0x7f000001) == "127.0.0.1"
+
 def test_bin():
     assert int16("AB") == 0x4241
     assert int16("\xff\xff") == -1
