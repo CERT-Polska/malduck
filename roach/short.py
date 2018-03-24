@@ -4,6 +4,7 @@
 
 from roach.compression.aplib import aPLib
 from roach.crypto.aes import AES
+from roach.crypto.des3 import DES3
 from roach.crypto.rc import RC4
 from roach.crypto.rsa import RSA
 from roach.disasm import Instruction
@@ -27,6 +28,18 @@ class aes(object):
         @staticmethod
         def decrypt(key=None, iv=None, data=None):
             return aes("ecb").decrypt(key, iv, data)
+
+class des3(object):
+    def __init__(self, mode):
+        self.mode = mode
+
+    def decrypt(self, key=None, iv=None, data=None):
+        return DES3(key, iv, self.mode).decrypt(data)
+
+    class cbc(object):
+        @staticmethod
+        def decrypt(key=None, iv=None, data=None):
+            return des3("cbc").decrypt(key, iv, data)
 
 class rc4_(object):
     @staticmethod
