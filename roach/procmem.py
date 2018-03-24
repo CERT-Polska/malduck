@@ -203,17 +203,28 @@ class ProcessMemory(object):
         """Read a nul-terminated ASCII string at address."""
         return self.read_until(addr, "\x00")
 
-    def regexp(self, query):
+    def regexp(self, query, offset=0, length=0):
         """Performs a regex on the file, must use mmap(2) loading."""
         if not self.load:
             raise RuntimeError("can only regex on a file!")
-        x = re.search(query, self.m)
-        return x.start() if x else None
+        if offset and length:
+            chunk = self.m[offset:offset+length]
+        else:
+            chunk = self.m
+        for entry in re.finditer(query, chunk):
+            yield offset + entry.start()
 
-    def regexv(self, query):
+    def regexv(self, query, addr=None, length=None):
         """Performs a regex on the file, must use mmap(2) loading."""
-        off = self.regexp(query)
-        return self.p2v(off) if off else None
+        if addr and length:
+            offset, end = self.v2p(addr), self.v2p(addr + length)
+            length = end - offset
+        else:
+            offset = length = 0
+        for offset in self.regexp(query, offset, length):
+            addr = self.p2v(offset)
+            if addr:
+                yield addr
 
     def disasmv(self, addr, size):
         return disasm(self.readv(addr, size), addr)

@@ -89,7 +89,9 @@ def test_methods():
     os.close(fd)
     buf = procmem(filepath)
     assert buf.readv(0x401000, 0x1000).endswith("\x00"*0x100)
-    assert buf.regexv("thisis(.*)test") == 0x401008
+    assert list(buf.regexv("thisis(.*)test")) == [0x401008]
+    assert list(buf.regexv(" ")) == [0x401007, 0x401013]
+    assert list(buf.regexv(" ", 0x401000, 0x10)) == [0x401007]
     assert buf.disasmv(0x401014, 6) == [
         insn("push", 0x41414141, addr=0x401014),
         insn("ret", addr=0x401019),
