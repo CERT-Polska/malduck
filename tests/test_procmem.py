@@ -84,15 +84,16 @@ def test_methods():
     fd, filepath = tempfile.mkstemp()
     os.write(fd, "".join((
         struct.pack("QIIII", 0x401000, 0x1000, 0, 0, PAGE_READWRITE),
-        pad.null("foo\x00bar thisis0test hAAAA\xc3", 0x1000),
+        pad.null("foo\x00bar thisis0test\n hAAAA\xc3", 0x1000),
     )))
     os.close(fd)
     buf = procmem(filepath)
     assert buf.readv(0x401000, 0x1000).endswith("\x00"*0x100)
     assert list(buf.regexv("thisis(.*)test")) == [0x401008]
-    assert list(buf.regexv(" ")) == [0x401007, 0x401013]
+    assert list(buf.regexv(" ")) == [0x401007, 0x401014]
     assert list(buf.regexv(" ", 0x401000, 0x10)) == [0x401007]
-    assert buf.disasmv(0x401014, 6) == [
-        insn("push", 0x41414141, addr=0x401014),
-        insn("ret", addr=0x401019),
+    assert list(buf.regexv("test..h")) == [0x40100f]
+    assert buf.disasmv(0x401015, 6) == [
+        insn("push", 0x41414141, addr=0x401015),
+        insn("ret", addr=0x40101a),
     ]

@@ -211,7 +211,7 @@ class ProcessMemory(object):
             chunk = self.m[offset:offset+length]
         else:
             chunk = self.m
-        for entry in re.finditer(query, chunk):
+        for entry in re.finditer(query, chunk, re.DOTALL):
             yield offset + entry.start()
 
     def regexv(self, query, addr=None, length=None):
