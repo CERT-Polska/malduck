@@ -98,6 +98,8 @@ SMwUJzX+C1ptwMcRoQIDAQAB
 -----END PUBLIC KEY-----
 """.strip()
 
+    assert rsa.import_key("") is None
+
     # This obviously doesn't make any sense, but it's to ensure that the
     # None or long wrapping is working, avoiding PyCrypto complains.
     assert rsa.export_key(0x10001, 0x10001) == """

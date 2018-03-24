@@ -140,7 +140,7 @@ class RSA(object):
     def import_key(data):
         try:
             return RSA_.importKey(data).exportKey()
-        except ValueError:
+        except (ValueError, IndexError):
             pass
 
         if len(data) < ctypes.sizeof(BLOBHEADER):
