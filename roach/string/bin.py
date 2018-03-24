@@ -4,6 +4,8 @@
 
 import struct
 
+from roach.string.ops import Padding
+
 def _worker(fmt, width, value):
     if isinstance(value, (int, long)):
         return struct.pack(fmt, value)
@@ -29,6 +31,15 @@ def int64(value):
 
 def uint64(value):
     return _worker("Q", 8, value)
+
+def bigint(s, bitsize):
+    if isinstance(s, (int, long)):
+        return Padding.null(("%x" % s).decode("hex")[::-1], bitsize / 8)
+
+    if len(s) < bitsize / 8:
+        return
+
+    return int(s[:bitsize / 8][::-1].encode("hex"), 16)
 
 # TODO Do we need any love on top of this?
 unpack = struct.unpack

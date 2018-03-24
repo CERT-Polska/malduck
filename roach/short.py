@@ -43,5 +43,5 @@ procmem = ProcessMemory
 procmempe = ProcessMemoryPE
 pad = Padding("pkcs7")
 insn = Instruction
-rsa = RSA()
+rsa = RSA
 ipv4 = IPv4

@@ -3,8 +3,8 @@
 # See the file 'docs/LICENSE.txt' for copying permission.
 
 from roach import (
-    asciiz, pad, ipv4, int16, uint16, int32, uint32, int64, uint64, pack,
-    unpack
+    asciiz, pad, ipv4, int16, uint16, int32, uint32, int64, uint64, bigint,
+    pack, unpack
 )
 
 def test_asciiz():
@@ -66,6 +66,11 @@ def test_bin_reverse():
     assert int64(-1) == "\xff\xff\xff\xff\xff\xff\xff\xff"
     assert uint64(0x8877665544332211) == "\x11\x22\x33\x44\x55\x66\x77\x88"
     assert uint64(0xffffffffffffffff) == "\xff\xff\xff\xff\xff\xff\xff\xff"
+
+def test_bigint():
+    assert bigint("ABCD", 40) is None
+    assert bigint("ABCDE", 40) == 0x4544434241
+    assert bigint(0x44434241, 40) == "ABCD\x00"
 
 def test_pack():
     assert pack(
