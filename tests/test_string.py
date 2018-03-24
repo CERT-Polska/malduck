@@ -44,6 +44,7 @@ def test_ipv4():
     assert ipv4(0x7f000001) == "127.0.0.1"
 
 def test_bin():
+    assert int16("A") is None
     assert int16("AB") == 0x4241
     assert int16("\xff\xff") == -1
     assert uint16("AB") == 0x4241
@@ -52,6 +53,7 @@ def test_bin():
     assert int16("AB\xff\xffEF") == (0x4241, -1, 0x4645)
     assert uint16("AB\xff\xffEF") == (0x4241, 0xffff, 0x4645)
 
+    assert int32("ABC") is None
     assert int32("ABCD") == 0x44434241
     assert int32("\xff\xff\xff\xff") == -1
     assert uint32("ABCD") == 0x44434241
@@ -62,6 +64,7 @@ def test_bin():
         0x44434241, 0xffffffff, 0x48474645
     )
 
+    assert int64("ABCDEFG") is None
     assert int64("ABCDEFGH") == 0x4847464544434241
     assert int64("\xff\xff\xff\xff\xff\xff\xff\xff") == -1
     assert uint64("HGFEDCBA") == 0x4142434445464748

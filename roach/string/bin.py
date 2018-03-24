@@ -11,6 +11,9 @@ def _worker(fmt, width, value):
         return struct.pack(fmt, value)
 
     count = len(value) / width
+    # TODO Should we return something else?
+    if not count:
+        return
     ret = struct.unpack(fmt*count, value)
     return ret[0] if count == 1 else ret
 
