@@ -162,4 +162,6 @@ class RSA(object):
 
     @staticmethod
     def export_key(n, e, d=None, p=None, q=None, crt=None):
-        return RSA_.construct((n, e, d, p, q, crt)).exportKey()
+        wrap = lambda x: None if x is None else long(x)
+        tup = wrap(n), wrap(e), wrap(d), wrap(p), wrap(q), wrap(crt)
+        return RSA_.construct(tup).exportKey()

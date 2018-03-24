@@ -97,3 +97,11 @@ BMZE8Y+tR6SzJkz5s6Plpi+A+9apcDeUfKxmj/5EizjFWmosJJj2fsa8VDbTERv7
 SMwUJzX+C1ptwMcRoQIDAQAB
 -----END PUBLIC KEY-----
 """.strip()
+
+    # This obviously doesn't make any sense, but it's to ensure that the
+    # None or long wrapping is working, avoiding PyCrypto complains.
+    assert rsa.export_key(0x10001, 0x10001) == """
+-----BEGIN PUBLIC KEY-----
+MB4wDQYJKoZIhvcNAQEBBQADDQAwCgIDAQABAgMBAAE=
+-----END PUBLIC KEY-----
+""".strip()
