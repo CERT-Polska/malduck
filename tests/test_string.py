@@ -3,8 +3,8 @@
 # See the file 'docs/LICENSE.txt' for copying permission.
 
 from roach import (
-    asciiz, pad, ipv4, int16, uint16, int32, uint32, int64, uint64, bigint,
-    pack, unpack
+    int16, uint16, int32, uint32, int64, uint64, bigint,
+    asciiz, pad, unpad, ipv4, pack, unpack,
 )
 
 def test_asciiz():
@@ -16,6 +16,11 @@ def test_pad():
     assert pad.pkcs7("hello!", 8) == "hello!\x02\x02"
     assert pad.null("hi", 4) == "hi\x00\x00"
     assert pad.null("foo_bar!", 8) == "foo_bar!"
+
+def test_unpad():
+    assert unpad("hello world!") == "hello world!"
+    assert unpad("hello\x03\x03\x03") == "hello"
+    assert unpad("hello\x02\x03\x03") == "hello\x02\x03\x03"
 
 def test_ipv4():
     assert str(ipv4("ABCD")) == "65.66.67.68"

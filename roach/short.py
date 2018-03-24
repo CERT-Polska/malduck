@@ -10,7 +10,7 @@ from roach.crypto.rsa import RSA
 from roach.disasm import Instruction
 from roach.pe import PE
 from roach.procmem import ProcessMemory, ProcessMemoryPE
-from roach.string.ops import Padding
+from roach.string.ops import Padding, Unpadding
 
 class aes(object):
     def __init__(self, mode):
@@ -54,5 +54,6 @@ aplib = aPLib()
 procmem = ProcessMemory
 procmempe = ProcessMemoryPE
 pad = Padding("pkcs7")
+unpad = Unpadding("pkcs7")
 insn = Instruction
 rsa = RSA

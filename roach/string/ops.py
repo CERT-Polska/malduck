@@ -24,3 +24,15 @@ class Padding(object):
         return s + padding
 
     __call__ = pkcs7 = pad
+
+class Unpadding(object):
+    def __init__(self, style):
+        self.style = style
+
+    def unpad(self, s):
+        count = ord(s[-1]) if s else 0
+        if self.style == "pkcs7" and s[-count:] == s[-1] * count:
+            return s[:-count]
+        return s
+
+    __call__ = pkcs7 = unpad
