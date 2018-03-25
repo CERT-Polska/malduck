@@ -3,6 +3,7 @@
 # See the file 'docs/LICENSE.txt' for copying permission.
 
 from roach.compression.aplib import aPLib
+from roach.compression.gzip import Gzip
 from roach.crypto.aes import AES
 from roach.crypto.blowfish import Blowfish
 from roach.crypto.des3 import DES3
@@ -66,3 +67,4 @@ pad = Padding("pkcs7")
 unpad = Unpadding("pkcs7")
 insn = Instruction
 rsa = RSA
+gzip = Gzip()
