@@ -47,7 +47,7 @@ class Operand(object):
 
     @property
     def reg(self):
-        if self.is_mem:
+        if self.is_mem and self.op.value.mem.base:
             return self.regs[self.op.value.mem.base]
         if self.is_reg:
             return self.regs[self.op.reg]

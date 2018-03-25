@@ -16,6 +16,10 @@ class TestDisasm(object):
         "\xa1\x59\x58\x14\x00",
         # push 0x41414141
         "\x68\x41\x41\x41\x41",
+        # call $+0
+        "\xe8\x00\x00\x00\x00",
+        # movxz eax, byte [0x400000]
+        "\x0f\xb6\x05\x00\x00\x04\x00",
     ))
 
     def setup(self):
@@ -48,6 +52,13 @@ class TestDisasm(object):
         insn5 = self.insns[4]
         assert insn5.op1 == 0x41414141
         assert str(insn5) == "push 0x41414141"
+
+        insn6 = self.insns[5]
+        assert insn6.op1.value == insn6.addr + 5
+
+        insn7 = self.insns[6]
+        assert insn7.op2.reg is None
+        assert insn7.op2 == (None, None, None, 0x400000)
 
     def test_equal(self):
         assert disasm("hAAAA", 0)[0].mnem == "push"
