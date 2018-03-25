@@ -2,7 +2,7 @@
 # This file is part of Roach - https://github.com/jbremer/roach.
 # See the file 'docs/LICENSE.txt' for copying permission.
 
-from roach import aes, des3, rc4, rsa, xor
+from roach import aes, blowfish, des3, rc4, rsa, xor
 
 def test_aes():
     # Note that ECB doesn't use the IV.
@@ -19,6 +19,11 @@ def test_aes():
         "\x0b\xd4\x18\xa6\xf7\xbd\x1a\xff\x16\x1f\xd1A\xd4\xbe5\x9b"
         "\n\xd5\x19\xa7\xf6\xbc\x1b\xfe\x17\x1e\xd0@\xd5\xbf4\x9a"
     )
+
+def test_blowfish():
+    assert blowfish(
+        "blowfish", "\x91;\x92\xa9\x85\x83\xb36\xbb\xac\xa8r0\xf1$\x19"
+    ) == "_hello world01!?"
 
 def test_des():
     assert des3.cbc.decrypt(

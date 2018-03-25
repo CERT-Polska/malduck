@@ -4,6 +4,7 @@
 
 from roach.compression.aplib import aPLib
 from roach.crypto.aes import AES
+from roach.crypto.blowfish import Blowfish
 from roach.crypto.des3 import DES3
 from roach.crypto.rc import RC4
 from roach.crypto.rsa import RSA
@@ -48,6 +49,14 @@ class rc4_(object):
 
     __call__ = decrypt = encrypt = rc4
 
+class blowfish_(object):
+    @staticmethod
+    def decrypt(key, data):
+        return Blowfish(key).decrypt(data)
+
+    __call__ = decrypt
+
+blowfish = blowfish_()
 rc4 = rc4_()
 pe = PE
 aplib = aPLib()
