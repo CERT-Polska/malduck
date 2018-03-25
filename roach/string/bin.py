@@ -17,6 +17,12 @@ def _worker(fmt, width, value):
     ret = struct.unpack(fmt*count, value)
     return ret[0] if count == 1 else ret
 
+def int8(value):
+    return _worker("b", 1, value)
+
+def uint8(value):
+    return _worker("B", 1, value)
+
 def int16(value):
     return _worker("h", 2, value)
 

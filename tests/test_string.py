@@ -3,7 +3,7 @@
 # See the file 'docs/LICENSE.txt' for copying permission.
 
 from roach import (
-    int16, uint16, int32, uint32, int64, uint64, bigint,
+    int8, uint8, int16, uint16, int32, uint32, int64, uint64, bigint,
     asciiz, pad, unpad, ipv4, pack, unpack,
 )
 
@@ -44,6 +44,16 @@ def test_ipv4():
     assert ipv4(0x7f000001) == "127.0.0.1"
 
 def test_bin():
+    assert int8("") is None
+    assert int8("A") == 0x41
+    assert int8("\xff") == -1
+    assert uint8("") is None
+    assert uint8("B") == 0x42
+    assert uint8("\xff") == 0xff
+
+    assert int8("A\xffB") == (0x41, -1, 0x42)
+    assert uint8("A\xffB") == (0x41, 0xff, 0x42)
+
     assert int16("A") is None
     assert int16("AB") == 0x4241
     assert int16("\xff\xff") == -1
@@ -78,6 +88,11 @@ def test_bin():
     )
 
 def test_bin_reverse():
+    assert int8(0x12) == "\x12"
+    assert int8(-1) == "\xff"
+    assert uint8(0x34) == "\x34"
+    assert uint8(0xff) == "\xff"
+
     assert int16(0x1234) == "\x34\x12"
     assert int16(-1) == "\xff\xff"
     assert uint16(0x5678) == "\x78\x56"

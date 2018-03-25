@@ -52,6 +52,11 @@ def test_procmem_dummy_dmp():
     assert p.uint64v(0x41410ffe) == 0x4242424242424141
     assert p.p2v(p.v2p(0x41411414)) == 0x41411414
 
+    assert p.uint8v(0x1000) is None
+    assert p.uint16v(0x1000) is None
+    assert p.uint32v(0x1000) is None
+    assert p.uint64v(0x1000) is None
+
 def test_calc_dmp():
     p = procmem("tests/files/calc.dmp")
     assert p.regions == procmempe("tests/files/calc.dmp", 0xd0000).regions

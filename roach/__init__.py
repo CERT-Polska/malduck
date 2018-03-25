@@ -20,5 +20,6 @@ from roach.short import (
 )
 
 from roach.string.bin import (
-    int16, uint16, int32, uint32, int64, uint64, bigint, pack, unpack
+    int8, uint8, int16, uint16, int32, uint32, int64, uint64,
+    bigint, pack, unpack
 )

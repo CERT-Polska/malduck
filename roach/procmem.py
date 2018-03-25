@@ -8,6 +8,7 @@ import re
 import struct
 
 from roach.disasm import disasm
+from roach.string.bin import uint8, uint16, uint32, uint64
 
 PAGE_READONLY = 0x00000002
 PAGE_READWRITE = 0x00000004
@@ -169,35 +170,35 @@ class ProcessMemory(object):
 
     def uint8p(self, offset):
         """Read unsigned 8-bit value at offset."""
-        return ord(self.read(offset, 1))
+        return uint8(self.read(offset, 1))
 
     def uint16p(self, offset):
         """Read unsigned 16-bit value at offset."""
-        return struct.unpack("H", self.read(offset, 2))[0]
+        return uint16(self.read(offset, 2))
 
     def uint32p(self, offset):
         """Read unsigned 32-bit value at offset."""
-        return struct.unpack("I", self.read(offset, 4))[0]
+        return uint32(self.read(offset, 4))
 
     def uint64p(self, offset):
         """Read unsigned 64-bit value at offset."""
-        return struct.unpack("Q", self.read(offset, 8))[0]
+        return uint64(self.read(offset, 8))
 
     def uint8v(self, addr):
         """Read unsigned 8-bit value at address."""
-        return ord(self.readv(addr, 1))
+        return uint8(self.readv(addr, 1))
 
     def uint16v(self, addr):
         """Read unsigned 16-bit value at address."""
-        return struct.unpack("H", self.readv(addr, 2))[0]
+        return uint16(self.readv(addr, 2))
 
     def uint32v(self, addr):
         """Read unsigned 32-bit value at address."""
-        return struct.unpack("I", self.readv(addr, 4))[0]
+        return uint32(self.readv(addr, 4))
 
     def uint64v(self, addr):
         """Read unsigned 64-bit value at address."""
-        return struct.unpack("Q", self.readv(addr, 8))[0]
+        return uint64(self.readv(addr, 8))
 
     def asciiz(self, addr):
         """Read a nul-terminated ASCII string at address."""
