@@ -2,8 +2,11 @@
 # This file is part of Roach - https://github.com/jbremer/roach.
 # See the file 'docs/LICENSE.txt' for copying permission.
 
+import pytest
+
 from roach import aplib, gzip
 
+@pytest.mark.skipif("sys.platform == 'darwin'")
 def test_aplib():
     assert aplib(
         "QVAzMhgAAAANAAAAvJpimwsAAACFEUoNaDhlbI5vIHducuxkAA==".decode("base64")
@@ -22,6 +25,11 @@ QacB19//yAF9ff/8hwHX3//IAX19//yHAdff/8gBfX3//IcB19//yAF9ff/
 """.decode("base64")) == "A"*1024*1024 + "\n"
 
     assert aplib("helloworld") is None
+
+@pytest.mark.skipif("sys.platform != 'darwin'")
+def test_aplib_macos():
+    with pytest.raises(RuntimeError):
+        assert aplib("hello world")
 
 def test_gzip():
     assert gzip(
