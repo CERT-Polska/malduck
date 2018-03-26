@@ -152,13 +152,17 @@ class test_multiply():
         _fields_ = [
             ("a", uint8 * 8),
             ("b", uint32 * 4),
+            # Can specify string lengths right away.
+            ("c", 16),
         ]
 
-    m = M.parse("A"*8 + "B"*16)
+    m = M.parse("A"*8 + "B"*16 + "C"*15 + "\x00")
     assert m.a[:] == [0x41] * 8
 
     # We can also omit the [:] part.
     assert m.b == [0x42424242] * 4
+
+    assert m.c == "C"*15
 
 @pytest.mark.xfail
 def test_nested_asdict():

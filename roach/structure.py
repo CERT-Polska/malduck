@@ -32,6 +32,8 @@ class Structure(object):
                     type_ = mapping[type_.__class__] * type_.mul
                 else:
                     type_ = mapping[type_.__class__]
+            elif isinstance(type_, (int, long)):
+                type_ = ctypes.c_char * type_
             elif issubclass(type_, Structure):
                 # Keep track, likely for Python GC purposes.
                 self.subfields[field] = type_()
