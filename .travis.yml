@@ -10,8 +10,6 @@ matrix:
 before_install:
   - |
     if [[ $TRAVIS_OS_NAME == "osx" ]]; then
-      brew update || brew update
-      brew install libmagic
       # The following wasn't required in the past and therefore may become
       # obsolete once again in the future. Let's wait and see.
       wget https://bootstrap.pypa.io/get-pip.py

@@ -4,7 +4,7 @@
 
 import io
 
-from Crypto.PublicKey import RSA as RSA_
+from Crypto.PublicKey.RSA import RSAImplementation
 
 from roach.string.bin import uint8, uint16, uint32, bigint
 from roach.structure import Structure
@@ -164,3 +164,5 @@ class RSA(object):
         wrap = lambda x: None if x is None else long(x)
         tup = wrap(n), wrap(e), wrap(d), wrap(p), wrap(q), wrap(crt)
         return RSA_.construct(tup).exportKey()
+
+RSA_ = RSAImplementation(use_fast_math=False)
