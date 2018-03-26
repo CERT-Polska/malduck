@@ -147,6 +147,19 @@ def test_int_wrappers():
         "b": 0x4242424242424242,
     }
 
+class test_multiply():
+    class M(Structure):
+        _fields_ = [
+            ("a", uint8 * 8),
+            ("b", uint32 * 4),
+        ]
+
+    m = M.parse("A"*8 + "B"*16)
+    assert m.a[:] == [0x41] * 8
+
+    # We can also omit the [:] part.
+    assert m.b == [0x42424242] * 4
+
 @pytest.mark.xfail
 def test_nested_asdict():
     class I1(Structure):

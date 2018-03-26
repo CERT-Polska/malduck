@@ -5,18 +5,18 @@
 import ctypes
 
 from roach.string.bin import (
-    int8, uint8, int16, uint16, int32, uint32, int64, uint64
+    IntWorker, Int8, UInt8, Int16, UInt16, Int32, UInt32, Int64, UInt64
 )
 
 mapping = {
-    int8: ctypes.c_byte,
-    uint8: ctypes.c_ubyte,
-    int16: ctypes.c_short,
-    uint16: ctypes.c_ushort,
-    int32: ctypes.c_int,
-    uint32: ctypes.c_uint,
-    int64: ctypes.c_longlong,
-    uint64: ctypes.c_ulonglong,
+    Int8: ctypes.c_byte,
+    UInt8: ctypes.c_ubyte,
+    Int16: ctypes.c_short,
+    UInt16: ctypes.c_ushort,
+    Int32: ctypes.c_int,
+    UInt32: ctypes.c_uint,
+    Int64: ctypes.c_longlong,
+    UInt64: ctypes.c_ulonglong,
 }
 
 class Structure(object):
@@ -27,8 +27,11 @@ class Structure(object):
     def __init__(self):
         self.subfields, fields = {}, []
         for field, type_ in self._fields_:
-            if type_ in mapping:
-                type_ = mapping[type_]
+            if isinstance(type_, IntWorker):
+                if type_.mul:
+                    type_ = mapping[type_.__class__] * type_.mul
+                else:
+                    type_ = mapping[type_.__class__]
             elif issubclass(type_, Structure):
                 # Keep track, likely for Python GC purposes.
                 self.subfields[field] = type_()
@@ -46,7 +49,11 @@ class Structure(object):
         self.klass._parent_ = self
 
     def __getattr__(self, item):
-        return getattr(self.values, item)
+        ret = getattr(self.values, item)
+        # Allow caller to omit the [:] part.
+        if hasattr(ret, "__getitem__"):
+            return ret[:]
+        return ret
 
     def as_dict(self, values=None):
         ret = {}
@@ -65,3 +72,5 @@ class Structure(object):
         obj = cls()
         obj.values = obj.klass.from_buffer_copy(buf)
         return obj
+
+    parse = from_buffer_copy
