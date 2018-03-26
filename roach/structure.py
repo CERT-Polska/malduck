@@ -70,6 +70,10 @@ class Structure(object):
         return ret
 
     @classmethod
+    def sizeof(cls):
+        return ctypes.sizeof(cls().klass)
+
+    @classmethod
     def from_buffer_copy(cls, buf):
         obj = cls()
         obj.values = obj.klass.from_buffer_copy(buf)

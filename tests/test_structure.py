@@ -20,6 +20,7 @@ def test_structure():
             ("d", ctypes.c_ubyte * 128),
         ]
 
+    assert S1.sizeof() == 135
     a = S1.from_buffer_copy("A"*135)
     assert a.a == 0x41
     assert a.b == 0x4141
@@ -40,6 +41,7 @@ def test_structure():
             ("c", ctypes.c_char * 32),
         ]
 
+    assert S2.sizeof() == 175
     a = S2.from_buffer_copy("A"*175)
     assert a.a.a == 0x41
     assert a.a.b == 0x4141
@@ -66,6 +68,7 @@ def test_structure():
             ("c", ctypes.c_uint),
         ]
 
+    assert S3.sizeof() == 314
     a = S3.from_buffer_copy("B"*314)
     assert a.a.a == 0x42
     assert a.b.a.a == 0x42
@@ -102,7 +105,8 @@ def test_int_wrappers():
             ("h", uint64),
         ]
 
-    a = I1.from_buffer_copy("A"*64)
+    assert I1.sizeof() == 32
+    a = I1.from_buffer_copy("A"*32)
     assert a.a == 0x41
     assert a.b == 0x41
     assert a.c == 0x4141
@@ -112,7 +116,7 @@ def test_int_wrappers():
     assert a.g == 0x4141414141414141
     assert a.h == 0x4141414141414141
 
-    a = I1.from_buffer_copy("\xff"*64)
+    a = I1.from_buffer_copy("\xff"*32)
     assert a.a == -1
     assert a.b == 0xff
     assert a.c == -1
@@ -128,6 +132,17 @@ def test_int_wrappers():
             ("a", uint32),
             ("b", int64),
         ]
+
+    class I3(Structure):
+        _pack_ = 1
+        _fields_ = [
+            ("i1", I1),
+            ("a", uint32),
+            ("b", int64),
+        ]
+
+    assert I2.sizeof() == 48
+    assert I3.sizeof() == 44
 
     a = I2.from_buffer_copy("B"*76)
     assert a.i1.a == 0x42
@@ -156,6 +171,7 @@ class test_multiply():
             ("c", 16),
         ]
 
+    assert M.sizeof() == 40
     m = M.parse("A"*8 + "B"*16 + "C"*15 + "\x00")
     assert m.a[:] == [0x41] * 8
 
@@ -179,6 +195,7 @@ def test_nested_asdict():
             ("a", uint32),
         ]
 
+    assert i2.sizeof() == 8
     a = I2.from_buffer_copy("C"*8)
 
     # TODO It should be possible to call as_dict() on children of an Structure.

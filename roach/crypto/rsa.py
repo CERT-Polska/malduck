@@ -2,19 +2,20 @@
 # This file is part of Roach - https://github.com/jbremer/roach.
 # See the file 'docs/LICENSE.txt' for copying permission.
 
-import ctypes
 import io
 
 from Crypto.PublicKey import RSA as RSA_
 
-from roach.string.bin import uint32, bigint
+from roach.string.bin import uint8, uint16, uint32, bigint
+from roach.structure import Structure
 
-class BLOBHEADER(ctypes.Structure):
+class BLOBHEADER(Structure):
+    _pack_ = 1
     _fields_ = [
-        ("bType", ctypes.c_ubyte),
-        ("bVersion", ctypes.c_ubyte),
-        ("wReserved", ctypes.c_ushort),
-        ("aiKeyAlg", ctypes.c_uint),
+        ("bType", uint8),
+        ("bVersion", uint8),
+        ("wReserved", uint16),
+        ("aiKeyAlg", uint32),
     ]
 
 class BaseBlob(object):
@@ -143,13 +144,11 @@ class RSA(object):
         except (ValueError, IndexError):
             pass
 
-        if len(data) < ctypes.sizeof(BLOBHEADER):
+        if len(data) < BLOBHEADER.sizeof():
             return
 
         buf = io.BytesIO(data)
-        header = BLOBHEADER.from_buffer_copy(
-            buf.read(ctypes.sizeof(BLOBHEADER))
-        )
+        header = BLOBHEADER.parse(buf.read(BLOBHEADER.sizeof()))
         if header.bType not in BlobTypes:
             return
 
