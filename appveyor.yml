@@ -1,0 +1,15 @@
+environment:
+  matrix:
+    - PYTHON: "C:/Python27"
+
+install:
+  - "%PYTHON%/Scripts/pip.exe install -e ."
+  - "%PYTHON%/Scripts/pip.exe install pytest pytest-cov codecov"
+
+build: false
+
+test_script:
+  - '%PYTHON%/Scripts/pytest.exe --cov=roach'
+
+after_test:
+  - "codecov.exe"
