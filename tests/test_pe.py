@@ -35,3 +35,13 @@ def test_calc_exe():
     data = p.resource("WEVT_TEMPLATE")
     assert data.startswith("CRIM")
     assert len(data) == 4750
+
+    icons = list(p.resources("RT_ICON"))
+    assert len(icons) == 16
+    assert len(icons[0]) == 2664
+    assert len(icons[7]) == 2216
+    assert len(icons[11]) == 16936
+
+    bitmaps = list(p.resources(51209))
+    assert len(bitmaps) == 1
+    assert len(bitmaps[0]) == 22042

@@ -66,13 +66,17 @@ class PE(object):
             if section.Name.rstrip("\x00") == name:
                 return section
 
-    def resource(self, name):
-        # TODO Implement search by type.
+    def resources(self, name):
         name_str = lambda e1, e2, e3: e1.name and e1.name.string == name
         name_int = lambda e1, e2, e3: e2.struct.Name == name
+        type_int = lambda e1, e2, e3: e1.id == type_id
 
         if isinstance(name, basestring):
-            compare = name_str
+            if name.startswith("RT_"):
+                compare = type_int
+                type_id = pefile.RESOURCE_TYPE[name]
+            else:
+                compare = name_str
         else:
             compare = name_int
 
@@ -80,6 +84,12 @@ class PE(object):
             for e2 in e1.directory.entries:
                 for e3 in e2.directory.entries:
                     if compare(e1, e2, e3):
-                        return self.pe.get_data(
+                        yield self.pe.get_data(
                             e3.data.struct.OffsetToData, e3.data.struct.Size
                         )
+
+    def resource(self, name):
+        try:
+            return next(self.resources(name))
+        except StopIteration:
+            pass
