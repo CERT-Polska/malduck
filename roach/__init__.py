@@ -8,6 +8,7 @@ from roach.disasm import disasm
 from roach.hash.sha import md5, sha1, sha224, sha384, sha256, sha512
 from roach.string.inet import ipv4
 from roach.string.ops import asciiz
+from roach.structure import Structure
 
 from roach.procmem import (
     PAGE_READONLY, PAGE_READWRITE, PAGE_WRITECOPY, PAGE_EXECUTE,
