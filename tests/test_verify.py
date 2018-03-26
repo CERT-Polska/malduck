@@ -2,9 +2,8 @@
 # This file is part of Roach - https://github.com/jbremer/roach.
 # See the file 'docs/LICENSE.txt' for copying permission.
 
-import re
+from roach import verify
 
-class Verify(object):
-    @staticmethod
-    def ascii(s):
-        return bool(re.match("^[\x20-\x7f]*$", s, re.DOTALL))
+def test_ascii():
+    assert verify.ascii("hello world") is True
+    assert verify.ascii("foobar\x00") is False

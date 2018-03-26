@@ -13,6 +13,7 @@ from roach.disasm import Instruction
 from roach.pe import PE
 from roach.procmem import ProcessMemory, ProcessMemoryPE
 from roach.string.ops import Padding, Unpadding
+from roach.verify import Verify
 
 class aes(object):
     def __init__(self, mode):
@@ -67,4 +68,5 @@ pad = Padding("pkcs7")
 unpad = Unpadding("pkcs7")
 insn = Instruction
 rsa = RSA
+verify = Verify
 gzip = Gzip()
