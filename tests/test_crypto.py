@@ -40,10 +40,10 @@ def test_rc4():
 
 def test_xor():
     assert xor(
-        "\x97\x9a\x93\x93\x90\xdf\x88\x90\x8d\x93\x9b", 0xff
+        0xff, "\x97\x9a\x93\x93\x90\xdf\x88\x90\x8d\x93\x9b"
     ) == "hello world"
     assert xor(
-        "\x00\x0cM\x04\x06\x01\x1f\x06S\x04\r", "hi!"
+        "hi!", "\x00\x0cM\x04\x06\x01\x1f\x06S\x04\r"
     ) == "hello world"
 
 def test_rsa():
