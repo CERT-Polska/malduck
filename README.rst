@@ -173,7 +173,8 @@ Cuckoo Process Memory dumps
     >>> p.readv(0xd0000, 8)
     'MZ\x90\x00\x03\x00\x00\x00'
     >>> p.regions[0].to_json()
-    {'protect': 'r', 'end': '0x000d1000', 'addr': '0x000d0000', 'state': 4096, 'offset': 24, 'type': 16777216, 'size': 4096}
+    {'protect': 'r', 'end': '0x000d1000', 'addr': '0x000d0000',
+     'state': 4096, 'offset': 24, 'type': 16777216, 'size': 4096}
 
 .. code-block::
 
