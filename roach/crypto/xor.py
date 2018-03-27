@@ -10,5 +10,5 @@ def xor(a, b):
         b = chr(b)
 
     return "".join(
-        chr(ord(a[x % len(a)]) ^ ord(b[x % len(b)])) for x in xrange(len(a))
+        chr(ord(a[x]) ^ ord(b[x % len(b)])) for x in xrange(len(a))
     )
