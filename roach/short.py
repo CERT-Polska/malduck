@@ -22,15 +22,23 @@ class aes(object):
     def decrypt(self, key=None, iv=None, data=None):
         return AES(key, iv, self.mode).decrypt(data)
 
-    class cbc(object):
+    class _cbc_(object):
         @staticmethod
         def decrypt(key=None, iv=None, data=None):
             return aes("cbc").decrypt(key, iv, data)
 
-    class ecb(object):
+        __call__ = decrypt
+
+    cbc = _cbc_()
+
+    class _ecb_(object):
         @staticmethod
-        def decrypt(key=None, iv=None, data=None):
-            return aes("ecb").decrypt(key, iv, data)
+        def decrypt(key=None, data=None):
+            return aes("ecb").decrypt(key, None, data)
+
+        __call__ = decrypt
+
+    ecb = _ecb_()
 
 class des3(object):
     def __init__(self, mode):
@@ -39,10 +47,14 @@ class des3(object):
     def decrypt(self, key=None, iv=None, data=None):
         return DES3(key, iv, self.mode).decrypt(data)
 
-    class cbc(object):
+    class _cbc_(object):
         @staticmethod
         def decrypt(key=None, iv=None, data=None):
             return des3("cbc").decrypt(key, iv, data)
+
+        __call__ = decrypt
+
+    cbc = _cbc_()
 
 class rc4_(object):
     @staticmethod

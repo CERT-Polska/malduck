@@ -5,8 +5,7 @@
 from roach import aes, blowfish, des3, rc4, rsa, xor
 
 def test_aes():
-    # Note that ECB doesn't use the IV.
-    assert aes.ecb.decrypt("A"*16, "B"*16, "C"*32) == (
+    assert aes.ecb.decrypt("A"*16, "C"*32) == (
         "I\x96Z\xe4\xb5\xffX\xbdT]\x93\x03\x96\xfcw\xd9"
         "I\x96Z\xe4\xb5\xffX\xbdT]\x93\x03\x96\xfcw\xd9"
     )

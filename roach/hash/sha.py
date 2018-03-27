@@ -10,11 +10,11 @@ def md5(s):
 def sha1(s):
     return hashlib.sha1(s).digest()
 
-def sha256(s):
-    return hashlib.sha256(s).digest()
-
 def sha224(s):
     return hashlib.sha224(s).digest()
+
+def sha256(s):
+    return hashlib.sha256(s).digest()
 
 def sha384(s):
     return hashlib.sha384(s).digest()
