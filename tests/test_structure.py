@@ -180,7 +180,6 @@ class test_multiply():
 
     assert m.c == "C"*15
 
-@pytest.mark.xfail
 def test_nested_asdict():
     class I1(Structure):
         _fields_ = [
@@ -195,15 +194,12 @@ def test_nested_asdict():
             ("a", uint32),
         ]
 
-    assert i2.sizeof() == 8
+    assert I2.sizeof() == 8
     a = I2.from_buffer_copy("C"*8)
 
     # TODO It should be possible to call as_dict() on children of an Structure.
     assert a.i1.as_dict() == {
-        "i1": {
-            "a": 0x43,
-            "b": 0x43,
-            "c": 0x4343,
-        },
-        "a": 0x43434343,
+        "a": 0x43,
+        "b": 0x43,
+        "c": 0x4343,
     }

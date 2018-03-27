@@ -37,21 +37,24 @@ class Structure(object):
             elif issubclass(type_, Structure):
                 # Keep track, likely for Python GC purposes.
                 self.subfields[field] = type_()
-                type_ = self.subfields[field].klass
+                type_ = self.subfields[field].Klass
             fields.append((field, type_))
 
-        class klass(ctypes.Structure):
+        class Klass(ctypes.Structure):
             _pack_ = self._pack_
             _fields_ = fields
 
             def as_dict(self):
                 return self._parent_.as_dict()
 
-        self.klass = klass
-        self.klass._parent_ = self
+        self.Klass = Klass
+        self.Klass._parent_ = self
 
     def __getattr__(self, item):
-        ret = getattr(self.values, item)
+        ret = getattr(self._values_, item)
+        if isinstance(ret, ctypes.Structure):
+            ret._parent_._values_ = ret
+
         # Allow caller to omit the [:] part.
         if hasattr(ret, "__getitem__"):
             return ret[:]
@@ -60,7 +63,7 @@ class Structure(object):
     def as_dict(self, values=None):
         ret = {}
         for field, type_ in self._fields_:
-            value = getattr(values or self.values, field)
+            value = getattr(values or self._values_, field)
             if isinstance(type_, type) and issubclass(type_, Structure):
                 ret[field] = value._parent_.as_dict(value)
             elif hasattr(value, "__getitem__"):
@@ -71,12 +74,12 @@ class Structure(object):
 
     @classmethod
     def sizeof(cls):
-        return ctypes.sizeof(cls().klass)
+        return ctypes.sizeof(cls().Klass)
 
     @classmethod
     def from_buffer_copy(cls, buf):
         obj = cls()
-        obj.values = obj.klass.from_buffer_copy(buf)
+        obj._values_ = obj.Klass.from_buffer_copy(buf)
         return obj
 
     parse = from_buffer_copy
