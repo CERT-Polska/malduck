@@ -2,8 +2,6 @@
 # This file is part of Roach - https://github.com/jbremer/roach.
 # See the file 'docs/LICENSE.txt' for copying permission.
 
-import pytest
-
 from roach import (
     Structure, int8, uint8, int16, uint16, int32, uint32, int64, uint64
 )
@@ -196,8 +194,6 @@ def test_nested_asdict():
 
     assert I2.sizeof() == 8
     a = I2.from_buffer_copy("C"*8)
-
-    # TODO It should be possible to call as_dict() on children of an Structure.
     assert a.i1.as_dict() == {
         "a": 0x43,
         "b": 0x43,
