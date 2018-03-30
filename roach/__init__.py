@@ -7,7 +7,7 @@ from roach.crypto.xor import xor
 from roach.disasm import disasm
 from roach.hash.sha import md5, sha1, sha224, sha384, sha256, sha512
 from roach.string.inet import ipv4
-from roach.string.ops import asciiz
+from roach.string.ops import asciiz, hex, unhex
 from roach.structure import Structure
 
 from roach.procmem import (
@@ -17,7 +17,7 @@ from roach.procmem import (
 
 from roach.short import (
     aes, blowfish, des3, rc4, pe, aplib, gzip, procmem, procmempe, pad, unpad,
-    insn, rsa, verify
+    insn, rsa, verify, base64
 )
 
 from roach.string.bin import (

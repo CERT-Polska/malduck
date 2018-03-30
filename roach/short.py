@@ -12,7 +12,7 @@ from roach.crypto.rsa import RSA
 from roach.disasm import Instruction
 from roach.pe import PE
 from roach.procmem import ProcessMemory, ProcessMemoryPE
-from roach.string.ops import Padding, Unpadding
+from roach.string.ops import Padding, Unpadding, Base64
 from roach.verify import Verify
 
 class aes(object):
@@ -76,6 +76,7 @@ pe = PE
 aplib = aPLib()
 procmem = ProcessMemory
 procmempe = ProcessMemoryPE
+base64 = Base64()
 pad = Padding("pkcs7")
 unpad = Unpadding("pkcs7")
 insn = Instruction

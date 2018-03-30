@@ -2,7 +2,7 @@
 # This file is part of Roach - https://github.com/jbremer/roach.
 # See the file 'docs/LICENSE.txt' for copying permission.
 
-from roach import aes, blowfish, des3, rc4, rsa, xor
+from roach import aes, blowfish, des3, rc4, rsa, xor, base64, unhex
 
 def test_aes():
     assert aes.ecb.decrypt("A"*16, "C"*32) == (
@@ -30,12 +30,12 @@ def test_des():
     ) == "C"*16
 
 def test_rc4():
-    assert rc4.encrypt("Key", "Plaintext") == "bbf316e8d940af0ad3".decode("hex")
-    assert rc4.decrypt("Wiki", "pedia") == "1021bf0420".decode("hex")
+    assert rc4.encrypt("Key", "Plaintext") == unhex("bbf316e8d940af0ad3")
+    assert rc4.decrypt("Wiki", "pedia") == unhex("1021bf0420")
     assert rc4.decrypt("Secret", "Attack at dawn") == (
-        "45a01f645fc35b383552544b9bf5".decode("hex")
+        unhex("45a01f645fc35b383552544b9bf5")
     )
-    assert rc4("hello", "world") == "783ecd96cf".decode("hex")
+    assert rc4("hello", "world") == unhex("783ecd96cf")
 
 def test_xor():
     assert xor(
@@ -46,11 +46,11 @@ def test_xor():
     ) == "hello world"
 
 def test_rsa():
-    assert rsa.import_key("""
+    assert rsa.import_key(base64("""
 MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC5cagCPVB7LiX3UI5N3WRQJqTLe5RPrhFj79/U
 7AY+ziYQrKhSaIQG7KWuLAZj4sKRyRyZK1te0Ekb1UGkYn3b1YTQtXojaakq5p4WyHFvhfNPjSlJ
 ClIt4QC/NZ9uS2FRee8ONEKODrcgevzcd+lbNy/mGAB7yW9XgP06YzfOyQIDAQAB
-    """.decode("base64")) == """
+    """)) == """
 -----BEGIN PUBLIC KEY-----
 MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC5cagCPVB7LiX3UI5N3WRQJqTL
 e5RPrhFj79/U7AY+ziYQrKhSaIQG7KWuLAZj4sKRyRyZK1te0Ekb1UGkYn3b1YTQ
@@ -59,7 +59,7 @@ GAB7yW9XgP06YzfOyQIDAQAB
 -----END PUBLIC KEY-----
 """.strip()
 
-    assert rsa.import_key("""
+    assert rsa.import_key(base64("""
 BwIAAACkAABSU0EyAAQAAAEAAQCxTx++ykWtb2UaYFYQLt1yM893SV/wLehU2DwzeAMpxq5MsOF5
 XVAd1qSElMN8Uqxdn7FXuT4XFJjH2o6MsnkheoWKPmIC357IUk/N/49dyjtk14In+HdxWKKoguXd
 lOfGoriyieo8cr4kYCoYGPpHNv50NlZi3jkzQvW+hVK6v/ufshtYBRd/+NjecYVQlt7ivap8d/9g
@@ -71,7 +71,7 @@ nTMtXoo1r77CjBv5q+zvMSzeFUl+ji9beSZbzl9rAvJOBw4v1Bj8EzPq5aYvEs7h9M66BbZjuyeH
 zp2sRBuxE6K13j1AIVHCK7gbVwlieHWKuE5d45ealzSsChwoxGlJcHlHBI62zQqo7SHbb2An72IS
 XtyKY18/3bYV4nv6ydeC9zgpVlNfGwgwP05Rkp7ldJsCz7uT6RAANV86JIp+65SCKs4gcgWWPIbn
 KJ4s7fs/3oy7tUSTdviZShGj2cJGiEIyIiA=
-    """.decode("base64")) == """
+    """)) == """
 -----BEGIN RSA PRIVATE KEY-----
 MIICXAIBAAKBgQC/ulKFvvVCMzneYlY2dP42R/oYGCpgJL5yPOqJsriixueU3eWC
 qKJYcXf4J4LXZDvKXY//zU9SyJ7fAmI+ioV6IXmyjI7ax5gUFz65V7GfXaxSfMOU
@@ -89,11 +89,11 @@ LTOdWP2zfXQX3kNz3d2ZWAVY3H4zliMqbKgoepqsuC6ecZXDfa6gnpEgCdie1Iqi
 -----END RSA PRIVATE KEY-----
 """.strip()
 
-    assert rsa.import_key("""
+    assert rsa.import_key(base64("""
 BgIAAACkAABSU0ExAAQAAAEAAQChEcfAbVoL/jUnFMxI+xsR0zZUvMZ+9pgkLGpaxTiLRP6PZqx8
 lDdwqdb7gC+m5aOz+Uwms6RHrY/xRMYEXopj877qLancMtsiqcpASOYJWxWSgW+gQMJGldwn2H97
 AaHoqFlbn7NW6oNtpz4C7NotiggtVnqLdE8YyNfO6/gEpQ==
-""".decode("base64")) == """
+""")) == """
 -----BEGIN PUBLIC KEY-----
 MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQClBPjrztfIGE90i3pWLQiKLdrs
 Aj6nbYPqVrOfW1mo6KEBe3/YJ9yVRsJAoG+BkhVbCeZIQMqpItsy3Kkt6r7zY4pe

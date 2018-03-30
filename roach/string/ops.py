@@ -2,8 +2,26 @@
 # This file is part of Roach - https://github.com/jbremer/roach.
 # See the file 'docs/LICENSE.txt' for copying permission.
 
+import base64
+import binascii
+
 def asciiz(s):
     return s.split("\x00")[0]
+
+def hex(s):
+    return binascii.hexlify(s)
+
+def unhex(s):
+    return binascii.unhexlify(s)
+
+class Base64(object):
+    def encode(self, s):
+        return base64.b64encode(s)
+
+    def decode(self, s):
+        return base64.b64decode(s)
+
+    __call__ = decode
 
 class Padding(object):
     def __init__(self, style):

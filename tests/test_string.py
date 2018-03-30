@@ -4,11 +4,15 @@
 
 from roach import (
     int8, uint8, int16, uint16, int32, uint32, int64, uint64, bigint,
-    asciiz, pad, unpad, ipv4, pack, unpack,
+    asciiz, pad, unpad, ipv4, pack, unpack, hex, unhex, base64
 )
 
 def test_asciiz():
     assert asciiz("hello\x00world") == "hello"
+
+def test_hex():
+    assert hex("hello") == "68656c6c6f"
+    assert unhex("68656c6c6f") == "hello"
 
 def test_pad():
     assert pad("hello!!1", 8) == "hello!!1"
@@ -21,6 +25,11 @@ def test_unpad():
     assert unpad("hello world!") == "hello world!"
     assert unpad("hello\x03\x03\x03") == "hello"
     assert unpad("hello\x02\x03\x03") == "hello\x02\x03\x03"
+
+def test_base64():
+    assert base64("aGVsbG8=") == "hello"
+    assert base64("aGVsbG8=") == base64.decode("aGVsbG8=")
+    assert base64.encode("hello") == "aGVsbG8="
 
 def test_ipv4():
     assert str(ipv4("ABCD")) == "65.66.67.68"

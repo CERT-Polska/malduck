@@ -4,7 +4,7 @@
 
 import struct
 
-from roach.string.ops import Padding
+from roach.string.ops import Padding, hex, unhex
 
 class IntWorker(object):
     fmt = None
@@ -72,12 +72,12 @@ uint64 = UInt64()
 
 def bigint(s, bitsize):
     if isinstance(s, (int, long)):
-        return Padding.null(("%x" % s).decode("hex")[::-1], bitsize / 8)
+        return Padding.null(unhex("%x" % s)[::-1], bitsize / 8)
 
     if len(s) < bitsize / 8:
         return
 
-    return int(s[:bitsize / 8][::-1].encode("hex"), 16)
+    return int(hex(s[:bitsize / 8][::-1]), 16)
 
 # TODO Do we need any love on top of this?
 unpack = struct.unpack
