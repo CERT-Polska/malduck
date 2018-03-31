@@ -2,6 +2,8 @@
 # This file is part of Roach - https://github.com/jbremer/roach.
 # See the file 'docs/LICENSE.txt' for copying permission.
 
+from Crypto.Cipher import XOR
+
 def xor(key, data):
     if not isinstance(data, basestring):
         raise RuntimeError("data value must be a string!")
@@ -9,6 +11,4 @@ def xor(key, data):
     if isinstance(key, (int, long)):
         key = chr(key)
 
-    return "".join(
-        chr(ord(data[x]) ^ ord(key[x % len(key)])) for x in xrange(len(data))
-    )
+    return XOR.new(key).decrypt(data)
