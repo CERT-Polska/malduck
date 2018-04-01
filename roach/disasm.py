@@ -2,7 +2,6 @@
 # This file is part of Roach - https://github.com/jbremer/roach.
 # See the file 'docs/LICENSE.txt' for copying permission.
 
-import capstone.x86
 import collections
 
 Memory = collections.namedtuple(
@@ -10,30 +9,30 @@ Memory = collections.namedtuple(
 )
 
 class Operand(object):
+    # These are initializes the first time disasm() is called, see also below.
+    _x86_op_imm = None
+    _x86_op_reg = None
+    _x86_op_mem = None
     regs = {}
+
     sizes = {
         1: "byte", 2: "word", 4: "dword", 8: "qword",
     }
-
-    # Index the available x86 registers.
-    for _ in dir(capstone.x86):
-        if _.startswith("X86_REG_"):
-            regs[getattr(capstone.x86, _)] = _.split("_")[2].lower()
 
     def __init__(self, op):
         self.op = op
 
     @property
     def is_imm(self):
-        return self.op.type == capstone.x86.X86_OP_IMM
+        return self.op.type == Operand._x86_op_imm
 
     @property
     def is_reg(self):
-        return self.op.type == capstone.x86.X86_OP_REG
+        return self.op.type == Operand._x86_op_reg
 
     @property
     def is_mem(self):
-        return self.op.type == capstone.x86.X86_OP_MEM
+        return self.op.type == Operand._x86_op_mem
 
     @property
     def value(self):
@@ -158,10 +157,33 @@ class Instruction(object):
             return "%s %s" % (self.mnem, ", ".join(operands))
         return self.mnem
 
-def disasm(data, addr):
-    cs = capstone.Cs(capstone.CS_ARCH_X86, capstone.CS_MODE_32)
-    cs.detail = True
-    ret = []
-    for insn in cs.disasm(data, addr):
-        ret.append(Instruction.from_capstone(insn))
-    return ret
+class Disassemble(object):
+    def disassemble(self, data, addr):
+        import capstone
+
+        cs = capstone.Cs(capstone.CS_ARCH_X86, capstone.CS_MODE_32)
+        cs.detail = True
+        ret = []
+        for insn in cs.disasm(data, addr):
+            ret.append(Instruction.from_capstone(insn))
+        return ret
+
+    def init_once(self, *args, **kwargs):
+        import capstone.x86
+
+        Operand._x86_op_imm = capstone.x86.X86_OP_IMM
+        Operand._x86_op_reg = capstone.x86.X86_OP_REG
+        Operand._x86_op_mem = capstone.x86.X86_OP_MEM
+
+        # Index the available x86 registers.
+        for _ in dir(capstone.x86):
+            if not _.startswith("X86_REG_"):
+                continue
+            Operand.regs[getattr(capstone.x86, _)] = _.split("_")[2].lower()
+
+        self.__call__ = self.disassemble
+        return self.__call__(*args, **kwargs)
+
+    __call__ = init_once
+
+disasm = Disassemble()

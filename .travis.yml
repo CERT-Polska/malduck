@@ -25,6 +25,7 @@ install:
 
 script:
   - py.test --cov=roach
+  - python -c 'import roach, sys ; assert "capstone" not in sys.modules'
 
 after_success:
   - codecov
