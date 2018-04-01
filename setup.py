@@ -6,7 +6,7 @@ from setuptools import setup
 
 setup(
     name="roach",
-    version="0.1.1",
+    version="0.1.2",
     author="Jurriaan Bremer",
     author_email="jbr@cuckoo.sh",
     packages=[
