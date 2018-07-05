@@ -35,7 +35,7 @@ Currently Cockroach exports the following methods:
 
 * Cryptography
 
-  - AES (CBC & ECB)
+  - AES (CBC, ECB, and CTR)
   - Blowfish
   - RC4
   - RSA

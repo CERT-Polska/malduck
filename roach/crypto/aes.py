@@ -9,6 +9,7 @@ class AES(object):
     modes = {
         "cbc": lambda iv: modes.CBC(iv),
         "ecb": lambda iv: modes.ECB(),
+        "ctr": lambda nonce: modes.CTR(nonce),
     }
 
     def __init__(self, key, iv=None, mode="cbc"):

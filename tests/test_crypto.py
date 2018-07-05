@@ -19,6 +19,11 @@ def test_aes():
         "\n\xd5\x19\xa7\xf6\xbc\x1b\xfe\x17\x1e\xd0@\xd5\xbf4\x9a"
     )
 
+    assert aes.ctr(
+        "hello world12345", "A"*16,
+        "\x803\xe3J#\xf4;\x13\x11+h\xf5\xba-\x9b\x05"
+    ) == "B"*16
+
 def test_blowfish():
     assert blowfish(
         "blowfish", "\x91;\x92\xa9\x85\x83\xb36\xbb\xac\xa8r0\xf1$\x19"

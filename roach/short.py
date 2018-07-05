@@ -40,6 +40,15 @@ class aes(object):
 
     ecb = _ecb_()
 
+    class _ctr_(object):
+        @staticmethod
+        def decrypt(key=None, nonce=None, data=None):
+            return aes("ctr").decrypt(key, nonce, data)
+
+        __call__ = decrypt
+
+    ctr = _ctr_()
+
 class des3(object):
     def __init__(self, mode):
         self.mode = mode
