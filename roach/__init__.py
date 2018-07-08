@@ -17,7 +17,7 @@ from roach.procmem import (
 
 from roach.short import (
     aes, blowfish, des3, rc4, pe, aplib, gzip, procmem, procmempe, pad, unpad,
-    insn, rsa, verify, base64
+    insn, rsa, verify, base64, rabbit
 )
 
 from roach.string.bin import (

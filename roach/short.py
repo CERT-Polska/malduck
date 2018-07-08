@@ -7,6 +7,7 @@ from roach.compression.gzip import Gzip
 from roach.crypto.aes import AES
 from roach.crypto.blowfish import Blowfish
 from roach.crypto.des3 import DES3
+from roach.crypto.rabbit import Rabbit
 from roach.crypto.rc import RC4
 from roach.crypto.rsa import RSA
 from roach.disasm import Instruction
@@ -79,8 +80,16 @@ class blowfish_(object):
 
     __call__ = decrypt
 
+class rabbit_(object):
+    @staticmethod
+    def rabbit(key, iv, data):
+        return Rabbit(key, iv).encrypt(data)
+
+    __call__ = rabbit
+
 blowfish = blowfish_()
 rc4 = rc4_()
+rabbit = rabbit_()
 pe = PE
 aplib = aPLib()
 procmem = ProcessMemory

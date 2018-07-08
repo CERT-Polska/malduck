@@ -37,6 +37,7 @@ Currently Cockroach exports the following methods:
 
   - AES (CBC, ECB, and CTR)
   - Blowfish
+  - Rabbit
   - RC4
   - RSA
   - Triple DES
