@@ -2,6 +2,7 @@
 # This file is part of Roach - https://github.com/jbremer/roach.
 # See the file 'docs/LICENSE.txt' for copying permission.
 
+import io
 import os
 import struct
 import tempfile
@@ -102,3 +103,9 @@ def test_methods():
         insn("push", 0x41414141, addr=0x401015),
         insn("ret", addr=0x40101a),
     ]
+
+def test_mmap():
+    fd, filepath = tempfile.mkstemp()
+    os.close(fd)
+    assert procmem(filepath).regions == []
+    assert procmem(io.BytesIO("")).regions == []

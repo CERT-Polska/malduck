@@ -66,11 +66,13 @@ class ProcessMemory(object):
     def __init__(self, file_or_filepath, load=True):
         if hasattr(file_or_filepath, "read"):
             self.f = file_or_filepath
+            self.is_file = False
         else:
             self.f = open(file_or_filepath, "rb")
+            self.is_file = True
 
-        # By default mmap(2) the file into memory.
-        if load:
+        # By default mmap(2) a non-empty file into memory.
+        if load and self.is_file and os.path.getsize(file_or_filepath):
             if hasattr(mmap, "PROT_READ"):
                 access = mmap.PROT_READ
             elif hasattr(mmap, "ACCESS_READ"):
