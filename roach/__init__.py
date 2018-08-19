@@ -5,6 +5,7 @@
 from roach.bits import rol, ror
 from roach.crypto.xor import xor
 from roach.disasm import disasm
+from roach.hash.crc import crc32
 from roach.hash.sha import md5, sha1, sha224, sha384, sha256, sha512
 from roach.string.inet import ipv4
 from roach.string.ops import asciiz, hex, unhex

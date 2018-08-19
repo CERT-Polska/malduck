@@ -2,9 +2,10 @@
 # This file is part of Roach - https://github.com/jbremer/roach.
 # See the file 'docs/LICENSE.txt' for copying permission.
 
-from roach import hex, md5, sha1, sha224, sha256, sha384, sha512
+from roach import hex, crc32, md5, sha1, sha224, sha256, sha384, sha512
 
 def test_hash():
+    assert crc32("hello") == 0x3610a686
     assert hex(md5("hello")) == "5d41402abc4b2a76b9719d911017c592"
     assert hex(sha1("hello")) == (
         "aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d"
