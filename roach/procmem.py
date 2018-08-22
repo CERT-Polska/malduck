@@ -7,6 +7,12 @@ import os
 import re
 import struct
 
+try:
+    import lief
+    HAVE_LIEF = True
+except ImportError:
+    HAVE_LIEF = False
+
 from roach.disasm import disasm
 from roach.string.bin import uint8, uint16, uint32, uint64
 
@@ -242,6 +248,49 @@ class ProcessMemory(object):
             if buf == "MZ":
                 return addr
             addr -= 0x10000
+
+    def dumppe(self, addr, filepath, is64bit=False):
+        """Dumps a potential PE file based on the memory regions as opposed to
+        the MZ/PE header, allowing potentially corrupted MZ/PE headers."""
+        if not HAVE_LIEF:
+            raise RuntimeError("procmem::dumppe requires lief!")
+
+        # What can we do to improve this - generally speaking we'll almost
+        # always find the .text section at offset 0x1000.
+        for idx, r in enumerate(self.regions):
+            if r.addr == addr + 0x1000:
+                break
+        else:
+            return False
+
+        pe = lief.PE.Binary(
+            "sample.bin",
+            lief.PE.PE_TYPE.PE32_PLUS if is64bit else lief.PE.PE_TYPE.PE32
+        )
+
+        while idx < len(self.regions)-1:
+            r, r2 = self.regions[idx:idx+2]
+
+            s = lief.PE.Section(".sec%d" % len(pe.sections))
+            s.virtual_address = r.addr - addr
+            s.content = bytearray(self.readv(r.addr, r.size))
+            s.characteristics = (
+                lief.PE.SECTION_CHARACTERISTICS.MEM_READ |
+                lief.PE.SECTION_CHARACTERISTICS.MEM_WRITE |
+                lief.PE.SECTION_CHARACTERISTICS.MEM_EXECUTE
+            )
+            s = pe.add_section(s, lief.PE.SECTION_TYPES.TEXT)
+
+            # It seems we're not interested in the next memory page.
+            if r.addr + r.size != r2.addr:
+                break
+
+            idx += 1
+
+        builder = lief.PE.Builder(pe)
+        builder.build()
+        builder.write(filepath)
+        return True
 
 class ProcessMemoryPE(ProcessMemory):
     """Wrapper around ProcessMemory for reading in-memory PE files."""
