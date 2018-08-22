@@ -24,6 +24,10 @@ def test_aes():
         "\x803\xe3J#\xf4;\x13\x11+h\xf5\xba-\x9b\x05"
     ) == "B"*16
 
+    assert aes.import_key(
+        "\x08\x02\x00\x00\x0ef\x00\x00\x10\x00\x00\x00" + "A"*16
+    ) == ("AES-128", "A"*16)
+
 def test_blowfish():
     assert blowfish(
         "blowfish", "\x91;\x92\xa9\x85\x83\xb36\xbb\xac\xa8r0\xf1$\x19"

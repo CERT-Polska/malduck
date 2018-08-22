@@ -6,30 +6,8 @@ import io
 
 from Crypto.PublicKey.RSA import RSAImplementation
 
-from roach.string.bin import uint8, uint16, uint32, bigint
-from roach.structure import Structure
-
-class BLOBHEADER(Structure):
-    _pack_ = 1
-    _fields_ = [
-        ("bType", uint8),
-        ("bVersion", uint8),
-        ("wReserved", uint16),
-        ("aiKeyAlg", uint32),
-    ]
-
-class BaseBlob(object):
-    def __init__(self):
-        self.bitsize = 0
-
-    def parse(self, buf):
-        raise NotImplementedError
-
-    def export_key(self):
-        raise NotImplementedError
-
-class SimpleBlob(BaseBlob):
-    pass
+from roach.crypto.winhdr import BLOBHEADER, BaseBlob
+from roach.string.bin import uint32, bigint
 
 class PublicKeyBlob(BaseBlob):
     magic = "RSA1"
@@ -101,39 +79,13 @@ class PrivateKeyBlob(PublicKeyBlob):
     def export_key(self):
         return RSA.export_key(self.n, self.e, self.d)
 
-class PlaintextKeyBlob(BaseBlob):
-    pass
-
-class OpaqueKeyBlob(BaseBlob):
-    pass
-
-class PublicKeyBlobEx(BaseBlob):
-    pass
-
-class SymmetricWrapKeyBlob(BaseBlob):
-    pass
-
-class KeyStateBlob(BaseBlob):
-    pass
-
 BlobTypes = {
-    1: SimpleBlob,
     6: PublicKeyBlob,
     7: PrivateKeyBlob,
-    8: PlaintextKeyBlob,
-    9: OpaqueKeyBlob,
-    10: PublicKeyBlobEx,
-    11: SymmetricWrapKeyBlob,
-    12: KeyStateBlob,
 }
 
 class RSA(object):
     algorithms = (
-        0x0000660e,  # AES 128
-        0x0000660f,  # AES 192
-        0x00006610,  # AES 256
-        0x00006602,  # RC2
-        0x00006801,  # RC4
         0x0000a400,  # RSA
     )
 

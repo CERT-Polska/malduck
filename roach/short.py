@@ -50,6 +50,10 @@ class aes(object):
 
     ctr = _ctr_()
 
+    @staticmethod
+    def import_key(data):
+        return AES.import_key(data)
+
 class des3(object):
     def __init__(self, mode):
         self.mode = mode
