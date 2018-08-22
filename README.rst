@@ -55,6 +55,7 @@ Currently Cockroach exports the following methods:
   - bigint serialization
   - ipv4 parsing
   - null/pkcs7 (un)padding
+  - uleb128
 
 * Bitwise
 

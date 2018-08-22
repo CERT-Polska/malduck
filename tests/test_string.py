@@ -4,7 +4,7 @@
 
 from roach import (
     int8, uint8, int16, uint16, int32, uint32, int64, uint64, bigint,
-    asciiz, pad, unpad, ipv4, pack, unpack, hex, unhex, base64
+    asciiz, pad, unpad, ipv4, pack, unpack, hex, unhex, base64, uleb128
 )
 
 def test_asciiz():
@@ -13,6 +13,10 @@ def test_asciiz():
 def test_hex():
     assert hex("hello") == "68656c6c6f"
     assert unhex("68656c6c6f") == "hello"
+
+def test_uleb128():
+    assert uleb128("\x00") == (1, 0)
+    assert uleb128("\xe5\x8e\x26") == (3, 624485)
 
 def test_pad():
     assert pad("hello!!1", 8) == "hello!!1"

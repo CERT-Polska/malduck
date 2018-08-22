@@ -14,6 +14,14 @@ def hex(s):
 def unhex(s):
     return binascii.unhexlify(s)
 
+def uleb128(s):
+    ret = 0
+    for idx in xrange(len(s)):
+        ret += (ord(s[idx]) & 0x7f) << (idx*7)
+        if ord(s[idx]) < 0x80:
+            break
+    return idx+1, ret
+
 class Base64(object):
     def encode(self, s):
         return base64.b64encode(s)
