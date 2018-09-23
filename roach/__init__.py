@@ -1,4 +1,5 @@
 # Copyright (C) 2018 Jurriaan Bremer.
+# Copyright (C) 2018 Hatching B.V.
 # This file is part of Roach - https://github.com/jbremer/roach.
 # See the file 'docs/LICENSE.txt' for copying permission.
 
@@ -10,6 +11,8 @@ from roach.hash.sha import md5, sha1, sha224, sha384, sha256, sha512
 from roach.string.inet import ipv4
 from roach.string.ops import asciiz, hex, unhex, uleb128
 from roach.structure import Structure
+
+from roach.pe import pe2procmem
 
 from roach.procmem import (
     PAGE_READONLY, PAGE_READWRITE, PAGE_WRITECOPY, PAGE_EXECUTE,

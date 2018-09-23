@@ -1,8 +1,11 @@
 # Copyright (C) 2018 Jurriaan Bremer.
+# Copyright (C) 2018 Hatching B.V.
 # This file is part of Roach - https://github.com/jbremer/roach.
 # See the file 'docs/LICENSE.txt' for copying permission.
 
-from roach import pe, base64
+import io
+
+from roach import pe, base64, pe2procmem, procmem
 
 def test_pe_header():
     img = pe(base64("""
@@ -45,3 +48,13 @@ def test_calc_exe():
     bitmaps = list(p.resources(51209))
     assert len(bitmaps) == 1
     assert len(bitmaps[0]) == 22042
+
+def test_pe2procmem():
+    a = pe(open("tests/files/calc.exe", "rb").read())
+    b = procmem(io.BytesIO(
+        pe2procmem(open("tests/files/calc.exe", "rb").read())
+    ))
+    assert a.sections[2].SizeOfRawData == b.regions[3].size
+    assert a.sections[3].get_data() == b.readv(
+        b.regions[4].addr, b.regions[4].size
+    )

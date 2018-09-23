@@ -1,8 +1,10 @@
 # Copyright (C) 2018 Jurriaan Bremer.
+# Copyright (C) 2018 Hatching B.V.
 # This file is part of Roach - https://github.com/jbremer/roach.
 # See the file 'docs/LICENSE.txt' for copying permission.
 
 import pefile
+import struct
 
 from roach.procmem import ProcessMemoryPE, ProcessMemory
 
@@ -93,3 +95,22 @@ class PE(object):
             return next(self.resources(name))
         except StopIteration:
             pass
+
+def pe2procmem(data):
+    """Translate a PE file into a procmem file."""
+    pe = PE(data)
+    imgbase = pe.optional_header.ImageBase
+
+    ret = [
+        struct.pack("QIIII", imgbase, 0x1000, 0, 0, 0),
+        data[:0x1000],
+    ]
+
+    # TODO This can be a little bit more enterprise.
+    for section in pe.sections:
+        ret.append(struct.pack(
+            "QIIII", imgbase + section.VirtualAddress,
+            section.SizeOfRawData, 0, 0, 0
+        ))
+        ret.append(section.get_data())
+    return "".join(ret)
