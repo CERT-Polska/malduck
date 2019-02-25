@@ -69,7 +69,7 @@ class PE(object):
                 return section
 
     def resources(self, name):
-        name_str = lambda e1, e2, e3: e1.name and e1.name.string == name
+        name_str = lambda e1, e2, e3: (e1.name and e1.name.string == name) or (e2.name and e2.name.string == name)
         name_int = lambda e1, e2, e3: e2.struct.Name == name
         type_int = lambda e1, e2, e3: e1.id == type_id
 

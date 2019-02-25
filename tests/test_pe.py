@@ -49,6 +49,13 @@ def test_calc_exe():
     assert len(bitmaps) == 1
     assert len(bitmaps[0]) == 22042
 
+def test_ollydbg_exe():
+    p = pe(open("tests/files/ollydbg.exe", "rb").read(), fast_load=False)
+    assert p.is32bit is True
+    data = p.resource("DVCLAL")
+    assert data.startswith("\xA2\x8C\xDF\x98")
+    assert len(data) == 16
+
 def test_pe2procmem():
     a = pe(open("tests/files/calc.exe", "rb").read())
     b = procmem(io.BytesIO(
