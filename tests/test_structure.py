@@ -3,7 +3,7 @@
 # See the file 'docs/LICENSE.txt' for copying permission.
 
 from roach import (
-    Structure, int8, uint8, int16, uint16, int32, uint32, int64, uint64
+    Structure, Int8, UInt8, Int16, UInt16, Int32, UInt32, Int64, UInt64
 )
 
 def test_structure():
@@ -93,14 +93,14 @@ def test_structure():
 def test_int_wrappers():
     class I1(Structure):
         _fields_ = [
-            ("a", int8),
-            ("b", uint8),
-            ("c", int16),
-            ("d", uint16),
-            ("e", int32),
-            ("f", uint32),
-            ("g", int64),
-            ("h", uint64),
+            ("a", Int8),
+            ("b", UInt8),
+            ("c", Int16),
+            ("d", UInt16),
+            ("e", Int32),
+            ("f", UInt32),
+            ("g", Int64),
+            ("h", UInt64),
         ]
 
     assert I1.sizeof() == 32
@@ -127,16 +127,16 @@ def test_int_wrappers():
     class I2(Structure):
         _fields_ = [
             ("i1", I1),
-            ("a", uint32),
-            ("b", int64),
+            ("a", UInt32),
+            ("b", Int64),
         ]
 
     class I3(Structure):
         _pack_ = 1
         _fields_ = [
             ("i1", I1),
-            ("a", uint32),
-            ("b", int64),
+            ("a", UInt32),
+            ("b", Int64),
         ]
 
     assert I2.sizeof() == 48
@@ -163,8 +163,8 @@ def test_int_wrappers():
 class test_multiply():
     class M(Structure):
         _fields_ = [
-            ("a", uint8 * 8),
-            ("b", uint32 * 4),
+            ("a", UInt8 * 8),
+            ("b", UInt32 * 4),
             # Can specify string lengths right away.
             ("c", 16),
         ]
@@ -181,15 +181,15 @@ class test_multiply():
 def test_nested_asdict():
     class I1(Structure):
         _fields_ = [
-            ("a", int8),
-            ("b", uint8),
-            ("c", int16),
+            ("a", Int8),
+            ("b", UInt8),
+            ("c", Int16),
         ]
 
     class I2(Structure):
         _fields_ = [
             ("i1", I1),
-            ("a", uint32),
+            ("a", UInt32),
         ]
 
     assert I2.sizeof() == 8

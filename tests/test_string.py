@@ -3,7 +3,8 @@
 # See the file 'docs/LICENSE.txt' for copying permission.
 
 from roach import (
-    int8, uint8, int16, uint16, int32, uint32, int64, uint64, bigint,
+    uint8, uint16, uint32, uint64, bigint,
+    p8, p16, p32, p64,
     asciiz, pad, unpad, ipv4, pack, unpack, hex, unhex, base64, uleb128
 )
 
@@ -56,70 +57,38 @@ def test_ipv4():
 
     assert ipv4(0x7f000001) == "127.0.0.1"
 
+
 def test_bin():
-    assert int8("") is None
-    assert int8("A") == 0x41
-    assert int8("\xff") == -1
     assert uint8("") is None
     assert uint8("B") == 0x42
     assert uint8("\xff") == 0xff
 
-    assert int8("A\xffB") == (0x41, -1, 0x42)
-    assert uint8("A\xffB") == (0x41, 0xff, 0x42)
-
-    assert int16("A") is None
-    assert int16("AB") == 0x4241
-    assert int16("\xff\xff") == -1
+    assert uint16("A") is None
     assert uint16("AB") == 0x4241
     assert uint16("\xff\xff") == 0xffff
 
-    assert int16("AB\xff\xffEF") == (0x4241, -1, 0x4645)
-    assert uint16("AB\xff\xffEF") == (0x4241, 0xffff, 0x4645)
-
-    assert int32("ABC") is None
-    assert int32("ABCD") == 0x44434241
-    assert int32("\xff\xff\xff\xff") == -1
+    assert uint32("ABC") is None
     assert uint32("ABCD") == 0x44434241
     assert uint32("\xff\xff\xff\xff") == 0xffffffff
 
-    assert int32("ABCD\xff\xff\xff\xffEFGH") == (0x44434241, -1, 0x48474645)
-    assert uint32("ABCD\xff\xff\xff\xffEFGH") == (
-        0x44434241, 0xffffffff, 0x48474645
-    )
-
-    assert int64("ABCDEFG") is None
-    assert int64("ABCDEFGH") == 0x4847464544434241
-    assert int64("\xff\xff\xff\xff\xff\xff\xff\xff") == -1
+    assert uint64("ABCDEFG") is None
     assert uint64("HGFEDCBA") == 0x4142434445464748
     assert uint64("\xff\xff\xff\xff\xff\xff\xff\xff") == 0xffffffffffffffff
 
-    assert int64("A"*8 + "\xff"*8 + "B"*8) == (
-        0x4141414141414141, -1, 0x4242424242424242
-    )
-    assert uint64("A"*8 + "\xff"*8 + "B"*8) == (
-        0x4141414141414141, 0xffffffffffffffff, 0x4242424242424242
-    )
 
 def test_bin_reverse():
-    assert int8(0x12) == "\x12"
-    assert int8(-1) == "\xff"
-    assert uint8(0x34) == "\x34"
-    assert uint8(0xff) == "\xff"
+    assert p8(0x12) == "\x12"
+    assert p8(0x34) == "\x34"
+    assert p8(0xff) == "\xff"
 
-    assert int16(0x1234) == "\x34\x12"
-    assert int16(-1) == "\xff\xff"
-    assert uint16(0x5678) == "\x78\x56"
-    assert uint16(0xffff) == "\xff\xff"
+    assert p16(0x5678) == "\x78\x56"
+    assert p16(0xffff) == "\xff\xff"
 
-    assert int32(0x12345678) == "\x78\x56\x34\x12"
-    assert int32(-1) == "\xff\xff\xff\xff"
-    assert uint32(0x87654321) == "\x21\x43\x65\x87"
-    assert uint32(0xffffffff) == "\xff\xff\xff\xff"
+    assert p32(0x87654321) == "\x21\x43\x65\x87"
+    assert p32(0xffffffff) == "\xff\xff\xff\xff"
 
-    assert int64(0x1122334455667788) == "\x88\x77\x66\x55\x44\x33\x22\x11"
-    assert int64(-1) == "\xff\xff\xff\xff\xff\xff\xff\xff"
-    assert uint64(0x8877665544332211) == "\x11\x22\x33\x44\x55\x66\x77\x88"
-    assert uint64(0xffffffffffffffff) == "\xff\xff\xff\xff\xff\xff\xff\xff"
+    assert p64(0x8877665544332211) == "\x11\x22\x33\x44\x55\x66\x77\x88"
+    assert p64(0xffffffffffffffff) == "\xff\xff\xff\xff\xff\xff\xff\xff"
 
 def test_bigint():
     assert bigint("ABCD", 40) is None

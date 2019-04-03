@@ -5,12 +5,13 @@
 import re
 import socket
 
-from roach.string.bin import uint32
+from roach.string.bin import p32
 
 ipv4_regex = re.compile(
     "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}"
     "([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$"
 )
+
 
 def ipv4(s):
     if isinstance(s, basestring):
@@ -19,4 +20,4 @@ def ipv4(s):
         if re.match(ipv4_regex, s):
             return s
     if isinstance(s, (int, long)):
-        return socket.inet_ntoa(uint32(s)[::-1])
+        return socket.inet_ntoa(p32(s)[::-1])
