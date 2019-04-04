@@ -29,13 +29,13 @@ setup(
     ],
     extras_require={
         ":sys_platform == 'win32'": [
-            "capstone-windows==3.0.4",
+            "capstone-windows==4.0.1",
         ],
         ":sys_platform == 'darwin'": [
-            "capstone==3.0.5rc2",
+            "capstone==4.0.1",
         ],
         ":sys_platform == 'linux2'": [
-            "capstone==3.0.5rc2",
+            "capstone==4.0.1",
         ],
     },
 )
