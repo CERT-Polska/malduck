@@ -104,6 +104,24 @@ def test_methods():
         insn("ret", addr=0x40101a),
     ]
 
+
+def test_findbytes():
+    fd, filepath = tempfile.mkstemp()
+    os.write(fd, "".join((
+        struct.pack("QIIII", 0x400000, 0x20000, 0, 0, PAGE_READWRITE),
+        " " * 0x1000 +
+        pad.null("\xffoo\x00bar thisis0test\n hAAAA\xc3\xc0\xc2\xc4\n\n\x10\x2f\x1f\x1a\x1b\x1f\x1d\xbb\xcc\xdd\xff",
+                 0x10000),
+    )))
+    os.close(fd)
+    buf = procmem(filepath)
+    assert list(buf.findbytesv("c? c? c? 0A")) == [0x40101B]
+    assert list(buf.findbytesv("1f ?? ?b")) == [0x401022, 0x401025]
+    assert list(buf.findbytesv("?f ?? ?? 00")) == [0x401000, 0x40102A]
+    assert not list(buf.findbytesv("test hAAAA".encode("hex")))
+    assert list(buf.findbytesv("test\n hAAAA".encode("hex")))
+
+
 def test_mmap():
     fd, filepath = tempfile.mkstemp()
     os.close(fd)
