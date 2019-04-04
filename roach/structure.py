@@ -4,8 +4,8 @@
 
 import ctypes
 
-from roach.string.bin import (
-    IntWorker, Int8, UInt8, Int16, UInt16, Int32, UInt32, Int64, UInt64
+from roach.ints import (
+    IntTypeBase, MultipliedIntTypeBase, Int8, UInt8, Int16, UInt16, Int32, UInt32, Int64, UInt64
 )
 
 mapping = {
@@ -19,6 +19,7 @@ mapping = {
     UInt64: ctypes.c_ulonglong,
 }
 
+
 class Structure(object):
     # TODO Default value in Python, should we change this to 1?
     _pack_ = 0
@@ -27,13 +28,13 @@ class Structure(object):
     def __init__(self):
         self.subfields, fields = {}, []
         for field, type_ in self._fields_:
-            if isinstance(type_, IntWorker):
-                if type_.mul:
-                    type_ = mapping[type_.__class__] * type_.mul
-                else:
-                    type_ = mapping[type_.__class__]
-            elif isinstance(type_, (int, long)):
+            if isinstance(type_, (int, long)):
                 type_ = ctypes.c_char * type_
+            elif issubclass(type_, IntTypeBase):
+                if issubclass(type_, MultipliedIntTypeBase):
+                    type_ = mapping[type_.int_type] * type_.mul
+                else:
+                    type_ = mapping[type_]
             elif issubclass(type_, Structure):
                 # Keep track, likely for Python GC purposes.
                 self.subfields[field] = type_()

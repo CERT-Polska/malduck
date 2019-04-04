@@ -49,9 +49,13 @@ Currently Cockroach exports the following methods:
   - md5
   - sha1, sha224, sha256, sha384, sha512
 
+* Int-types
+
+  - fixed-size int/uint types
+
 * String
 
-  - int/uint 8/16/32/64 serialization
+  - int/uint 8/16/32/64 (de)serialization
   - bigint serialization
   - ipv4 parsing
   - null/pkcs7 (un)padding
@@ -114,10 +118,10 @@ String
 
 .. code-block::
 
-    >>> from roach import int8, uint32, ipv4, pad
-    >>> int8("\xff")
+    >>> from roach import Int8, UInt32, ipv4, pad
+    >>> Int8.unpack("\xff")
     -1
-    >>> uint32("\xe8\x03\x00\x009\x05\x00\x00)#\x00\x00")
+    >>> (UInt32 * 3).unpack("\xe8\x03\x00\x009\x05\x00\x00)#\x00\x00")
     (1000, 1337, 9001)
     >>> ipv4("\x7f\x00\x00\x01")
     '127.0.0.1'
@@ -195,12 +199,12 @@ Structure
 
 .. code-block::
 
-    >>> from roach import Structure, uint8, uint32
+    >>> from roach import Structure, CHAR, DWORD
     >>> class A(Structure):
     ...   _fields_ = [
-    ...     ("a", uint8),
-    ...     ("b", uint8 * 3),
-    ...     ("c", uint32 * 2),
+    ...     ("a", CHAR),
+    ...     ("b", CHAR * 3),
+    ...     ("c", DWORD * 2),
     ...     ("d", 8),
     ...   ]
     ...
