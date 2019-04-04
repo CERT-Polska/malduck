@@ -19,8 +19,9 @@ class Operand(object):
         1: "byte", 2: "word", 4: "dword", 8: "qword",
     }
 
-    def __init__(self, op):
+    def __init__(self, op, x64):
         self.op = op
+        self.x64 = x64
 
     @property
     def is_imm(self):
@@ -46,8 +47,10 @@ class Operand(object):
 
     @property
     def reg(self):
-        if self.is_mem and self.op.value.mem.base:
-            return self.regs[self.op.value.mem.base]
+        if self.is_mem:
+            reg = self.op.value.mem.base or self.op.value.mem.index
+            if reg:
+                return self.regs[reg]
         if self.is_reg:
             return self.regs[self.op.reg]
         # TODO Improved memory operand support.
@@ -83,8 +86,10 @@ class Operand(object):
 
     def __str__(self):
         if self.is_imm:
-            # TODO x86_64 support.
-            return "0x%08x" % (self.value % 2**32)
+            if self.x64:
+                return "0x%016x" % (self.value % 2**64)
+            else:
+                return "0x%08x" % (self.value % 2**32)
         if self.is_reg:
             return self.reg
         if self.is_mem:
@@ -94,16 +99,16 @@ class Operand(object):
             if m.index:
                 s.append("%d*%s" % (m.scale, m.index))
             if m.disp:
-                # TODO x86_64 support.
-                s.append("0x%08x" % (m.disp % 2**32))
+                s.append("0x%08x" % (m.disp % 2 ** 32))
             return "%s [%s]" % (m.size, "+".join(s))
 
 class Instruction(object):
-    def __init__(self, mnem=None, op1=None, op2=None, op3=None, addr=None):
+    def __init__(self, mnem=None, op1=None, op2=None, op3=None, addr=None, x64=False):
         self.insn = None
         self.mnem = mnem
         self.operands = op1, op2, op3
         self._addr = addr
+        self.x64 = x64
 
     def parse(self, insn):
         self.insn = insn
@@ -111,12 +116,13 @@ class Instruction(object):
 
         operands = []
         for op in insn.operands + [None, None, None]:
-            operands.append(Operand(op) if op else None)
+            operands.append(Operand(op, self.x64) if op else None)
         self.operands = operands[0], operands[1], operands[2]
 
     @staticmethod
-    def from_capstone(insn):
+    def from_capstone(insn, x64=False):
         ret = Instruction()
+        ret.x64 = x64
         ret.parse(insn)
         return ret
 
@@ -158,14 +164,15 @@ class Instruction(object):
         return self.mnem
 
 class Disassemble(object):
-    def disassemble(self, data, addr):
+    def disassemble(self, data, addr, x64=False):
         import capstone
 
-        cs = capstone.Cs(capstone.CS_ARCH_X86, capstone.CS_MODE_32)
+        cs = capstone.Cs(capstone.CS_ARCH_X86,
+                         capstone.CS_MODE_64 if x64 else capstone.CS_MODE_32)
         cs.detail = True
         ret = []
         for insn in cs.disasm(data, addr):
-            ret.append(Instruction.from_capstone(insn))
+            ret.append(Instruction.from_capstone(insn, x64=x64))
         return ret
 
     def init_once(self, *args, **kwargs):
