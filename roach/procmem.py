@@ -238,6 +238,33 @@ class ProcessMemory(object):
     def disasmv(self, addr, size):
         return disasm(self.readv(addr, size), addr)
 
+    def _findbytes(self, regex, query, addr, length):
+        def byte2re(b):
+            hexrange = "0123456789abcdef?"
+            if len(b) != 2:
+                raise ValueError("Length of query should be even")
+            first, second = b
+            if first not in hexrange or second not in hexrange:
+                raise ValueError("Incorrect query - only 0-9a-fA-F? chars are allowed")
+            if b == "??":
+                return r"."
+            if first == "?":
+                return r"[{}]".format(''.join(r"\x"+ch+second for ch in "0123456789abcdef"))
+            if second == "?":
+                return r"[\x{first}0-\x{first}f]".format(first=first)
+            return r"\x"+b
+        query = ''.join(query.lower().split(" "))
+        rquery = ''.join(map(byte2re, [query[i:i+2] for i in range(0, len(query), 2)]))
+        return regex(rquery, addr, length)
+
+    def findbytesp(self, query, offset=0, length=0):
+        """Search for byte sequences (4? AA BB ?? DD). Uses regexp internally"""
+        return self._findbytes(self.regexp, query, offset, length)
+
+    def findbytesv(self, query, addr=None, length=None):
+        """Search for byte sequences (4? AA BB ?? DD). Uses regexv internally"""
+        return self._findbytes(self.regexv, query, addr, length)
+
     def findmz(self, addr):
         """Locates the MZ header based on an address."""
         addr &= ~0xffff
