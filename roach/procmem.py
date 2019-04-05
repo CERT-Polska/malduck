@@ -14,6 +14,7 @@ except ImportError:
     HAVE_LIEF = False
 
 from roach.disasm import disasm
+from roach.string.ops import chunks, utf16z
 from roach.string.bin import uint8, uint16, uint32, uint64
 
 PAGE_READONLY = 0x00000002
@@ -211,6 +212,24 @@ class ProcessMemory(object):
     def asciiz(self, addr):
         """Read a nul-terminated ASCII string at address."""
         return self.read_until(addr, "\x00")
+
+    def utf16z(self, addr):
+        """Read a nul-terminated UTF-16 string at address."""
+        ret = []
+        while True:
+            r = self.addr_range(addr)
+            if not r:
+                break
+            a, l = r
+            l = a + l - addr
+            buf = self.read(self.v2p(addr), l)
+
+            utf16 = utf16z(buf)
+            ret.append(utf16)
+            if utf16 != buf:
+                break
+            addr = addr + l
+        return "".join(ret)
 
     def regexp(self, query, offset=0, length=0):
         """Performs a regex on the file, must use mmap(2) loading."""
