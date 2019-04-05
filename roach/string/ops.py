@@ -8,6 +8,21 @@ import binascii
 def asciiz(s):
     return s.split("\x00")[0]
 
+def chunks_iter(l, n):
+    """Yield successive n-sized chunks from l."""
+    for i in range(0, len(l), n):
+        yield l[i:i + n]
+
+def chunks(l, n):
+    """Return list of successive n-sized chunks from l."""
+    return list(chunks_iter(l, n))
+
+def utf16z(s):
+    chunked = chunks(s, 2)
+    if '\x00\x00' in chunked:
+        return s[:chunked.index('\x00\x00')*2]
+    return s
+
 def hex(s):
     return binascii.hexlify(s)
 
