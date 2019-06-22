@@ -12,9 +12,10 @@ from roach.crypto.rc import RC4
 from roach.crypto.rsa import RSA
 from roach.disasm import Instruction
 from roach.pe import PE
-from roach.procmem import ProcessMemory, ProcessMemoryPE
+from roach.procmem import ProcessMemory, ProcessMemoryPE, CuckooProcessMemory
 from roach.string.ops import Padding, Unpadding, Base64
 from roach.verify import Verify
+
 
 class aes(object):
     def __init__(self, mode):
@@ -54,6 +55,7 @@ class aes(object):
     def import_key(data):
         return AES.import_key(data)
 
+
 class des3(object):
     def __init__(self, mode):
         self.mode = mode
@@ -70,12 +72,14 @@ class des3(object):
 
     cbc = _cbc_()
 
+
 class rc4_(object):
     @staticmethod
     def rc4(key, data):
         return RC4(key).encrypt(data)
 
     __call__ = decrypt = encrypt = rc4
+
 
 class blowfish_(object):
     @staticmethod
@@ -84,12 +88,14 @@ class blowfish_(object):
 
     __call__ = decrypt
 
+
 class rabbit_(object):
     @staticmethod
     def rabbit(key, iv, data):
         return Rabbit(key, iv).encrypt(data)
 
     __call__ = rabbit
+
 
 blowfish = blowfish_()
 rc4 = rc4_()
@@ -98,6 +104,7 @@ pe = PE
 aplib = aPLib()
 procmem = ProcessMemory
 procmempe = ProcessMemoryPE
+cuckoomem = CuckooProcessMemory
 base64 = Base64()
 pad = Padding("pkcs7")
 unpad = Unpadding("pkcs7")

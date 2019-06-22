@@ -4,34 +4,50 @@
 # See the file 'docs/LICENSE.txt' for copying permission.
 
 import pefile
-import struct
 
-from roach.procmem import ProcessMemoryPE, ProcessMemory
+from .procmem import ProcessMemory, ProcessMemoryPE, CuckooProcessMemory
 
-class OurSectionStructure(pefile.SectionStructure):
-    def get_data(self, start=None, length=None):
-        if not isinstance(self.pe.__data__, ProcessMemoryPE):
-            return OrigSectionStructure.get_data(self, start, length)
-        data = self.pe.__data__
-        return data.readv(data.imgbase + start, length)
 
-OrigSectionStructure = pefile.SectionStructure
-pefile.SectionStructure = OurSectionStructure
+class MemoryPEData(object):
+    """
+    pefile.PE.__data__ represents image file usually aligned to 512 bytes.
+    MemoryPEData perform mapping from pefile's offset-access to Memory object va-access
+    based on section layout
+    """
+
+    def __init__(self, memory, fast_load):
+        self.memory = memory
+        self.pe = pefile.PE(data=self, fast_load=fast_load)
+
+    def map_offset(self, offs):
+        if not self.pe.sections:
+            return self.memory.imgbase + offs
+        return self.memory.imgbase + self.pe.get_rva_from_offset(offs)
+
+    def __len__(self):
+        r = self.memory.regions[-1]
+        return r.addr + r.size
+
+    def __getitem__(self, item):
+        if type(item) is slice:
+            start = self.map_offset(item.start or 0)
+            stop = self.map_offset(item.stop)
+        else:
+            start = self.map_offset(item)
+            stop = start + 1
+        return self.memory.readv(start, stop - start)
+
 
 class PE(object):
-    """Wrapper around pefile.PE; accepts either a string (raw file contents) or
-    a ProcessMemoryPE instance."""
+    """Wrapper around pefile.PE; accepts either a string (raw file contents) or Memoryinstance """
 
     def __init__(self, data, fast_load=True):
-        if data.__class__ == ProcessMemory:
-            raise RuntimeError("procmem parameter should be procmempe!")
-
-        if data.__class__ == ProcessMemoryPE:
-            fast_load = False
-            data.parent = self
-
-        self.data = data
-        self.pe = pefile.PE(data=data, fast_load=fast_load)
+        if isinstance(data, ProcessMemory):
+            self.data = MemoryPEData(data, fast_load)
+            self.pe = self.data.pe
+        else:
+            self.data = data
+            self.pe = pefile.PE(data=data, fast_load=fast_load)
 
     @property
     def dos_header(self):
@@ -96,21 +112,8 @@ class PE(object):
         except StopIteration:
             pass
 
-def pe2procmem(data):
-    """Translate a PE file into a procmem file."""
-    pe = PE(data)
-    imgbase = pe.optional_header.ImageBase
 
-    ret = [
-        struct.pack("QIIII", imgbase, 0x1000, 0, 0, 0),
-        data[:0x1000],
-    ]
-
-    # TODO This can be a little bit more enterprise.
-    for section in pe.sections:
-        ret.append(struct.pack(
-            "QIIII", imgbase + section.VirtualAddress,
-            section.SizeOfRawData, 0, 0, 0
-        ))
-        ret.append(section.get_data())
-    return "".join(ret)
+def pe2cuckoo(data):
+    """Translate a PE file into a cuckoo-procmem file."""
+    m = ProcessMemoryPE(data, image=True)
+    return CuckooProcessMemory.from_memory(m).store()

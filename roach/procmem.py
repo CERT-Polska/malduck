@@ -3,7 +3,6 @@
 # See the file 'docs/LICENSE.txt' for copying permission.
 
 import mmap
-import os
 import re
 import struct
 
@@ -14,7 +13,7 @@ except ImportError:
     HAVE_LIEF = False
 
 from roach.disasm import disasm
-from roach.string.ops import chunks, utf16z
+from roach.string.ops import utf16z
 from roach.string.bin import uint8, uint16, uint32, uint64
 
 PAGE_READONLY = 0x00000002
@@ -34,6 +33,7 @@ page_access = {
     PAGE_EXECUTE_READWRITE: "rwx",
     PAGE_EXECUTE_WRITECOPY: "rwxc",
 }
+
 
 class Region(object):
     def __init__(self, addr, size, state, type_, protect, offset):
@@ -67,85 +67,71 @@ class Region(object):
             self.protect == other.protect
         )
 
+
 class ProcessMemory(object):
-    """Wrapper object to operate on process memory dumps."""
+    """Basic virtual memory representation"""
+    def __init__(self, buf, base=0, regions=None):
+        self.m = buf
+        self.imgbase = base
 
-    def __init__(self, file_or_filepath, load=True):
-        if hasattr(file_or_filepath, "read"):
-            self.f = file_or_filepath
-            self.is_file = False
+        if regions is not None:
+            self.regions = regions
         else:
-            self.f = open(file_or_filepath, "rb")
-            self.is_file = True
+            self.regions = [Region(base, self.length, 0, 0, PAGE_EXECUTE_READWRITE, 0)]
 
-        # By default mmap(2) a non-empty file into memory.
-        if load and self.is_file and os.path.getsize(file_or_filepath):
-            if hasattr(mmap, "PROT_READ"):
-                access = mmap.PROT_READ
-            elif hasattr(mmap, "ACCESS_READ"):
-                access = mmap.ACCESS_READ
+    @classmethod
+    def from_file(cls, f, **kwargs):
+        try:
+            # psrok1: allow copy-on-write
+            if hasattr(mmap, "MAP_PRIVATE"):
+                access = mmap.MAP_PRIVATE
+            elif hasattr(mmap, "ACCESS_COPY"):
+                access = mmap.ACCESS_COPY
             else:
-                raise RuntimeError(
-                    "Loading process memory is not supported on your OS!"
-                )
+                raise RuntimeError("mmap is not supported on your OS")
 
-            self.m = mmap.mmap(self.f.fileno(), 0, access=access)
-        else:
-            self.m = self.f
+            m = mmap.mmap(f.fileno(), 0, access=access)
+            return cls(m, **kwargs)
+        except RuntimeError:
+            return cls(f.read(), **kwargs)
 
-        self.load = load
-        self._regions = []
+    @classmethod
+    def from_memory(cls, memory):
+        return cls(memory.m, base=memory.imgbase, regions=memory.regions)
 
     @property
-    def regions(self):
-        """Read the defined regions in this process memory dump."""
-        if self._regions:
-            return self._regions
-
-        self.m.seek(0)
-        while True:
-            buf = self.m.read(24)
-            if not buf:
-                break
-
-            addr, size, state, typ, protect = struct.unpack("QIIII", buf)
-
-            self._regions.append(
-                Region(addr, size, state, typ, protect, self.m.tell())
-            )
-            try:
-                self.m.seek(size, os.SEEK_CUR)
-            except ValueError:
-                break
-        return self._regions
+    def length(self):
+        if hasattr(self.m, "size"):
+            return self.m.size()
+        else:
+            return len(self.m)
 
     def v2p(self, addr):
         """Virtual address to physical offset translation."""
         for region in self.regions:
-            if addr >= region.addr and addr < region.end:
+            if region.addr <= addr < region.end:
                 return region.offset + addr - region.addr
 
     def p2v(self, off):
         """Physical offset to virtual address translation."""
         for region in self.regions:
-            if off >= region.offset and off < region.offset + region.size:
+            if region.offset <= off < region.offset + region.size:
                 return region.addr + off - region.offset
 
     def addr_range(self, addr):
         """Returns a (start, end) range for an address."""
         for region in self.regions:
-            if addr >= region.addr and addr < region.end:
+            if region.addr <= addr < region.end:
                 return region.addr, region.size
 
     def addr_region(self, addr):
         for region in self.regions:
-            if addr >= region.addr and addr < region.end:
+            if region.addr <= addr < region.end:
                 return region
 
     def read(self, offset, length):
         """Read a chunk of memory from the memory dump."""
-        self.m.seek(offset, os.SEEK_SET)
-        return self.m.read(length)
+        return self.m[offset:offset+length]
 
     def readv(self, addr, length):
         """Reads a continuous buffer with address and length."""
@@ -232,9 +218,7 @@ class ProcessMemory(object):
         return "".join(ret)
 
     def regexp(self, query, offset=0, length=0):
-        """Performs a regex on the file, must use mmap(2) loading."""
-        if not self.load:
-            raise RuntimeError("can only regex on a file!")
+        """Performs a regex on the file """
         if offset and length:
             chunk = self.m[offset:offset+length]
         else:
@@ -243,7 +227,7 @@ class ProcessMemory(object):
             yield offset + entry.start()
 
     def regexv(self, query, addr=None, length=None):
-        """Performs a regex on the file, must use mmap(2) loading."""
+        """Performs a regex on the file """
         if addr and length:
             offset, end = self.v2p(addr), self.v2p(addr + length)
             length = end - offset
@@ -338,44 +322,42 @@ class ProcessMemory(object):
         builder.write(filepath)
         return True
 
+
 class ProcessMemoryPE(ProcessMemory):
-    """Wrapper around ProcessMemory for reading in-memory PE files."""
-
-    def __init__(self, p, imgbase, load=True):
-        if not imgbase:
-            raise RuntimeError("invalid image base!")
-
-        if p.__class__ == ProcessMemoryPE:
-            raise RuntimeError("object already procmempe!")
-
-        # Upgrade existing ProcessMemory instance.
-        if p.__class__ == ProcessMemory:
-            self.f = p.f
-            self.m = p.m
-            self.load = p.load
-            self._regions = p.regions
-        else:
-            ProcessMemory.__init__(self, p, load)
-
-        self.imgbase = imgbase
+    """ Representation of memory-mapped PE file """
+    def __init__(self, buf, base=0, regions=None, image=False):
+        super(ProcessMemoryPE, self).__init__(buf, base=base, regions=regions)
         self._pe = None
         self._imgend = None
+        if image:
+            self._load_image()
 
-    def __len__(self):
-        r = self.regions[-1]
-        return r.addr + r.size
+    @classmethod
+    def from_memory(cls, memory, base=None, image=False):
+        return cls(memory.m, base=base or memory.imgbase, regions=memory.regions, image=image)
 
-    def __getitem__(self, item):
-        if isinstance(item, (int, long)):
-            return self.readv(self.imgbase + item, 1)
-
-        if item.start is None:
-            start = self.imgbase
-            stop = item.stop
-        else:
-            start = self.imgbase + item.start
-            stop = item.stop - item.start
-        return self.readv(start, stop)
+    def _load_image(self):
+        from roach.pe import PE
+        # Load PE data from imgbase offset
+        offset = self.v2p(self.imgbase)
+        self.m = self.m[offset:]
+        pe = PE(data=self.m, fast_load=True)
+        # Reset regions
+        self.imgbase = pe.optional_header.ImageBase
+        self.regions = [
+            Region(self.imgbase, 0x1000, 0, 0, 0, 0)
+        ]
+        # Apply relocations
+        pe.pe.relocate_image(self.imgbase)
+        # Load image sections
+        for section in pe.sections:
+            if section.SizeOfRawData > 0:
+                self.regions.append(Region(
+                    self.imgbase + section.VirtualAddress,
+                    section.SizeOfRawData,
+                    0, 0, 0,
+                    section.PointerToRawData
+                ))
 
     @property
     def pe(self):
@@ -387,7 +369,6 @@ class ProcessMemoryPE(ProcessMemory):
     @property
     def imgend(self):
         if not self._imgend:
-            # TODO Is this good enough? What about OptionalHeader.SizeOfImage?
             section = self.pe.sections[-1]
             self._imgend = (
                 self.imgbase +
@@ -395,12 +376,27 @@ class ProcessMemoryPE(ProcessMemory):
             )
         return self._imgend
 
-    @staticmethod
-    def fromaddr(filepath, addr):
-        p = ProcessMemory(filepath)
-        return ProcessMemoryPE(p, p.findmz(addr))
 
-    @staticmethod
-    def fromoffset(filepath, offset):
-        p = ProcessMemory(filepath)
-        return ProcessMemoryPE(p, p.findmz(p.p2v(offset)))
+class CuckooProcessMemory(ProcessMemory):
+    """Wrapper object to operate on process memory dumps in Cuckoo 2.x format."""
+    def __init__(self, buf):
+        ptr = 0
+        regions = []
+
+        while ptr < self.length:
+            hdr = buf[ptr:ptr+24]
+            if not hdr:
+                break
+
+            addr, size, state, typ, protect = struct.unpack("QIIII", hdr)
+            ptr += 24
+
+            regions.append(
+                Region(addr, size, state, typ, protect, ptr)
+            )
+            ptr += size
+        super(CuckooProcessMemory, self).__init__(buf, regions=regions)
+
+    def store(self):
+        """ Stores ProcessMemory into string """
+        raise NotImplementedError()
