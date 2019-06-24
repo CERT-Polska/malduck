@@ -4,16 +4,19 @@
 
 import click
 
-from roach import procmem
+from roach import cuckoomem
+
 
 @click.group()
 def main():
     pass
 
-@main.command("procmem.list")
+
+@main.command("cuckoomem.list")
 @click.argument("mempath", type=click.Path(exists=True))
-def procmem_list(mempath):
-    p = procmem(mempath)
-    for region in p.regions:
-        print "0x%08x .. 0x%08x" % (region.addr, region.addr + region.size),
-        print repr(p.readv(region.addr, 16))
+def cuckoomem_list(mempath):
+    with open(mempath, "rb") as f:
+        p = cuckoomem.from_file(f)
+        for region in p.regions:
+            print "0x%08x .. 0x%08x" % (region.addr, region.addr + region.size),
+            print repr(p.readv(region.addr, 16))

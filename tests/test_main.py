@@ -4,10 +4,11 @@
 
 from click.testing import CliRunner
 
-from roach.main import procmem_list
+from roach.main import cuckoomem_list
 
-def test_procmem_list():
-    result = CliRunner().invoke(procmem_list, ["tests/files/dummy.dmp"])
+
+def test_cuckoomem_list():
+    result = CliRunner().invoke(cuckoomem_list, ["tests/files/dummy.dmp"])
     assert not result.exit_code
     assert result.output == (
         "0x41410000 .. 0x41411000 'AAAAAAAAAAAAAAAA'\n"

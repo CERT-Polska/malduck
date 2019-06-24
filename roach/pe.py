@@ -17,10 +17,14 @@ class MemoryPEData(object):
 
     def __init__(self, memory, fast_load):
         self.memory = memory
-        self.pe = pefile.PE(data=self, fast_load=fast_load)
+        # Preload headers
+        self.pe = pefile.PE(data=self, fast_load=True)
+        # Perform full_load if needed
+        if not fast_load:
+            self.pe.full_load()
 
     def map_offset(self, offs):
-        if not self.pe.sections:
+        if not hasattr(self, "pe") or not self.pe.sections:
             return self.memory.imgbase + offs
         return self.memory.imgbase + self.pe.get_rva_from_offset(offs)
 
@@ -41,7 +45,7 @@ class MemoryPEData(object):
 class PE(object):
     """Wrapper around pefile.PE; accepts either a string (raw file contents) or Memoryinstance """
 
-    def __init__(self, data, fast_load=True):
+    def __init__(self, data, fast_load=False):
         if isinstance(data, ProcessMemory):
             self.data = MemoryPEData(data, fast_load)
             self.pe = self.data.pe

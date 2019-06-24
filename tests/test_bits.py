@@ -4,6 +4,7 @@
 
 from roach import rol, ror
 
+
 def test_rotate():
     assert rol(0b11100000, 3, 8) == 0b00000111
     assert rol(0b11100011, 1, 8) == 0b11000111

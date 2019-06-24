@@ -83,16 +83,13 @@ class ProcessMemory(object):
     def from_file(cls, f, **kwargs):
         try:
             # psrok1: allow copy-on-write
-            if hasattr(mmap, "MAP_PRIVATE"):
-                access = mmap.MAP_PRIVATE
-            elif hasattr(mmap, "ACCESS_COPY"):
-                access = mmap.ACCESS_COPY
+            if hasattr(mmap, "ACCESS_COPY"):
+                m = mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_COPY)
             else:
                 raise RuntimeError("mmap is not supported on your OS")
-
-            m = mmap.mmap(f.fileno(), 0, access=access)
             return cls(m, **kwargs)
         except RuntimeError:
+            # Fallback to f.read()
             return cls(f.read(), **kwargs)
 
     @classmethod
@@ -348,7 +345,8 @@ class ProcessMemoryPE(ProcessMemory):
             Region(self.imgbase, 0x1000, 0, 0, 0, 0)
         ]
         # Apply relocations
-        pe.pe.relocate_image(self.imgbase)
+        if hasattr(pe.pe, "DIRECTORY_ENTRY_BASERELOC"):
+            pe.pe.relocate_image(self.imgbase)
         # Load image sections
         for section in pe.sections:
             if section.SizeOfRawData > 0:
@@ -379,23 +377,25 @@ class ProcessMemoryPE(ProcessMemory):
 
 class CuckooProcessMemory(ProcessMemory):
     """Wrapper object to operate on process memory dumps in Cuckoo 2.x format."""
-    def __init__(self, buf):
+    def __init__(self, buf, base=None, **kwargs):
+        super(CuckooProcessMemory, self).__init__(buf)
         ptr = 0
-        regions = []
+        self.regions = []
 
         while ptr < self.length:
-            hdr = buf[ptr:ptr+24]
+            hdr = self.m[ptr:ptr+24]
             if not hdr:
                 break
 
             addr, size, state, typ, protect = struct.unpack("QIIII", hdr)
             ptr += 24
 
-            regions.append(
+            self.regions.append(
                 Region(addr, size, state, typ, protect, ptr)
             )
             ptr += size
-        super(CuckooProcessMemory, self).__init__(buf, regions=regions)
+        if base is None:
+            self.imgbase = self.regions[0].addr
 
     def store(self):
         """ Stores ProcessMemory into string """

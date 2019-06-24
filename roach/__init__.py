@@ -12,7 +12,7 @@ from roach.string.inet import ipv4
 from roach.string.ops import asciiz, utf16z, chunks, hex, unhex, uleb128
 from roach.structure import Structure
 
-from roach.pe import pe2procmem
+from roach.pe import pe2cuckoo
 
 from roach.procmem import (
     PAGE_READONLY, PAGE_READWRITE, PAGE_WRITECOPY, PAGE_EXECUTE,
@@ -20,7 +20,7 @@ from roach.procmem import (
 )
 
 from roach.short import (
-    aes, blowfish, des3, rc4, pe, aplib, gzip, procmem, procmempe, pad, unpad,
+    aes, blowfish, des3, rc4, pe, aplib, gzip, procmem, procmempe, cuckoomem, pad, unpad,
     insn, rsa, verify, base64, rabbit
 )
 
