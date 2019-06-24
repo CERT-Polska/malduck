@@ -10,8 +10,7 @@ from roach import procmem, procmempe, cuckoomem, pad, pe, insn, PAGE_READWRITE
 
 
 def test_cuckoomem_dummy_dmp():
-    with open("tests/files/dummy.dmp", "rb") as f:
-        p = cuckoomem.from_file(f)
+    with cuckoomem.from_file("tests/files/dummy.dmp") as p:
         assert len(p.regions) == 3
         assert p.regions[0].to_json() == {
             "addr": "0x41410000",
@@ -60,13 +59,11 @@ def test_cuckoomem_dummy_dmp():
 
 
 def test_calc_dmp():
-    with open("tests/files/calc.dmp", "rb") as f:
-        p = cuckoomem.from_file(f)
+    with cuckoomem.from_file("tests/files/calc.dmp") as p:
         ppe = procmempe.from_memory(p, 0xd0000)
         assert p.regions == ppe.regions
         assert p.findmz(0x129abc) == 0xd0000
         # Old/regular method with PE header.
-        print(p.imgbase)
         assert pe(p.readv(p.imgbase, 0x1000)).dos_header.e_lfanew == 0xd8
         assert p.readv(p.imgbase + 0xd8, 4) == "PE\x00\x00"
 
@@ -79,8 +76,7 @@ def test_calc_dmp():
 
 
 def test_calc_exe():
-    with open("tests/files/calc.exe", "rb") as f:
-        ppe = procmempe.from_file(f, image=True)
+    with procmempe.from_file("tests/files/calc.exe", image=True) as ppe:
         assert ppe.imgbase == 0x1000000
         assert ppe.readv(ppe.imgbase + 0xd8, 4) == "PE\x00\x00"
         assert ppe.pe.is32bit is True
@@ -100,8 +96,7 @@ def test_cuckoomem_methods():
         pad.null("foo\x00bar thisis0test\n hAAAA\xc3", 0x1000),
     )))
     os.close(fd)
-    with open(filepath, "rb") as f:
-        buf = cuckoomem.from_file(f)
+    with cuckoomem.from_file(filepath) as buf:
         assert buf.readv(0x401000, 0x1000).endswith("\x00"*0x100)
         assert list(buf.regexv("thisis(.*)test")) == [0x401008]
         assert list(buf.regexv(" ")) == [0x401007, 0x401014]

@@ -71,6 +71,7 @@ class Region(object):
 class ProcessMemory(object):
     """Basic virtual memory representation"""
     def __init__(self, buf, base=0, regions=None):
+        self.f = None
         self.m = buf
         self.imgbase = base
 
@@ -79,22 +80,46 @@ class ProcessMemory(object):
         else:
             self.regions = [Region(base, self.length, 0, 0, PAGE_EXECUTE_READWRITE, 0)]
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
+
+    def close(self, copy=False):
+        if self.f is not None:
+            if hasattr(self.m, "close"):
+                if copy:
+                    self.m.seek(0)
+                    buf = self.m.read()
+                else:
+                    buf = None
+                self.m.close()
+                self.m = buf
+            self.f.close()
+            self.f = None
+
     @classmethod
-    def from_file(cls, f, **kwargs):
+    def from_file(cls, filename, **kwargs):
+        f = open(filename, "rb")
         try:
-            # psrok1: allow copy-on-write
+            # Allow copy-on-write
             if hasattr(mmap, "ACCESS_COPY"):
                 m = mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_COPY)
             else:
                 raise RuntimeError("mmap is not supported on your OS")
-            return cls(m, **kwargs)
-        except RuntimeError:
+            memory = cls(m, **kwargs)
+        except RuntimeError as e:
             # Fallback to f.read()
-            return cls(f.read(), **kwargs)
+            memory = cls(f.read(), **kwargs)
+        memory.f = f
+        return memory
 
     @classmethod
     def from_memory(cls, memory):
-        return cls(memory.m, base=memory.imgbase, regions=memory.regions)
+        copied = cls(memory.m, base=memory.imgbase, regions=memory.regions)
+        copied.f = memory.f
+        return copied
 
     @property
     def length(self):
@@ -331,7 +356,9 @@ class ProcessMemoryPE(ProcessMemory):
 
     @classmethod
     def from_memory(cls, memory, base=None, image=False):
-        return cls(memory.m, base=base or memory.imgbase, regions=memory.regions, image=image)
+        copied = cls(memory.m, base=base or memory.imgbase, regions=memory.regions, image=image)
+        copied.f = memory.f
+        return copied
 
     def _load_image(self):
         from roach.pe import PE

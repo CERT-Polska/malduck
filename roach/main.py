@@ -15,8 +15,7 @@ def main():
 @main.command("cuckoomem.list")
 @click.argument("mempath", type=click.Path(exists=True))
 def cuckoomem_list(mempath):
-    with open(mempath, "rb") as f:
-        p = cuckoomem.from_file(f)
+    with cuckoomem.from_file(mempath) as p:
         for region in p.regions:
             print "0x%08x .. 0x%08x" % (region.addr, region.addr + region.size),
             print repr(p.readv(region.addr, 16))
