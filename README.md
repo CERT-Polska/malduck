@@ -9,7 +9,7 @@ Malduck provides many improvements resulting from CERT.pl codebase, making scrip
 Improvements
 ============
 
-* Improved ProcessMemory
+* Many improvements in ProcessMemory
 * Support for (non)memory-mapped PE images without header fix-up.
 * Searching for wildcarded byte sequences
 * Support for x64 disassembly
