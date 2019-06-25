@@ -1,13 +1,12 @@
 # Copyright (C) 2018 Jurriaan Bremer.
-# This file is part of Roach - https://github.com/jbremer/malduck.
+# This file is part of Roach - https://github.com/jbremer/roach.
 # See the file 'docs/LICENSE.txt' for copying permission.
 
 import struct
 
+from ..bits import rol
 from .xor import xor
 
-def rotl(v,n):
-    return (((v<<n)&0xffffffff) | ((v>>(32-n))&0xffffffff))
 
 class State(object):
     def __init__(self):
@@ -15,10 +14,12 @@ class State(object):
         self.c = [0]*8
         self.carry = 0
 
+
 class Context(object):
     def __init__(self):
         self.m = State()
         self.w = State()
+
 
 class Rabbit(object):
     def __init__(self, key, iv):
@@ -48,10 +49,10 @@ class Rabbit(object):
         s.x[7] = ((key2 << 16) & 0xffffffff) | ((key1 >> 16) & 0xffff)
 
         # Generate initial counter values.
-        s.c[0] = rotl(key2, 16)
-        s.c[2] = rotl(key3, 16)
-        s.c[4] = rotl(key0, 16)
-        s.c[6] = rotl(key1, 16)
+        s.c[0] = rol(key2, 16)
+        s.c[2] = rol(key3, 16)
+        s.c[4] = rol(key0, 16)
+        s.c[6] = rol(key1, 16)
         s.c[1] = (key0 & 0xffff0000) | (key1 & 0xffff)
         s.c[3] = (key1 & 0xffff0000) | (key2 & 0xffff)
         s.c[5] = (key2 & 0xffff0000) | (key3 & 0xffff)
@@ -60,7 +61,7 @@ class Rabbit(object):
 
         # Iterate system four times.
         for i in xrange(4):
-            self.next_state(self.ctx.m);
+            self.next_state(self.ctx.m)
 
         # Modify the counters.
         for i in xrange(8):
@@ -92,7 +93,7 @@ class Rabbit(object):
 
         # Iterate system four times.
         for i in xrange(4):
-            self.next_state(self.ctx.w);
+            self.next_state(self.ctx.w)
 
     def next_state(self, state):
         g = [0]*8
@@ -112,11 +113,11 @@ class Rabbit(object):
         j = 7
         for i in xrange(0, 8, 2):
             state.x[i + 0] = (
-                g[i + 0] + rotl(g[j], 16) + rotl(g[j - 1], 16)
+                g[i + 0] + rol(g[j], 16) + rol(g[j - 1], 16)
             ) & 0xffffffff
             j = (j + 1) & 7
             state.x[i + 1] = (
-                g[i + 1] + rotl(g[j], 8) + g[j - 1]
+                g[i + 1] + rol(g[j], 8) + g[j - 1]
             ) & 0xffffffff
             j = (j + 1) & 7
 

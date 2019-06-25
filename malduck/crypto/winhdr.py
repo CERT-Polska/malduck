@@ -1,9 +1,10 @@
 # Copyright (C) 2018 Jurriaan Bremer.
-# This file is part of Roach - https://github.com/jbremer/malduck.
+# This file is part of Roach - https://github.com/jbremer/roach.
 # See the file 'docs/LICENSE.txt' for copying permission.
 
 from ..ints import UInt8, UInt16, UInt32
 from ..structure import Structure
+
 
 class BLOBHEADER(Structure):
     _pack_ = 1
@@ -13,6 +14,7 @@ class BLOBHEADER(Structure):
         ("wReserved", UInt16),
         ("aiKeyAlg", UInt32),
     ]
+
 
 class BaseBlob(object):
     def __init__(self):

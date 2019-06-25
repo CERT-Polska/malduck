@@ -1,21 +1,25 @@
 # Copyright (C) 2018 Jurriaan Bremer.
-# This file is part of Roach - https://github.com/jbremer/malduck.
+# This file is part of Roach - https://github.com/jbremer/roach.
 # See the file 'docs/LICENSE.txt' for copying permission.
 
 import base64
 import binascii
 
+
 def asciiz(s):
     return s.split("\x00")[0]
+
 
 def chunks_iter(l, n):
     """Yield successive n-sized chunks from l."""
     for i in range(0, len(l), n):
         yield l[i:i + n]
 
+
 def chunks(l, n):
     """Return list of successive n-sized chunks from l."""
     return list(chunks_iter(l, n))
+
 
 def utf16z(s):
     chunked = chunks(s, 2)
@@ -23,11 +27,14 @@ def utf16z(s):
         return s[:chunked.index('\x00\x00')*2]
     return s
 
+
 def hex(s):
     return binascii.hexlify(s)
 
+
 def unhex(s):
     return binascii.unhexlify(s)
+
 
 def uleb128(s):
     ret = 0
@@ -37,6 +44,7 @@ def uleb128(s):
             break
     return idx+1, ret
 
+
 class Base64(object):
     def encode(self, s):
         return base64.b64encode(s)
@@ -45,6 +53,7 @@ class Base64(object):
         return base64.b64decode(s)
 
     __call__ = decode
+
 
 class Padding(object):
     def __init__(self, style):
@@ -65,6 +74,7 @@ class Padding(object):
         return s + padding
 
     __call__ = pkcs7 = pad
+
 
 class Unpadding(object):
     def __init__(self, style):

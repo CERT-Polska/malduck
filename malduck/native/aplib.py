@@ -1,5 +1,5 @@
 # Copyright (C) 2018 Jurriaan Bremer.
-# This file is part of Roach - https://github.com/jbremer/malduck.
+# This file is part of Roach - https://github.com/jbremer/roach.
 # See the file 'docs/LICENSE.txt' for copying permission.
 
 import ctypes
@@ -10,6 +10,7 @@ try:
     aplib = load_library("aplib")
 except ImportError as e:
     aplib = None
+
 
 def unpack(buf, length=None, maxsz=4*1024*1024):
     if not aplib:

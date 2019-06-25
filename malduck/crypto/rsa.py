@@ -1,5 +1,5 @@
 # Copyright (C) 2018 Jurriaan Bremer.
-# This file is part of Roach - https://github.com/jbremer/malduck.
+# This file is part of Roach - https://github.com/jbremer/roach.
 # See the file 'docs/LICENSE.txt' for copying permission.
 
 import io
@@ -8,6 +8,7 @@ from Crypto.PublicKey.RSA import RSAImplementation
 
 from .winhdr import BLOBHEADER, BaseBlob
 from ..string.bin import uint32, bigint
+
 
 class PublicKeyBlob(BaseBlob):
     magic = "RSA1"
@@ -34,6 +35,7 @@ class PublicKeyBlob(BaseBlob):
 
     def export_key(self):
         return RSA.export_key(self.n, self.e)
+
 
 class PrivateKeyBlob(PublicKeyBlob):
     magic = "RSA2"
@@ -79,10 +81,12 @@ class PrivateKeyBlob(PublicKeyBlob):
     def export_key(self):
         return RSA.export_key(self.n, self.e, self.d)
 
+
 BlobTypes = {
     6: PublicKeyBlob,
     7: PrivateKeyBlob,
 }
+
 
 class RSA(object):
     algorithms = (
@@ -116,5 +120,6 @@ class RSA(object):
         wrap = lambda x: None if x is None else long(x)
         tup = wrap(n), wrap(e), wrap(d), wrap(p), wrap(q), wrap(crt)
         return RSA_.construct(tup).exportKey()
+
 
 RSA_ = RSAImplementation(use_fast_math=False)

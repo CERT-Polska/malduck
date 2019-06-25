@@ -1,5 +1,5 @@
 # Copyright (C) 2018 Jurriaan Bremer.
-# This file is part of Roach - https://github.com/jbremer/malduck.
+# This file is part of Roach - https://github.com/jbremer/roach.
 # See the file 'docs/LICENSE.txt' for copying permission.
 
 import io
@@ -9,6 +9,7 @@ from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 
 from .winhdr import BLOBHEADER, BaseBlob
 from ..string.bin import uint32
+
 
 class PlaintextKeyBlob(BaseBlob):
     types = {
@@ -31,9 +32,11 @@ class PlaintextKeyBlob(BaseBlob):
     def export_key(self):
         return self.types[len(self.key)], self.key
 
+
 BlobTypes = {
     8: PlaintextKeyBlob,
 }
+
 
 class AES(object):
     algorithms = (

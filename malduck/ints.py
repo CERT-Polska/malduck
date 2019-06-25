@@ -1,5 +1,5 @@
 from .bits import rol
-from struct import pack, unpack, unpack_from, error
+from struct import pack, unpack_from, error
 
 
 class IntTypeBase(object):
