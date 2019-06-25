@@ -112,6 +112,8 @@ class ProcessMemory(object):
         except RuntimeError as e:
             # Fallback to f.read()
             memory = cls(f.read(), **kwargs)
+            f.close()
+            f = None
         memory.f = f
         return memory
 
@@ -122,8 +124,12 @@ class ProcessMemory(object):
         return copied
 
     @property
+    def _mmaped(self):
+        return isinstance(self.m, mmap.mmap)
+
+    @property
     def length(self):
-        if hasattr(self.m, "size"):
+        if self._mmaped:
             return self.m.size()
         else:
             return len(self.m)
@@ -184,6 +190,18 @@ class ProcessMemory(object):
             ret.append(buf)
             addr = addr + l
         return "".join(ret)
+
+    def patch(self, offset, buf):
+        """Patch bytes under specified offset"""
+        # todo: add bound check
+        length = len(buf)
+        if self._mmaped:
+            self.m[offset:offset + length] = buf
+        else:
+            self.m = self.m[:offset] + buf + self.m[offset + length:]
+
+    def patchv(self, addr, buf):
+        return self.patch(self.v2p(addr), buf)
 
     def uint8p(self, offset):
         """Read unsigned 8-bit value at offset."""
