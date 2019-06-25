@@ -4,8 +4,6 @@
 
 import pefile
 
-from .procmem import ProcessMemory, ProcessMemoryPE, CuckooProcessMemory
-
 
 class MemoryPEData(object):
     """
@@ -48,6 +46,7 @@ class PE(object):
     """Wrapper around pefile.PE; accepts either a string (raw file contents) or Memoryinstance """
 
     def __init__(self, data, fast_load=False):
+        from .procmem import ProcessMemory
         if isinstance(data, ProcessMemory):
             self.data = MemoryPEData(data, fast_load)
             self.pe = self.data.pe
@@ -120,6 +119,7 @@ class PE(object):
 
 
 def pe2cuckoo(data):
+    from .procmem import ProcessMemoryPE, CuckooProcessMemory
     """Translate a PE file into a cuckoo-procmem file."""
     m = ProcessMemoryPE(data, image=True)
     return CuckooProcessMemory.from_memory(m).store()

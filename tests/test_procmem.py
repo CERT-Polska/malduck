@@ -1,5 +1,5 @@
 # Copyright (C) 2018 Jurriaan Bremer.
-# This file is part of Roach - https://github.com/jbremer/malduck.
+# This file is part of Roach - https://github.com/jbremer/roach.
 # See the file 'docs/LICENSE.txt' for copying permission.
 
 import os
@@ -7,6 +7,34 @@ import struct
 import tempfile
 
 from malduck import procmem, procmempe, cuckoomem, pad, pe, insn, PAGE_READWRITE
+from malduck.procmem import Region
+
+
+def test_readv():
+    payload = "".join([
+        "a" * 0x1000,
+        "b" * 0x1000,
+        "c" * 0x1000,
+        "d" * 0x1000
+    ])
+    regions = [
+        Region(0x400000, 0x1000, 0, 0, 0, 0),
+        Region(0x401000, 0x1000, 0, 0, 0, 0x1000),
+        Region(0x402000, 0x1000, 0, 0, 0, 0x2000),
+        Region(0x410000, 0x1000, 0, 0, 0, 0x3000),
+    ]
+
+    p = procmem(payload, regions=regions)
+    assert p.readv(0x400000, 16) == "a" * 16
+    assert p.readv(0x400fff, 16) == "a" + "b" * 15
+    assert p.readv(0x400ffe, 0x1100) == "aa" + ("b" * 0x1000) + ("c" * 0xfe)
+    assert p.readv(0x402ffe, 0x1000) == "cc"
+    assert p.readv(0x402ffe) == "cc"
+    assert p.readv(0x403000) == ""
+    assert p.readv(0x401000) == "b" * 0x1000 + "c" * 0x1000
+    assert p.readv(0x40ffff) == ""
+    assert p.readv(0x410000) == "d" * 0x1000
+    assert p.readv(0x410ffe) == "dd"
 
 
 def test_cuckoomem_dummy_dmp():

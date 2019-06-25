@@ -1,10 +1,11 @@
 # Copyright (C) 2018 Jurriaan Bremer.
-# This file is part of Roach - https://github.com/jbremer/malduck.
+# This file is part of Roach - https://github.com/jbremer/roach.
 # See the file 'docs/LICENSE.txt' for copying permission.
 
 from malduck import (
     Structure, Int8, UInt8, Int16, UInt16, Int32, UInt32, Int64, UInt64
 )
+
 
 def test_structure():
     import ctypes
@@ -90,6 +91,7 @@ def test_structure():
         "c": 0x42424242,
     }
 
+
 def test_int_wrappers():
     class I1(Structure):
         _fields_ = [
@@ -160,6 +162,7 @@ def test_int_wrappers():
         "b": 0x4242424242424242,
     }
 
+
 class test_multiply():
     class M(Structure):
         _fields_ = [
@@ -177,6 +180,7 @@ class test_multiply():
     assert m.b == [0x42424242] * 4
 
     assert m.c == "C"*15
+
 
 def test_nested_asdict():
     class I1(Structure):

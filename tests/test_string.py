@@ -1,5 +1,5 @@
 # Copyright (C) 2018 Jurriaan Bremer.
-# This file is part of Roach - https://github.com/jbremer/malduck.
+# This file is part of Roach - https://github.com/jbremer/roach.
 # See the file 'docs/LICENSE.txt' for copying permission.
 
 from malduck import (
@@ -9,22 +9,28 @@ from malduck import (
     chunks, utf16z
 )
 
+
 def test_asciiz():
     assert asciiz("hello\x00world") == "hello"
+
 
 def test_chunks():
     assert chunks("hello world", 3) == ["hel", "lo ", "wor", "ld"]
 
+
 def test_utf16z():
     assert utf16z("h\x00e\x00l\x00l\x00o\x00\x00\x00world") == "h\x00e\x00l\x00l\x00o\x00"
+
 
 def test_hex():
     assert hex("hello") == "68656c6c6f"
     assert unhex("68656c6c6f") == "hello"
 
+
 def test_uleb128():
     assert uleb128("\x00") == (1, 0)
     assert uleb128("\xe5\x8e\x26") == (3, 624485)
+
 
 def test_pad():
     assert pad("hello!!1", 8) == "hello!!1"
@@ -33,15 +39,18 @@ def test_pad():
     assert pad.null("hi", 4) == "hi\x00\x00"
     assert pad.null("foo_bar!", 8) == "foo_bar!"
 
+
 def test_unpad():
     assert unpad("hello world!") == "hello world!"
     assert unpad("hello\x03\x03\x03") == "hello"
     assert unpad("hello\x02\x03\x03") == "hello\x02\x03\x03"
 
+
 def test_base64():
     assert base64("aGVsbG8=") == "hello"
     assert base64("aGVsbG8=") == base64.decode("aGVsbG8=")
     assert base64.encode("hello") == "aGVsbG8="
+
 
 def test_ipv4():
     assert str(ipv4("ABCD")) == "65.66.67.68"
@@ -97,10 +106,12 @@ def test_bin_reverse():
     assert p64(0x8877665544332211) == "\x11\x22\x33\x44\x55\x66\x77\x88"
     assert p64(0xffffffffffffffff) == "\xff\xff\xff\xff\xff\xff\xff\xff"
 
+
 def test_bigint():
     assert bigint("ABCD", 40) is None
     assert bigint("ABCDE", 40) == 0x4544434241
     assert bigint(0x44434241, 40) == "ABCD\x00"
+
 
 def test_pack():
     assert pack(

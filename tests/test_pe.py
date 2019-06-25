@@ -1,11 +1,9 @@
 # Copyright (C) 2018 Jurriaan Bremer.
-# Copyright (C) 2018 Hatching B.V.
-# This file is part of Roach - https://github.com/jbremer/malduck.
+# This file is part of Roach - https://github.com/jbremer/roach.
 # See the file 'docs/LICENSE.txt' for copying permission.
 
-import io
 
-from malduck import pe, base64, procmempe, cuckoomem
+from malduck import pe, base64
 
 
 def test_pe_header():
@@ -59,15 +57,3 @@ def test_ollydbg_exe():
     assert data.startswith("\xA2\x8C\xDF\x98")
     assert len(data) == 16
 
-
-def test_pe2procmem():
-    # @todo
-    return
-    """
-    a = pe(open("tests/files/calc.exe", "rb").read())
-    b = cuckoomem(open("tests/files/calc.exe", "rb").read())
-    assert a.sections[2].SizeOfRawData == b.regions[3].size
-    assert a.sections[3].get_data() == b.readv(
-        b.regions[4].addr, b.regions[4].size
-    )
-    """

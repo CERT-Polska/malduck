@@ -27,6 +27,7 @@ URL_REGEX = (
     "(/[\\(\\)a-zA-Z0-9_:%?=/\\.-]*)?"
 )
 
+
 class Verify(object):
     @staticmethod
     def ascii(s):
