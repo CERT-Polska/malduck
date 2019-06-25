@@ -1,10 +1,10 @@
 # Copyright (C) 2018 Jurriaan Bremer.
-# This file is part of Roach - https://github.com/jbremer/roach.
+# This file is part of Roach - https://github.com/jbremer/malduck.
 # See the file 'docs/LICENSE.txt' for copying permission.
 
 import pytest
 
-from roach import aplib, gzip, base64
+from malduck import aplib, gzip, base64
 
 @pytest.mark.skipif("sys.platform == 'darwin'")
 def test_aplib():

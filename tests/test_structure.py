@@ -1,8 +1,8 @@
 # Copyright (C) 2018 Jurriaan Bremer.
-# This file is part of Roach - https://github.com/jbremer/roach.
+# This file is part of Roach - https://github.com/jbremer/malduck.
 # See the file 'docs/LICENSE.txt' for copying permission.
 
-from roach import (
+from malduck import (
     Structure, Int8, UInt8, Int16, UInt16, Int32, UInt32, Int64, UInt64
 )
 

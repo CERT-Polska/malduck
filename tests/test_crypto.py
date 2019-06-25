@@ -1,8 +1,8 @@
 # Copyright (C) 2018 Jurriaan Bremer.
-# This file is part of Roach - https://github.com/jbremer/roach.
+# This file is part of Roach - https://github.com/jbremer/malduck.
 # See the file 'docs/LICENSE.txt' for copying permission.
 
-from roach import aes, blowfish, des3, rc4, rsa, xor, base64, unhex, rabbit
+from malduck import aes, blowfish, des3, rc4, rsa, xor, base64, unhex, rabbit
 
 def test_aes():
     assert aes.ecb.decrypt("A"*16, "C"*32) == (

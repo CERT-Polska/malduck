@@ -1,11 +1,11 @@
 # Copyright (C) 2018 Jurriaan Bremer.
 # Copyright (C) 2018 Hatching B.V.
-# This file is part of Roach - https://github.com/jbremer/roach.
+# This file is part of Roach - https://github.com/jbremer/malduck.
 # See the file 'docs/LICENSE.txt' for copying permission.
 
 import io
 
-from roach import pe, base64, procmempe, cuckoomem
+from malduck import pe, base64, procmempe, cuckoomem
 
 
 def test_pe_header():

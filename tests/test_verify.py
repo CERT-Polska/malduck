@@ -1,9 +1,9 @@
 # Copyright (C) 2018 Jurriaan Bremer.
 # Copyright (C) 2018 Hatching B.V.
-# This file is part of Roach - https://github.com/jbremer/roach.
+# This file is part of Roach - https://github.com/jbremer/malduck.
 # See the file 'docs/LICENSE.txt' for copying permission.
 
-from roach import verify
+from malduck import verify
 
 def test_ascii():
     assert verify.ascii("hello world") is True

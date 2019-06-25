@@ -1,12 +1,12 @@
 # Copyright (C) 2018 Jurriaan Bremer.
-# This file is part of Roach - https://github.com/jbremer/roach.
+# This file is part of Roach - https://github.com/jbremer/malduck.
 # See the file 'docs/LICENSE.txt' for copying permission.
 
 import os
 import struct
 import tempfile
 
-from roach import procmem, procmempe, cuckoomem, pad, pe, insn, PAGE_READWRITE
+from malduck import procmem, procmempe, cuckoomem, pad, pe, insn, PAGE_READWRITE
 
 
 def test_cuckoomem_dummy_dmp():

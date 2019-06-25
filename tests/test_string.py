@@ -1,8 +1,8 @@
 # Copyright (C) 2018 Jurriaan Bremer.
-# This file is part of Roach - https://github.com/jbremer/roach.
+# This file is part of Roach - https://github.com/jbremer/malduck.
 # See the file 'docs/LICENSE.txt' for copying permission.
 
-from roach import (
+from malduck import (
     uint8, uint16, uint32, uint64, bigint,
     p8, p16, p32, p64,
     asciiz, pad, unpad, ipv4, pack, unpack, hex, unhex, base64, uleb128,

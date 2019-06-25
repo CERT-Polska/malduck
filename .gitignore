@@ -1,7 +1,9 @@
 .idea/
-roach.egg-info/
 .cache/
 .coverage
 dist/
 .pytest_cache/
 *.pyc
+build/
+malduck.egg-info/
+venv/

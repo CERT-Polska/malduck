@@ -1,10 +1,10 @@
 # Copyright (C) 2018 Jurriaan Bremer.
-# This file is part of Roach - https://github.com/jbremer/roach.
+# This file is part of Roach - https://github.com/jbremer/malduck.
 # See the file 'docs/LICENSE.txt' for copying permission.
 
 from click.testing import CliRunner
 
-from roach.main import cuckoomem_list
+from malduck.main import cuckoomem_list
 
 
 def test_cuckoomem_list():
