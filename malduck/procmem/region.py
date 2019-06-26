@@ -42,11 +42,11 @@ class Region(object):
             "offset": self.offset,
         }
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         if not isinstance(other, Region):
             raise ValueError("Not a region object!")
 
-        return not (
+        return (
             self.addr == other.addr and self.size == other.size and
             self.state == other.state and self.type_ == other.type_ and
             self.protect == other.protect

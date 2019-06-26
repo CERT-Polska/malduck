@@ -60,12 +60,14 @@ class ProcessMemoryPE(ProcessMemory):
 
     @property
     def pe(self):
+        """Related :class:`PE` object"""
         if not self._pe:
             self._pe = PE(self)
         return self._pe
 
     @property
     def imgend(self):
+        """Address where PE image ends"""
         if not self._imgend:
             section = self.pe.sections[-1]
             self._imgend = (
@@ -75,4 +77,5 @@ class ProcessMemoryPE(ProcessMemory):
         return self._imgend
 
     def store(self, image=False):
+        """TODO"""
         raise NotImplementedError()

@@ -8,7 +8,7 @@ from .py2compat import binary_type, text_type, ensure_bytes, ensure_string
 
 class MemoryPEData(object):
     """
-    pefile.PE.__data__ represents image file usually aligned to 512 bytes.
+    `pefile.PE.__data__` represents image file usually aligned to 512 bytes.
     MemoryPEData perform mapping from pefile's offset-access to Memory object va-access
     based on section layout
     """

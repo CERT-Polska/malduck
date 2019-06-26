@@ -14,7 +14,7 @@ Improvements
 * Searching for wildcarded byte sequences
 * Support for x64 disassembly
 * Fixed-precision integer types
-* (soon...) Python 3.x support
+* Supported both Python 2.x and 3.x
 
 Usage
 ==========

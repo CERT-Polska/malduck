@@ -4,7 +4,7 @@ import re
 from .region import Region, PAGE_EXECUTE_READWRITE
 from ..disasm import disasm
 from ..string.bin import uint8, uint16, uint32, uint64
-from ..py2compat import iterbytes, ensure_bytes, ensure_string
+from ..py2compat import ensure_bytes, ensure_string
 
 
 class ProcessMemory(object):
@@ -14,7 +14,7 @@ class ProcessMemory(object):
     Short name: `procmem`
 
     :param buf: Object with memory contents
-    :type buf: bytes or mmap objects (todo: memoryview support)
+    :type buf: bytes, mmap or memoryview object
     :param base: Virtual address of the beginning of buf
     :type base: int, optional (default: 0)
     :param regions: Regions mapping. If set to None (default), buf is mapped into single-region with VA specified in
@@ -46,7 +46,7 @@ class ProcessMemory(object):
         :param copy: Copy data into string before closing the mmap object (default: False)
         """
         if self.f is not None:
-            if hasattr(self.m, "close"):
+            if self._mmaped:
                 if copy:
                     self.m.seek(0)
                     buf = self.m.read()
@@ -169,7 +169,7 @@ class ProcessMemory(object):
         :param offset: Buffer offset
         :param length: Length of chunk (optional)
         :return: Chunk from specified location
-        :rtype: str
+        :rtype: bytes
         """
         if length is None:
             return self.m[offset:]
@@ -185,7 +185,7 @@ class ProcessMemory(object):
 
         :param addr: Virtual address
         :param length: Size of memory to read (optional)
-        :rtype: Iterator[str]
+        :rtype: Iterator[bytes]
         """
         regions = self.iter_region(addr)
         prev_region = None
@@ -215,9 +215,11 @@ class ProcessMemory(object):
         """
         Read a chunk of memory from the specified virtual address
         :param addr: Virtual address
+        :type addr: int
         :param length: Length of chunk (optional)
+        :type length: int
         :return: Chunk from specified location
-        :rtype: str
+        :rtype: bytes
         """
         return b''.join(self.readv_regions(addr, length))
 
@@ -225,8 +227,10 @@ class ProcessMemory(object):
         """
         Read a chunk of memory until the stop marker
         :param addr: Virtual address
+        :type addr: int
         :param s: Stop marker
-        :rtype: str
+        :type s: bytes
+        :rtype: bytes
         """
         ret = []
         for chunk in self.readv_regions(addr):
@@ -258,7 +262,9 @@ class ProcessMemory(object):
         """
         Patch bytes under specified virtual address
         :param addr: Virtual address
+        :type addr: int
         :param buf: Buffer with patch to apply
+        :type buf: bytes
         """
         region = self.addr_region(addr)
         # Bound check
@@ -307,24 +313,57 @@ class ProcessMemory(object):
         return self.readv_until(addr, b"\x00\x00")
 
     def regexp(self, query, offset=0, length=None):
-        """Performs a regex on the file """
+        """
+        Performs regex on the file (non-region-wise)
+        :param query: Regular expression to find
+        :type query: bytes
+        :param offset: Offset in buffer where searching starts
+        :type offset: int (optional)
+        :param length: Length of searched area
+        :type length: int (optional)
+        :return: Generates offsets where regex was matched
+        :rtype: Iterator[int]
+        """
         chunk = self.readp(offset, length)
         query = ensure_bytes(query)
         for entry in re.finditer(query, chunk, re.DOTALL):
             yield offset + entry.start()
 
     def regexv(self, query, addr, length=None):
-        """Performs a regex on the file """
+        """
+        Performs regex on the file (region-wise)
+        :param query: Regular expression to find
+        :type query: bytes
+        :param addr: Virtual address of region where searching starts
+        :type addr: int
+        :param length: Length of searched area
+        :type length: int
+        :return: Generates offsets where regex was matched
+        :rtype: Iterator[int]
+
+        .. warning::
+
+           Method doesn't match bytes overlapping the border between regions
+        """
         chunk = self.readv(addr, length)
         query = ensure_bytes(query)
         for entry in re.finditer(query, chunk, re.DOTALL):
             yield addr + entry.start()
 
     def disasmv(self, addr, size):
+        """
+        Disassembles code under specified address
+        :param addr: Virtual address
+        :type addr: int
+        :param size: Size of disassembled buffer
+        :type size: int
+        :return: :class:`Disassemble`
+        """
         return disasm(self.readv(addr, size), addr)
 
     def _findbytes(self, regex_fn, query, addr, length):
         query = ensure_string(query)
+
         def byte2re(b):
             hexrange = "0123456789abcdef?"
             if len(b) != 2:
@@ -348,8 +387,11 @@ class ProcessMemory(object):
         """
         Search for byte sequences (4? AA BB ?? DD). Uses regexp internally
         :param query: Sequence of wildcarded hexadecimal bytes, separated by spaces
+        :type query: str or bytes
         :param offset: Buffer offset where searching will be started
+        :type offset: int (optional)
         :param length: Length of searched area
+        :type length: int (optional)
         :return: Iterator returning next offsets
         :rtype: Iterator[int]
         """
@@ -359,8 +401,11 @@ class ProcessMemory(object):
         """
         Search for byte sequences (4? AA BB ?? DD). Uses regexv internally
         :param query: Sequence of wildcarded hexadecimal bytes, separated by spaces
+        :type query: str or bytes
         :param addr: Virtual address where searching will be started
+        :type addr: int
         :param length: Length of searched area
+        :type length: int (optional)
         :return: Iterator returning found virtual addresses
         :rtype: Iterator[int]
 
@@ -382,6 +427,7 @@ class ProcessMemory(object):
         """
         Tries to locate MZ header based on address inside PE image
         :param addr: Virtual address inside image
+        :type addr: int
         :return: Virtual address of found MZ header or None
         """
         addr &= ~0xfff
