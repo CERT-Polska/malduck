@@ -10,7 +10,7 @@ Memory = collections.namedtuple(
 
 
 class Operand(object):
-    # These are initializes the first time disasm() is called, see also below.
+    # These are initialized the first time disasm() is called, see also below.
     _x86_op_imm = None
     _x86_op_reg = None
     _x86_op_mem = None

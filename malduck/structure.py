@@ -7,6 +7,7 @@ import ctypes
 from .ints import (
     IntTypeBase, MultipliedIntTypeBase, Int8, UInt8, Int16, UInt16, Int32, UInt32, Int64, UInt64
 )
+from .py2compat import is_integer
 
 mapping = {
     Int8: ctypes.c_byte,
@@ -28,7 +29,7 @@ class Structure(object):
     def __init__(self):
         self.subfields, fields = {}, []
         for field, type_ in self._fields_:
-            if isinstance(type_, (int, long)):
+            if is_integer(type_):
                 type_ = ctypes.c_char * type_
             elif issubclass(type_, IntTypeBase):
                 if issubclass(type_, MultipliedIntTypeBase):

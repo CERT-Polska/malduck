@@ -1,5 +1,7 @@
-from .bits import rol
 from struct import pack, unpack_from, error
+
+from .bits import rol
+from py2compat import long, add_metaclass
 
 
 class IntTypeBase(object):
@@ -60,6 +62,7 @@ class MetaIntType(type):
         return MultipliedIntTypeClass
 
 
+@add_metaclass(MetaIntType)
 class IntType(long, IntTypeBase):
     """
     Fixed-size variant of long type with C-style operators and casting
@@ -69,8 +72,6 @@ class IntType(long, IntTypeBase):
     bits = 64
     signed = False
     fmt = "<Q"
-
-    __metaclass__ = MetaIntType
 
     def __new__(cls, value):
         value = long(value) & cls.mask

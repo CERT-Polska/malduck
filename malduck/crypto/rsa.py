@@ -8,6 +8,7 @@ from Crypto.PublicKey.RSA import RSAImplementation
 
 from .winhdr import BLOBHEADER, BaseBlob
 from ..string.bin import uint32, bigint
+from ..py2compat import long
 
 
 class PublicKeyBlob(BaseBlob):

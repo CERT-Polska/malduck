@@ -351,7 +351,7 @@ class ProcessMemory(object):
         """
         Search for byte sequences (4? AA BB ?? DD). Uses regexv internally
         :param query: Sequence of wildcarded hexadecimal bytes, separated by spaces
-        :param offset: Virtual address where searching will be started
+        :param addr: Virtual address where searching will be started
         :param length: Length of searched area
         :return: Iterator returning found virtual addresses
         :rtype: Iterator[int]

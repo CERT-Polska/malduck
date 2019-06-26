@@ -3,3 +3,4 @@ cryptography>=2.1
 pefile==2019.4.18
 pycrypto
 capstone==4.0.1
+six
