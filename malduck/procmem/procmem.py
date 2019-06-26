@@ -62,6 +62,16 @@ class ProcessMemory(object):
         Opens file and loads its contents into ProcessMemory object
         :param filename: File name to load
         :rtype: :class:`ProcessMemory`
+
+        It's highly recommended to use context manager when operating on files:
+
+        .. code-block:: python
+
+            from malduck import procmem
+
+            with procmem.from_file("binary.dmp") as p:
+                mem = p.readv(...)
+                ...
         """
         f = open(filename, "rb")
         try:
@@ -298,7 +308,7 @@ class ProcessMemory(object):
         for entry in re.finditer(query, chunk, re.DOTALL):
             yield offset + entry.start()
 
-    def regexv(self, query, addr=None, length=None):
+    def regexv(self, query, addr, length=None):
         """Performs a regex on the file """
         chunk = self.readv(addr, length)
         for entry in re.finditer(query, chunk, re.DOTALL):
@@ -337,7 +347,7 @@ class ProcessMemory(object):
         """
         return self._findbytes(self.regexp, query, offset, length)
 
-    def findbytesv(self, query, addr=None, length=None):
+    def findbytesv(self, query, addr, length=None):
         """
         Search for byte sequences (4? AA BB ?? DD). Uses regexv internally
         :param query: Sequence of wildcarded hexadecimal bytes, separated by spaces

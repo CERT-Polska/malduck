@@ -126,10 +126,10 @@ def test_cuckoomem_methods():
     os.close(fd)
     with cuckoomem.from_file(filepath) as buf:
         assert buf.readv(0x401000, 0x1000).endswith("\x00"*0x100)
-        assert list(buf.regexv("thisis(.*)test")) == [0x401008]
-        assert list(buf.regexv(" ")) == [0x401007, 0x401014]
+        assert list(buf.regexv("thisis(.*)test", 0x401000)) == [0x401008]
+        assert list(buf.regexv(" ", 0x401000)) == [0x401007, 0x401014]
         assert list(buf.regexv(" ", 0x401000, 0x10)) == [0x401007]
-        assert list(buf.regexv("test..h")) == [0x40100f]
+        assert list(buf.regexv("test..h", 0x401000)) == [0x40100f]
         assert buf.disasmv(0x401015, 6) == [
             insn("push", 0x41414141, addr=0x401015),
             insn("ret", addr=0x40101a),
@@ -141,8 +141,8 @@ def test_findbytes():
         "\xffoo\x00bar thisis0test\n hAAAA\xc3\xc0\xc2\xc4\n\n\x10\x2f\x1f\x1a\x1b\x1f\x1d\xbb\xcc\xdd\xff",
         0x10000)
     buf = procmem(payload, base=0x400000)
-    assert list(buf.findbytesv("c? c? c? 0A")) == [0x40101B]
-    assert list(buf.findbytesv("1f ?? ?b")) == [0x401022, 0x401025]
-    assert list(buf.findbytesv("?f ?? ?? 00")) == [0x401000, 0x40102A]
-    assert not list(buf.findbytesv("test hAAAA".encode("hex")))
-    assert list(buf.findbytesv("test\n hAAAA".encode("hex")))
+    assert list(buf.findbytesv("c? c? c? 0A", 0x400000)) == [0x40101B]
+    assert list(buf.findbytesv("1f ?? ?b", 0x400000)) == [0x401022, 0x401025]
+    assert list(buf.findbytesv("?f ?? ?? 00", 0x400000)) == [0x401000, 0x40102A]
+    assert not list(buf.findbytesv("test hAAAA".encode("hex"), 0x400000))
+    assert list(buf.findbytesv("test\n hAAAA".encode("hex"), 0x400000))
