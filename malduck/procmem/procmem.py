@@ -38,7 +38,7 @@ class ProcessMemory(object):
 
         from malduck import procmem
 
-        with open("notepad.exe_400000.bin") as f:
+        with open("notepad.exe_400000.bin", "rb") as f:
             payload = f.read()
 
         p = procmem(payload, base=0x400000)
@@ -50,7 +50,7 @@ class ProcessMemory(object):
 
         from malduck import procmem
 
-        with open("notepad.exe_400000.bin") as f:
+        with open("notepad.exe_400000.bin", "rb") as f:
             payload = f.read()
 
         p = procmem(payload, base=0x400000)
