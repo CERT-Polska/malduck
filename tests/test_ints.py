@@ -18,7 +18,7 @@ def test_int_like():
     assert Int8(-1) <= 0
 
     assert not u8("\x00")
-    assert sorted([u16("\x00\x10"), u16("\x10\x00")]) == [0x10, 0x1000]
+    assert sorted([u16(b"\x00\x10"), u16(b"\x10\x00")]) == [0x10, 0x1000]
 
     assert [Int8(0x7F), Int16(0x7F), Int32(0x7F), Int64(0x7F),
             UInt8(0x7F), UInt16(0x7F), UInt32(0x7F), UInt64(0x7F)] == [0x7F]*8
@@ -57,16 +57,16 @@ def test_unsigned():
 
     assert abs(UInt8(-1)) == UInt8(-1)
 
-    assert p64(0x12345678) == "\x78\x56\x34\x12\x00\x00\x00\x00"
-    assert p32(0x12345678) == "\x78\x56\x34\x12"
-    assert p8(0x12345678) == "\x78"
+    assert p64(0x12345678) == b"\x78\x56\x34\x12\x00\x00\x00\x00"
+    assert p32(0x12345678) == b"\x78\x56\x34\x12"
+    assert p8(0x12345678) == b"\x78"
 
-    assert p16(-1) == "\xFF\xFF"
-    assert p16(-32768) == "\x00\x80"
+    assert p16(-1) == b"\xFF\xFF"
+    assert p16(-32768) == b"\x00\x80"
 
-    assert u32("\x78\x56\x34\x12") == 0x12345678
+    assert u32(b"\x78\x56\x34\x12") == 0x12345678
 
-    assert u64("\x78\x56\x34\x12") is None
+    assert u64(b"\x78\x56\x34\x12") is None
 
 
 def test_signed():
@@ -103,17 +103,17 @@ def test_rotate():
 
 
 def test_multi_unpack():
-    assert (UInt32 * 3).unpack("\x11\x22\x33\x44\xff\xff\xff\xff\x00\x00\x00\x00") == (0x44332211, 0xffffffff, 0)
-    assert (Int32 * 3).unpack("\x11\x22\x33\x44\xff\xff\xff\xff\x00\x00\x00\x00") == (0x44332211, -1, 0)
+    assert (UInt32 * 3).unpack(b"\x11\x22\x33\x44\xff\xff\xff\xff\x00\x00\x00\x00") == (0x44332211, 0xffffffff, 0)
+    assert (Int32 * 3).unpack(b"\x11\x22\x33\x44\xff\xff\xff\xff\x00\x00\x00\x00") == (0x44332211, -1, 0)
 
-    assert (UInt16 * 3).unpack("\x11\x22\x33\x44\xff\xff\xff\xff\x00\x00\x00\x00") == (0x2211, 0x4433, 0xffff)
-    assert (Int16 * 3).unpack("\x11\x22\x33\x44\xff\xff\xff\xff\x00\x00\x00\x00") == (0x2211, 0x4433, -1)
+    assert (UInt16 * 3).unpack(b"\x11\x22\x33\x44\xff\xff\xff\xff\x00\x00\x00\x00") == (0x2211, 0x4433, 0xffff)
+    assert (Int16 * 3).unpack(b"\x11\x22\x33\x44\xff\xff\xff\xff\x00\x00\x00\x00") == (0x2211, 0x4433, -1)
 
-    assert (UInt64 * 3).unpack("\x11\x22\x33\x44\xff\xff\xff\xff\x00\x00\x00\x00") is None
-    assert (Int64 * 3).unpack("\x11\x22\x33\x44\xff\xff\xff\xff\x00\x00\x00\x00") is None
+    assert (UInt64 * 3).unpack(b"\x11\x22\x33\x44\xff\xff\xff\xff\x00\x00\x00\x00") is None
+    assert (Int64 * 3).unpack(b"\x11\x22\x33\x44\xff\xff\xff\xff\x00\x00\x00\x00") is None
 
 
 def test_unpack_from():
-    assert UInt32.unpack("\xAA\xAA\xF0\x0F\xF0\x0B\xAA", offset=2) == u32("\xF0\x0F\xF0\x0B")
-    assert UInt32.unpack("\xAA\xAA\xF0\x0F\xF0\x0B", offset=2) == u32("\xF0\x0F\xF0\x0B")
-    assert UInt32.unpack("\xAA\xAA\xF0\x0F\xF0", offset=2) is None
+    assert UInt32.unpack(b"\xAA\xAA\xF0\x0F\xF0\x0B\xAA", offset=2) == u32(b"\xF0\x0F\xF0\x0B")
+    assert UInt32.unpack(b"\xAA\xAA\xF0\x0F\xF0\x0B", offset=2) == u32(b"\xF0\x0F\xF0\x0B")
+    assert UInt32.unpack(b"\xAA\xAA\xF0\x0F\xF0", offset=2) is None

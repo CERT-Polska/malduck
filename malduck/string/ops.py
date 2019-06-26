@@ -5,9 +5,11 @@
 import base64
 import binascii
 
+from ..py2compat import indexbytes, int2byte
+
 
 def asciiz(s):
-    return s.split("\x00")[0]
+    return s.split(b"\x00")[0]
 
 
 def chunks_iter(l, n):
@@ -23,8 +25,8 @@ def chunks(l, n):
 
 def utf16z(s):
     chunked = chunks(s, 2)
-    if '\x00\x00' in chunked:
-        return s[:chunked.index('\x00\x00')*2]
+    if b'\x00\x00' in chunked:
+        return s[:chunked.index(b'\x00\x00')*2]
     return s
 
 
@@ -38,11 +40,13 @@ def unhex(s):
 
 def uleb128(s):
     ret = 0
-    for idx in xrange(len(s)):
-        ret += (ord(s[idx]) & 0x7f) << (idx*7)
-        if ord(s[idx]) < 0x80:
+    for idx in range(len(s)):
+        ret += (indexbytes(s, idx) & 0x7f) << (idx*7)
+        if indexbytes(s, idx) < 0x80:
             break
-    return idx+1, ret
+    else:
+        return None
+    return idx + 1, ret
 
 
 class Base64(object):
@@ -66,11 +70,13 @@ class Padding(object):
     def pad(self, s, block_size):
         length = block_size - len(s) % block_size
         if length == block_size:
-            padding = ""
+            padding = b""
         elif self.style == "pkcs7":
-            padding = "%c" % length * length
+            padding = int2byte(length) * length
         elif self.style == "null":
-            padding = "\x00" * length
+            padding = b"\x00" * length
+        else:
+            raise ValueError("Unknown padding {}".format(self.style))
         return s + padding
 
     __call__ = pkcs7 = pad
@@ -81,8 +87,8 @@ class Unpadding(object):
         self.style = style
 
     def unpad(self, s):
-        count = ord(s[-1]) if s else 0
-        if self.style == "pkcs7" and s[-count:] == s[-1] * count:
+        count = indexbytes(s, -1) if s else 0
+        if self.style == "pkcs7" and s[-count:] == int2byte(indexbytes(s, -1)) * count:
             return s[:-count]
         return s
 

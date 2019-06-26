@@ -6,16 +6,16 @@ import os
 import struct
 import tempfile
 
-from malduck import procmem, procmempe, cuckoomem, pad, pe, insn, PAGE_READWRITE
+from malduck import procmem, procmempe, cuckoomem, pad, pe, insn, PAGE_READWRITE, hex
 from malduck.procmem import Region
 
 
 def test_readv():
     payload = "".join([
-        "a" * 0x1000,
-        "b" * 0x1000,
-        "c" * 0x1000,
-        "d" * 0x1000
+        b"a" * 0x1000,
+        b"b" * 0x1000,
+        b"c" * 0x1000,
+        b"d" * 0x1000
     ])
     regions = [
         Region(0x400000, 0x1000, 0, 0, 0, 0),
@@ -25,16 +25,16 @@ def test_readv():
     ]
 
     p = procmem(payload, regions=regions)
-    assert p.readv(0x400000, 16) == "a" * 16
-    assert p.readv(0x400fff, 16) == "a" + "b" * 15
-    assert p.readv(0x400ffe, 0x1100) == "aa" + ("b" * 0x1000) + ("c" * 0xfe)
-    assert p.readv(0x402ffe, 0x1000) == "cc"
-    assert p.readv(0x402ffe) == "cc"
-    assert p.readv(0x403000) == ""
-    assert p.readv(0x401000) == "b" * 0x1000 + "c" * 0x1000
-    assert p.readv(0x40ffff) == ""
-    assert p.readv(0x410000) == "d" * 0x1000
-    assert p.readv(0x410ffe) == "dd"
+    assert p.readv(0x400000, 16) == b"a" * 16
+    assert p.readv(0x400fff, 16) == b"a" + b"b" * 15
+    assert p.readv(0x400ffe, 0x1100) == b"aa" + (b"b" * 0x1000) + (b"c" * 0xfe)
+    assert p.readv(0x402ffe, 0x1000) == b"cc"
+    assert p.readv(0x402ffe) == b"cc"
+    assert p.readv(0x403000) == b""
+    assert p.readv(0x401000) == b"b" * 0x1000 + b"c" * 0x1000
+    assert p.readv(0x40ffff) == b""
+    assert p.readv(0x410000) == b"d" * 0x1000
+    assert p.readv(0x410ffe) == b"dd"
 
 
 def test_cuckoomem_dummy_dmp():
@@ -69,7 +69,7 @@ def test_cuckoomem_dummy_dmp():
         }
 
         assert len(p.regions) == 3
-        assert p.readv(0x41410f00, 0x200) == "A"*0xf4 + "X"*4 + "A"*8 + "B"*0x100
+        assert p.readv(0x41410f00, 0x200) == b"A"*0xf4 + b"X"*4 + b"A"*8 + b"B"*0x100
         assert p.uint8p(p.v2p(0x41410fff)) == 0x41
         assert p.uint8v(0x41410fff) == 0x41
         assert p.uint16p(p.v2p(0x4141100f)) == 0x4242
@@ -93,7 +93,7 @@ def test_calc_dmp():
         assert p.findmz(0x129abc) == 0xd0000
         # Old/regular method with PE header.
         assert pe(p.readv(p.imgbase, 0x1000)).dos_header.e_lfanew == 0xd8
-        assert p.readv(p.imgbase + 0xd8, 4) == "PE\x00\x00"
+        assert p.readv(p.imgbase + 0xd8, 4) == b"PE\x00\x00"
 
         assert pe(p).is32bit is True
         d = pe(p).optional_header.DATA_DIRECTORY[2]
@@ -106,7 +106,7 @@ def test_calc_dmp():
 def test_calc_exe():
     with procmempe.from_file("tests/files/calc.exe", image=True) as ppe:
         assert ppe.imgbase == 0x1000000
-        assert ppe.readv(ppe.imgbase + 0xd8, 4) == "PE\x00\x00"
+        assert ppe.readv(ppe.imgbase + 0xd8, 4) == b"PE\x00\x00"
         assert ppe.pe.is32bit is True
         d = ppe.pe.optional_header.DATA_DIRECTORY[2]
         assert d.VirtualAddress == 0x59000 and d.Size == 0x62798
@@ -121,15 +121,15 @@ def test_cuckoomem_methods():
     fd, filepath = tempfile.mkstemp()
     os.write(fd, "".join((
         struct.pack("QIIII", 0x401000, 0x1000, 0, 0, PAGE_READWRITE),
-        pad.null("foo\x00bar thisis0test\n hAAAA\xc3", 0x1000),
+        pad.null(b"foo\x00bar thisis0test\n hAAAA\xc3", 0x1000),
     )))
     os.close(fd)
     with cuckoomem.from_file(filepath) as buf:
-        assert buf.readv(0x401000, 0x1000).endswith("\x00"*0x100)
-        assert list(buf.regexv("thisis(.*)test", 0x401000)) == [0x401008]
-        assert list(buf.regexv(" ", 0x401000)) == [0x401007, 0x401014]
-        assert list(buf.regexv(" ", 0x401000, 0x10)) == [0x401007]
-        assert list(buf.regexv("test..h", 0x401000)) == [0x40100f]
+        assert buf.readv(0x401000, 0x1000).endswith(b"\x00"*0x100)
+        assert list(buf.regexv(b"thisis(.*)test", 0x401000)) == [0x401008]
+        assert list(buf.regexv(b" ", 0x401000)) == [0x401007, 0x401014]
+        assert list(buf.regexv(b" ", 0x401000, 0x10)) == [0x401007]
+        assert list(buf.regexv(b"test..h", 0x401000)) == [0x40100f]
         assert buf.disasmv(0x401015, 6) == [
             insn("push", 0x41414141, addr=0x401015),
             insn("ret", addr=0x40101a),
@@ -137,12 +137,12 @@ def test_cuckoomem_methods():
 
 
 def test_findbytes():
-    payload = " " * 0x1000 + pad.null(
-        "\xffoo\x00bar thisis0test\n hAAAA\xc3\xc0\xc2\xc4\n\n\x10\x2f\x1f\x1a\x1b\x1f\x1d\xbb\xcc\xdd\xff",
+    payload = b" " * 0x1000 + pad.null(
+        b"\xffoo\x00bar thisis0test\n hAAAA\xc3\xc0\xc2\xc4\n\n\x10\x2f\x1f\x1a\x1b\x1f\x1d\xbb\xcc\xdd\xff",
         0x10000)
     buf = procmem(payload, base=0x400000)
     assert list(buf.findbytesv("c? c? c? 0A", 0x400000)) == [0x40101B]
     assert list(buf.findbytesv("1f ?? ?b", 0x400000)) == [0x401022, 0x401025]
     assert list(buf.findbytesv("?f ?? ?? 00", 0x400000)) == [0x401000, 0x40102A]
-    assert not list(buf.findbytesv("test hAAAA".encode("hex"), 0x400000))
-    assert list(buf.findbytesv("test\n hAAAA".encode("hex"), 0x400000))
+    assert not list(buf.findbytesv(hex("test hAAAA"), 0x400000))
+    assert list(buf.findbytesv(hex("test\n hAAAA"), 0x400000))

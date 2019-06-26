@@ -19,7 +19,7 @@ def unpack(buf, length=None, maxsz=4*1024*1024):
     if not length:
         length = len(buf) * 2
 
-    if buf.startswith("AP32"):
+    if buf.startswith(b"AP32"):
         fn = aplib.aPsafe_depack
     else:
         fn = aplib.aP_depack_asm_safe

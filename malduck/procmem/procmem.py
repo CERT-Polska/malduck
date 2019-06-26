@@ -215,7 +215,7 @@ class ProcessMemory(object):
         :return: Chunk from specified location
         :rtype: str
         """
-        return ''.join(self.readv_regions(addr, length))
+        return b''.join(self.readv_regions(addr, length))
 
     def readv_until(self, addr, s=None):
         """
@@ -230,7 +230,7 @@ class ProcessMemory(object):
                 ret.append(chunk[:chunk.index(s)])
                 break
             ret.append(chunk)
-        return "".join(ret)
+        return b"".join(ret)
 
     def patchp(self, offset, buf):
         """
@@ -296,11 +296,11 @@ class ProcessMemory(object):
 
     def asciiz(self, addr):
         """Read a nul-terminated ASCII string at address."""
-        return self.readv_until(addr, "\x00")
+        return self.readv_until(addr, b"\x00")
 
     def utf16z(self, addr):
         """Read a nul-terminated UTF-16 string at address."""
-        return self.readv_until(addr, "\x00\x00")
+        return self.readv_until(addr, b"\x00\x00")
 
     def regexp(self, query, offset=0, length=None):
         """Performs a regex on the file """
@@ -319,19 +319,19 @@ class ProcessMemory(object):
 
     def _findbytes(self, regex, query, addr, length):
         def byte2re(b):
-            hexrange = "0123456789abcdef?"
+            hexrange = b"0123456789abcdef?"
             if len(b) != 2:
                 raise ValueError("Length of query should be even")
             first, second = b
             if first not in hexrange or second not in hexrange:
                 raise ValueError("Incorrect query - only 0-9a-fA-F? chars are allowed")
-            if b == "??":
-                return r"."
-            if first == "?":
-                return r"[{}]".format(''.join(r"\x"+ch+second for ch in "0123456789abcdef"))
-            if second == "?":
-                return r"[\x{first}0-\x{first}f]".format(first=first)
-            return r"\x"+b
+            if b == b"??":
+                return b"."
+            if first == b"?":
+                return b"[{}]".format(b''.join(b"\\x" + ch + second for ch in b"0123456789abcdef"))
+            if second == b"?":
+                return b"[\\x{first}0-\\x{first}f]".format(first=first)
+            return b"\\x" + b
         query = ''.join(query.lower().split(" "))
         rquery = ''.join(map(byte2re, [query[i:i+2] for i in range(0, len(query), 2)]))
         return regex(rquery, addr, length)
@@ -381,6 +381,6 @@ class ProcessMemory(object):
             buf = self.readv(addr, 2)
             if not buf:
                 return
-            if buf == "MZ":
+            if buf == b"MZ":
                 return addr
             addr -= 0x1000

@@ -25,7 +25,7 @@ AJYAAAAAAAAAAAAAAAAAAEAAAEAK
     assert img.dos_header.e_magic == 0x5a4d
     assert img.nt_headers.Signature == 0x4550
     assert img.file_header.NumberOfSections == len(img.sections)
-    assert img.sections[0].Name.strip("\x00") == ".text"
+    assert img.sections[0].Name.strip(b"\x00") == ".text"
     assert img.sections[-1].get_file_offset() == 0x298
     assert img.is32bit is True
     assert img.is64bit is False
@@ -54,6 +54,6 @@ def test_ollydbg_exe():
     p = pe(open("tests/files/ollydbg.exe", "rb").read(), fast_load=False)
     assert p.is32bit is True
     data = p.resource("DVCLAL")
-    assert data.startswith("\xA2\x8C\xDF\x98")
+    assert data.startswith(b"\xA2\x8C\xDF\x98")
     assert len(data) == 16
 

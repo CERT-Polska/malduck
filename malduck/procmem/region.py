@@ -44,7 +44,7 @@ class Region(object):
 
     def __cmp__(self, other):
         if not isinstance(other, Region):
-            raise RuntimeError("Not a region object!")
+            raise ValueError("Not a region object!")
 
         return not (
             self.addr == other.addr and self.size == other.size and

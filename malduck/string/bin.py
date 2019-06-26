@@ -3,12 +3,13 @@
 # See the file 'docs/LICENSE.txt' for copying permission.
 import struct
 
+from ..py2compat import is_integer
 from ..string.ops import Padding, hex, unhex
 from ..ints import UInt8, UInt16, UInt32, UInt64
 
 
 def bigint(s, bitsize):
-    if isinstance(s, (int, long)):
+    if is_integer(s):
         return Padding.null(unhex("%x" % s)[::-1], bitsize / 8)
 
     if len(s) < bitsize / 8:

@@ -1,4 +1,4 @@
-from six import add_metaclass, integer_types, string_types, binary_type, PY3
+from six import add_metaclass, integer_types, string_types, binary_type, PY3, int2byte, indexbytes
 
 if PY3:
     from builtins import int as long

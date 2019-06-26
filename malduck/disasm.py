@@ -103,6 +103,7 @@ class Operand(object):
                 s.append("0x%08x" % (m.disp % 2 ** 32))
             return "%s [%s]" % (m.size, "+".join(s))
 
+
 class Instruction(object):
     def __init__(self, mnem=None, op1=None, op2=None, op3=None, addr=None, x64=False):
         self.insn = None
@@ -164,6 +165,7 @@ class Instruction(object):
             return "%s %s" % (self.mnem, ", ".join(operands))
         return self.mnem
 
+
 class Disassemble(object):
     def disassemble(self, data, addr, x64=False):
         import capstone
@@ -193,5 +195,6 @@ class Disassemble(object):
         return self.__call__(*args, **kwargs)
 
     __call__ = init_once
+
 
 disasm = Disassemble()

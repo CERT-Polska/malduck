@@ -4,22 +4,23 @@
 
 from malduck import disasm
 
+
 class TestDisasm(object):
-    streams = "".join((
+    streams = b"".join((
         # mov esi, [edi+4]
-        "\x8b\x77\x04",
+        b"\x8b\x77\x04",
         # mov eax, [ebx+4*ecx+4242]
-        "\x8b\x84\x8b\x92\x10\x00\x00",
+        b"\x8b\x84\x8b\x92\x10\x00\x00",
         # mov al, byte [1333337]
-        "\xa0\x59\x58\x14\x00",
+        b"\xa0\x59\x58\x14\x00",
         # mov eax, byte [1333337]
-        "\xa1\x59\x58\x14\x00",
+        b"\xa1\x59\x58\x14\x00",
         # push 0x41414141
-        "\x68\x41\x41\x41\x41",
+        b"\x68\x41\x41\x41\x41",
         # call $+5
-        "\xe8\x00\x00\x00\x00",
+        b"\xe8\x00\x00\x00\x00",
         # movxz eax, byte [0x400000]
-        "\x0f\xb6\x05\x00\x00\x04\x00",
+        b"\x0f\xb6\x05\x00\x00\x04\x00",
     ))
 
     def setup(self):
@@ -60,33 +61,33 @@ class TestDisasm(object):
         assert insn7.op2 == (None, None, None, 0x400000)
 
     def test_equal(self):
-        assert disasm("hAAAA", 0)[0].mnem == "push"
-        assert disasm("hAAAA", 0)[0].op1.value == 0x41414141
-        assert disasm("hAAAA", 0) == disasm("hAAAA", 0)
+        assert disasm(b"hAAAA", 0)[0].mnem == "push"
+        assert disasm(b"hAAAA", 0)[0].op1.value == 0x41414141
+        assert disasm(b"hAAAA", 0) == disasm(b"hAAAA", 0)
 
 
 class TestDisasm64bit(object):
     streams = "".join((
         # inc rax
-        "\x48\xff\xc0",
+        b"\x48\xff\xc0",
         # mov eax, [rip+0x12345678]
-        "\x8b\x05\x78\x56\x34\x12"
+        b"\x8b\x05\x78\x56\x34\x12"
         # mov rsi, [edi+4]
-        "\x67\x48\x8b\x77\x04",
+        b"\x67\x48\x8b\x77\x04",
         # mov rax, [rbx+4*rcx+4242]
-        "\x48\x8b\x84\x8b\x92\x10\x00\x00",
+        b"\x48\x8b\x84\x8b\x92\x10\x00\x00",
         # mov al, byte [1333337]
-        "\x8a\x04\x25\x59\x58\x14\x00",
+        b"\x8a\x04\x25\x59\x58\x14\x00",
         # mov eax, dword [1333337]
-        "\x8b\x04\x25\x59\x58\x14\x00",
+        b"\x8b\x04\x25\x59\x58\x14\x00",
         # push 0x41414141
-        "\x68\x41\x41\x41\x41",
+        b"\x68\x41\x41\x41\x41",
         # call $+5
-        "\xe8\x00\x00\x00\x00",
+        b"\xe8\x00\x00\x00\x00",
         # movzx eax, byte [rip]
-        "\x48\x0f\xb6\x05\x00\x00\x00\x00",
+        b"\x48\x0f\xb6\x05\x00\x00\x00\x00",
         # lea rax, [rax*4 + 0x333333]
-        "\x48\x8d\x04\x85\x33\x33\x33\x00",
+        b"\x48\x8d\x04\x85\x33\x33\x33\x00",
     ))
 
     def setup(self):
@@ -148,7 +149,7 @@ class TestDisasm64bit(object):
         assert insn10.op2.reg == "rax"
 
     def test_equal(self):
-        assert disasm("hAAAA", 0)[0].mnem == "push"
-        assert disasm("hAAAA", 0)[0].op1.value == 0x41414141
-        assert disasm("hAAAA", 0) == disasm("hAAAA", 0)
-        assert disasm("hAAAA", 0) != disasm("hAAAB", 0)
+        assert disasm(b"hAAAA", 0)[0].mnem == "push"
+        assert disasm(b"hAAAA", 0)[0].op1.value == 0x41414141
+        assert disasm(b"hAAAA", 0) == disasm(b"hAAAA", 0)
+        assert disasm(b"hAAAA", 0) != disasm(b"hAAAB", 0)
