@@ -3,7 +3,7 @@
 # See the file 'docs/LICENSE.txt' for copying permission.
 
 import pefile
-from .py2compat import binary_type
+from .py2compat import binary_type, text_type, ensure_bytes, ensure_string
 
 
 class MemoryPEData(object):
@@ -87,7 +87,7 @@ class PE(object):
 
     def section(self, name):
         for section in self.pe.sections:
-            if section.Name.rstrip("\x00") == name:
+            if section.Name.rstrip(b"\x00") == ensure_bytes(name):
                 return section
 
     def resources(self, name):
@@ -95,10 +95,13 @@ class PE(object):
         name_int = lambda e1, e2, e3: e2.struct.Name == name
         type_int = lambda e1, e2, e3: e1.id == type_id
 
+        if isinstance(name, text_type):
+            name = ensure_bytes(name)
+
         if isinstance(name, binary_type):
             if name.startswith(b"RT_"):
                 compare = type_int
-                type_id = pefile.RESOURCE_TYPE[name]
+                type_id = pefile.RESOURCE_TYPE[ensure_string(name)]
             else:
                 compare = name_str
         else:

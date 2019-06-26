@@ -1,7 +1,7 @@
 from struct import pack, unpack_from, error
 
 from .bits import rol
-from py2compat import long, add_metaclass
+from .py2compat import long, add_metaclass
 
 
 class IntTypeBase(object):

@@ -2,6 +2,8 @@
 # This file is part of Roach - https://github.com/jbremer/roach.
 # See the file 'docs/LICENSE.txt' for copying permission.
 
+import pytest
+
 from malduck import (
     uint8, uint16, uint32, uint64, bigint,
     p8, p16, p32, p64,
@@ -49,11 +51,11 @@ def test_unpad():
 def test_base64():
     assert base64("aGVsbG8=") == b"hello"
     assert base64("aGVsbG8=") == base64.decode("aGVsbG8=")
-    assert base64.encode(b"hello") == "aGVsbG8="
+    assert base64.encode(b"hello") == b"aGVsbG8="
 
 
 def test_ipv4():
-    assert str(ipv4(b"ABCD")) == b"65.66.67.68"
+    assert ipv4(b"ABCD") == "65.66.67.68"
 
     assert ipv4(b"ABC") is None
     assert bool(ipv4(b"ABC")) is False
@@ -62,16 +64,16 @@ def test_ipv4():
     assert bool(ipv4(b"1.2.3.4")) is True
     assert bool(ipv4(b"123.234.32.41")) is True
     assert bool(ipv4(b"323.234.32.41")) is False
-    assert ipv4(b"1.2.3.4") == b"1.2.3.4"
-    assert ipv4(b"123.234.32.41") == b"123.234.32.41"
-    assert ipv4(b"255.255.255.255") == b"255.255.255.255"
+    assert ipv4(b"1.2.3.4") == "1.2.3.4"
+    assert ipv4(b"123.234.32.41") == "123.234.32.41"
+    assert ipv4(b"255.255.255.255") == "255.255.255.255"
 
     assert ipv4(b"256.255.255.255") is None
     assert ipv4(b"255.256.255.255") is None
     assert ipv4(b"255.255.256.255") is None
     assert ipv4(b"255.255.255.256") is None
 
-    assert ipv4(0x7f000001) == b"127.0.0.1"
+    assert ipv4(0x7f000001) == "127.0.0.1"
 
 
 def test_bin():
@@ -108,7 +110,8 @@ def test_bin_reverse():
 
 
 def test_bigint():
-    assert bigint(b"ABCD", 40) is None
+    with pytest.raises(ValueError):
+        bigint(b"ABCD", 40)
     assert bigint(b"ABCDE", 40) == 0x4544434241
     assert bigint(0x44434241, 40) == b"ABCD\x00"
 

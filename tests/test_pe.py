@@ -7,7 +7,7 @@ from malduck import pe, base64
 
 
 def test_pe_header():
-    img = pe(base64("""
+    img = pe(base64(b"""
 TVqQAAMAAAAEAAAA//8AALgAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
 AAAAAAEAAA4fug4AtAnNIbgBTM0hVGhpcyBwcm9ncmFtIGNhbm5vdCBiZSBydW4gaW4gRE9TIG1v
 ZGUuDQ0KJAAAAAAAAACCixJ5xup8KsbqfCrG6nwqz5LpKsfqfCrhLBEqxOp8KuEsByrU6nwqxup9
@@ -25,7 +25,7 @@ AJYAAAAAAAAAAAAAAAAAAEAAAEAK
     assert img.dos_header.e_magic == 0x5a4d
     assert img.nt_headers.Signature == 0x4550
     assert img.file_header.NumberOfSections == len(img.sections)
-    assert img.sections[0].Name.strip(b"\x00") == ".text"
+    assert img.sections[0].Name.strip(b"\x00") == b".text"
     assert img.sections[-1].get_file_offset() == 0x298
     assert img.is32bit is True
     assert img.is64bit is False
@@ -35,11 +35,11 @@ AJYAAAAAAAAAAAAAAAAAAEAAAEAK
 def test_calc_exe():
     p = pe(open("tests/files/calc.exe", "rb").read(), fast_load=False)
     assert p.is32bit is True
-    data = p.resource("WEVT_TEMPLATE")
-    assert data.startswith("CRIM")
+    data = p.resource(b"WEVT_TEMPLATE")
+    assert data.startswith(b"CRIM")
     assert len(data) == 4750
 
-    icons = list(p.resources("RT_ICON"))
+    icons = list(p.resources(b"RT_ICON"))
     assert len(icons) == 16
     assert len(icons[0]) == 2664
     assert len(icons[7]) == 2216

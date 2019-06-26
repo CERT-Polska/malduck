@@ -4,7 +4,8 @@ import re
 from .region import Region, PAGE_EXECUTE_READWRITE
 from ..disasm import disasm
 from ..string.bin import uint8, uint16, uint32, uint64
-from ..py2compat import iterbytes
+from ..py2compat import iterbytes, ensure_bytes, ensure_string
+
 
 class ProcessMemory(object):
     """
@@ -189,7 +190,10 @@ class ProcessMemory(object):
         regions = self.iter_region(addr)
         prev_region = None
         while length or length is None:
-            region = next(regions)
+            try:
+                region = next(regions)
+            except StopIteration:
+                return
             if prev_region and prev_region.end != region.addr:
                 # Gap between regions - break
                 break
@@ -305,37 +309,40 @@ class ProcessMemory(object):
     def regexp(self, query, offset=0, length=None):
         """Performs a regex on the file """
         chunk = self.readp(offset, length)
+        query = ensure_bytes(query)
         for entry in re.finditer(query, chunk, re.DOTALL):
             yield offset + entry.start()
 
     def regexv(self, query, addr, length=None):
         """Performs a regex on the file """
         chunk = self.readv(addr, length)
+        query = ensure_bytes(query)
         for entry in re.finditer(query, chunk, re.DOTALL):
             yield addr + entry.start()
 
     def disasmv(self, addr, size):
         return disasm(self.readv(addr, size), addr)
 
-    def _findbytes(self, regex, query, addr, length):
+    def _findbytes(self, regex_fn, query, addr, length):
+        query = ensure_string(query)
         def byte2re(b):
-            hexrange = b"0123456789abcdef?"
+            hexrange = "0123456789abcdef?"
             if len(b) != 2:
                 raise ValueError("Length of query should be even")
-            first, second = iterbytes(b)
+            first, second = b
 
             if first not in hexrange or second not in hexrange:
                 raise ValueError("Incorrect query - only 0-9a-fA-F? chars are allowed")
-            if b == b"??":
-                return b"."
-            if first == b"?":
-                return b"[{}]".format(b''.join(b"\\x" + ch + second for ch in iterbytes(b"0123456789abcdef")))
-            if second == b"?":
-                return b"[\\x{first}0-\\x{first}f]".format(first=first)
-            return b"\\x" + b
-        query = b''.join(query.lower().split(b" "))
-        rquery = b''.join(map(byte2re, [query[i:i+2] for i in range(0, len(query), 2)]))
-        return regex(rquery, addr, length)
+            if b == "??":
+                return "."
+            if first == "?":
+                return "[{}]".format(''.join("\\x" + ch + second for ch in "0123456789abcdef"))
+            if second == "?":
+                return "[\\x{first}0-\\x{first}f]".format(first=first)
+            return "\\x" + b
+        query = ''.join(query.lower().split(" "))
+        rquery = ''.join(map(byte2re, [query[i:i+2] for i in range(0, len(query), 2)]))
+        return regex_fn(rquery, addr, length)
 
     def findbytesp(self, query, offset=0, length=0):
         """

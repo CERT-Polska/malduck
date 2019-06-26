@@ -3,6 +3,7 @@
 # See the file 'docs/LICENSE.txt' for copying permission.
 
 import collections
+from .py2compat import is_string
 
 Memory = collections.namedtuple(
     "Memory", ("size", "base", "scale", "index", "disp")
@@ -69,21 +70,18 @@ class Operand(object):
             index, scale = None, None
         return Memory(self.sizes[self.op.size], base, scale, index, mem.disp)
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         if isinstance(other, Operand):
-            # We must return 0 on success. TODO Memory operand support.
-            return self.op.type != other.op.type or self.value != other.value
-
+            return self.op.type == other.op.type and self.value == other.value
         if self.is_imm:
-            return self.value != other
-
-        if isinstance(other, basestring):
+            return self.value == other
+        if is_string(other):
             other = other,
         if self.is_reg and self.reg in other:
-            return 0
+            return True
         if self.is_mem and self.reg in other:
-            return 0
-        return -1
+            return True
+        return False
 
     def __str__(self):
         if self.is_imm:
@@ -144,14 +142,14 @@ class Instruction(object):
     def addr(self):
         return self._addr or self.insn.address
 
-    def __cmp__(self, other):
+    def __eq__(self, other):
         if not isinstance(other, Instruction):
-            return -1
+            return False
         if self.mnem != other.mnem or self.addr != other.addr:
-            return -1
+            return False
         if self.operands == other.operands:
-            return 0
-        return -1
+            return True
+        return False
 
     def __str__(self):
         operands = []

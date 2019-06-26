@@ -5,7 +5,7 @@
 import re
 import socket
 
-from ..py2compat import is_integer, is_binary
+from ..py2compat import is_integer, is_binary, ensure_string
 from ..string.bin import p32
 
 ipv4_regex = re.compile(
@@ -21,4 +21,4 @@ def ipv4(s):
         if len(s) == 4:
             return socket.inet_ntoa(s)
         if re.match(ipv4_regex, s):
-            return s
+            return ensure_string(s)

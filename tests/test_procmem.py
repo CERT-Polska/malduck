@@ -11,7 +11,7 @@ from malduck.procmem import Region
 
 
 def test_readv():
-    payload = "".join([
+    payload = b"".join([
         b"a" * 0x1000,
         b"b" * 0x1000,
         b"c" * 0x1000,
@@ -98,8 +98,8 @@ def test_calc_dmp():
         assert pe(p).is32bit is True
         d = pe(p).optional_header.DATA_DIRECTORY[2]
         assert d.VirtualAddress == 0x59000 and d.Size == 0x62798
-        data = pe(p).resource("WEVT_TEMPLATE")
-        assert data.startswith("CRIM")
+        data = pe(p).resource(b"WEVT_TEMPLATE")
+        assert data.startswith(b"CRIM")
         assert len(data) == 4750
 
 
@@ -111,7 +111,7 @@ def test_calc_exe():
         d = ppe.pe.optional_header.DATA_DIRECTORY[2]
         assert d.VirtualAddress == 0x59000 and d.Size == 0x62798
         data = ppe.pe.resource("WEVT_TEMPLATE")
-        assert data.startswith("CRIM")
+        assert data.startswith(b"CRIM")
         assert len(data) == 4750
         # Check relocations
         assert not ppe.readv(0x10016C2, 4) == 0x10551f8
@@ -119,7 +119,7 @@ def test_calc_exe():
 
 def test_cuckoomem_methods():
     fd, filepath = tempfile.mkstemp()
-    os.write(fd, "".join((
+    os.write(fd, b"".join((
         struct.pack("QIIII", 0x401000, 0x1000, 0, 0, PAGE_READWRITE),
         pad.null(b"foo\x00bar thisis0test\n hAAAA\xc3", 0x1000),
     )))
@@ -142,7 +142,7 @@ def test_findbytes():
         0x10000)
     buf = procmem(payload, base=0x400000)
     assert list(buf.findbytesv("c? c? c? 0A", 0x400000)) == [0x40101B]
-    assert list(buf.findbytesv("1f ?? ?b", 0x400000)) == [0x401022, 0x401025]
+    assert list(buf.findbytesv(b"1f ?? ?b", 0x400000)) == [0x401022, 0x401025]
     assert list(buf.findbytesv("?f ?? ?? 00", 0x400000)) == [0x401000, 0x40102A]
-    assert not list(buf.findbytesv(hex("test hAAAA"), 0x400000))
-    assert list(buf.findbytesv(hex("test\n hAAAA"), 0x400000))
+    assert not list(buf.findbytesv(hex(b"test hAAAA"), 0x400000))
+    assert list(buf.findbytesv(hex(b"test\n hAAAA"), 0x400000))

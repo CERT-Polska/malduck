@@ -9,9 +9,14 @@ import sys
 
 components = os.path.join(os.path.dirname(__file__), "components")
 is64bit = struct.calcsize("P") == 8
+
 ext = {
     "win32": "dll",
+    # py2
     "linux2": "so",
+    "linux3": "so",
+    # py3
+    "linux": "so",
     "darwin": "dylib",
 }[sys.platform]
 

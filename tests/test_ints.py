@@ -17,7 +17,7 @@ def test_int_like():
     assert not Int8(0)
     assert Int8(-1) <= 0
 
-    assert not u8("\x00")
+    assert not u8(b"\x00")
     assert sorted([u16(b"\x00\x10"), u16(b"\x10\x00")]) == [0x10, 0x1000]
 
     assert [Int8(0x7F), Int16(0x7F), Int32(0x7F), Int64(0x7F),

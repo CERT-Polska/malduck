@@ -132,6 +132,6 @@ class Rabbit(object):
             x[2] ^= (self.ctx.w.x[1] >> 16) ^ (self.ctx.w.x[7] << 16) % 2**32
             x[3] ^= (self.ctx.w.x[3] >> 16) ^ (self.ctx.w.x[1] << 16) % 2**32
             ret.append(xor(struct.pack("IIII", *x), msg[off:off+16]))
-        return "".join(ret)
+        return b"".join(ret)
 
     decrypt = encrypt

@@ -67,7 +67,7 @@ class TestDisasm(object):
 
 
 class TestDisasm64bit(object):
-    streams = "".join((
+    streams = b"".join((
         # inc rax
         b"\x48\xff\xc0",
         # mov eax, [rip+0x12345678]
