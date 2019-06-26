@@ -6,4 +6,4 @@ dist/
 *.pyc
 build/
 malduck.egg-info/
-venv/
+ven*/
