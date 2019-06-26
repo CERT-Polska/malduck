@@ -294,24 +294,15 @@ class ProcessMemory(object):
 
     def regexp(self, query, offset=0, length=None):
         """Performs a regex on the file """
-        if offset and length:
-            chunk = self.m[offset:offset+length]
-        else:
-            chunk = self.m
+        chunk = self.readp(offset, length)
         for entry in re.finditer(query, chunk, re.DOTALL):
             yield offset + entry.start()
 
     def regexv(self, query, addr=None, length=None):
         """Performs a regex on the file """
-        if addr and length:
-            offset, end = self.v2p(addr), self.v2p(addr + length)
-            length = end - offset
-        else:
-            offset = length = 0
-        for offset in self.regexp(query, offset, length):
-            addr = self.p2v(offset)
-            if addr:
-                yield addr
+        chunk = self.readv(addr, length)
+        for entry in re.finditer(query, chunk, re.DOTALL):
+            yield addr + entry.start()
 
     def disasmv(self, addr, size):
         return disasm(self.readv(addr, size), addr)
