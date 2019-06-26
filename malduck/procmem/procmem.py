@@ -4,7 +4,7 @@ import re
 from .region import Region, PAGE_EXECUTE_READWRITE
 from ..disasm import disasm
 from ..string.bin import uint8, uint16, uint32, uint64
-
+from ..py2compat import iterbytes
 
 class ProcessMemory(object):
     """
@@ -13,7 +13,7 @@ class ProcessMemory(object):
     Short name: `procmem`
 
     :param buf: Object with memory contents
-    :type buf: str or mmap objects (todo: memoryview and bytes support)
+    :type buf: bytes or mmap objects (todo: memoryview support)
     :param base: Virtual address of the beginning of buf
     :type base: int, optional (default: 0)
     :param regions: Regions mapping. If set to None (default), buf is mapped into single-region with VA specified in
@@ -322,18 +322,19 @@ class ProcessMemory(object):
             hexrange = b"0123456789abcdef?"
             if len(b) != 2:
                 raise ValueError("Length of query should be even")
-            first, second = b
+            first, second = iterbytes(b)
+
             if first not in hexrange or second not in hexrange:
                 raise ValueError("Incorrect query - only 0-9a-fA-F? chars are allowed")
             if b == b"??":
                 return b"."
             if first == b"?":
-                return b"[{}]".format(b''.join(b"\\x" + ch + second for ch in b"0123456789abcdef"))
+                return b"[{}]".format(b''.join(b"\\x" + ch + second for ch in iterbytes(b"0123456789abcdef")))
             if second == b"?":
                 return b"[\\x{first}0-\\x{first}f]".format(first=first)
             return b"\\x" + b
-        query = ''.join(query.lower().split(" "))
-        rquery = ''.join(map(byte2re, [query[i:i+2] for i in range(0, len(query), 2)]))
+        query = b''.join(query.lower().split(b" "))
+        rquery = b''.join(map(byte2re, [query[i:i+2] for i in range(0, len(query), 2)]))
         return regex(rquery, addr, length)
 
     def findbytesp(self, query, offset=0, length=0):

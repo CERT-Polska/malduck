@@ -22,7 +22,6 @@ mapping = {
 
 
 class Structure(object):
-    # TODO Default value in Python, should we change this to 1?
     _pack_ = 0
     _fields_ = []
 

@@ -16,3 +16,8 @@ def is_string(v):
 
 def is_binary(v):
     return isinstance(v, binary_type)
+
+
+def iterbytes(b):
+    """Returns single bytes rather than sequence of ints"""
+    return [b[i:i+1] for i in range(len(b))]

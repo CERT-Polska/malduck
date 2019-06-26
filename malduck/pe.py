@@ -3,6 +3,7 @@
 # See the file 'docs/LICENSE.txt' for copying permission.
 
 import pefile
+from .py2compat import binary_type
 
 
 class MemoryPEData(object):
@@ -94,8 +95,8 @@ class PE(object):
         name_int = lambda e1, e2, e3: e2.struct.Name == name
         type_int = lambda e1, e2, e3: e1.id == type_id
 
-        if isinstance(name, basestring):
-            if name.startswith("RT_"):
+        if isinstance(name, binary_type):
+            if name.startswith(b"RT_"):
                 compare = type_int
                 type_id = pefile.RESOURCE_TYPE[name]
             else:
