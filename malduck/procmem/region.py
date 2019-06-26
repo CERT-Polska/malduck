@@ -22,6 +22,8 @@ page_access = {
 
 
 class Region(object):
+    """Represents single mapped region in :class:`ProcessMemory`"""
+
     def __init__(self, addr, size, state, type_, protect, offset):
         self.addr = addr
         self.size = size

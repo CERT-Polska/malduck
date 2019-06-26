@@ -66,6 +66,7 @@ class MetaIntType(type):
 class IntType(long, IntTypeBase):
     """
     Fixed-size variant of long type with C-style operators and casting
+
     Supports ctypes-like multiplication for unpacking tuple of values
     """
 
@@ -152,9 +153,12 @@ class IntType(long, IntTypeBase):
     def unpack(cls, other, offset=0):
         """
         Unpacks single value from provided buffer
+
         :param other: Buffer object containing value to unpack
+        :type other: bytes
         :param offset: Buffer offset
-        :return: IntType instance or None if there are not enough data to unpack
+        :type offset: int
+        :rtype: IntType instance or None if there are not enough data to unpack
         """
         try:
             ret = unpack_from(cls.fmt, other, offset=offset)

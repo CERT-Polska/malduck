@@ -8,6 +8,9 @@ class ProcessMemoryPE(ProcessMemory):
     Representation of memory-mapped PE file
 
     Short name: `procmempe`
+
+    PE files can be read directly using inherited :py:meth:`ProcessMemory.from_file` with `image` argument set
+    (look at :py:meth:`from_memory` method).
     """
     def __init__(self, buf, base=0, regions=None, image=False):
         super(ProcessMemoryPE, self).__init__(buf, base=base, regions=regions)
@@ -20,16 +23,17 @@ class ProcessMemoryPE(ProcessMemory):
     def from_memory(cls, memory, base=None, image=False):
         """
         Creates ProcessMemoryPE instance from ProcessMemory object.
+
         :param memory: ProcessMemory object containing PE image
         :type memory: :class:`ProcessMemory`
         :param base: Virtual address where PE image is located (default: beginning of procmem)
         :param image: True if memory contains EXE file instead of memory-mapped PE (default: False)
         :rtype: :class:`ProcessMemory`
 
-        When image is True - PE file will be loaded under location specified in PE header (optional_header.ImageBase).
-        ProcessMemoryPE object created that way contains only memory regions created during load
-        (all other data will be wiped out). If image contains relocation info, relocations will be applied using
-        `pefile.relocate_image` method.
+        When image is True - PE file will be loaded under location specified in PE header
+        (pe.optional_header.ImageBase). :class:`ProcessMemoryPE` object created that way contains only memory regions
+        created during load (all other data will be wiped out). If image contains relocation info, relocations will be
+        applied using :py:meth:`pefile.relocate_image` method.
         """
         copied = cls(memory.m, base=base or memory.imgbase, regions=memory.regions, image=image)
         copied.f = memory.f

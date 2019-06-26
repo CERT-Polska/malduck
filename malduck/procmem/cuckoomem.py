@@ -27,5 +27,5 @@ class CuckooProcessMemory(ProcessMemory):
             self.imgbase = self.regions[0].addr
 
     def store(self):
-        """ Stores ProcessMemory into string """
+        """ TODO """
         raise NotImplementedError()

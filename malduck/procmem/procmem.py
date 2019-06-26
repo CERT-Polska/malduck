@@ -21,9 +21,54 @@ class ProcessMemory(object):
                     `base` argument
     :type regions: List[:class:`Region`]
 
-    This constructor should be used only when payload is accessible as raw buffer.
-    For reading payload from file: look at :py:meth:`from_file` method.
+    Let's assume that `notepad.exe_400000.bin` contains raw memory dump starting at 0x400000 base address. We can
+    easily load that file to :class:`ProcessMemory` object, using :py:meth:`from_file` method:
+
+    .. code-block:: python
+
+        from malduck import procmem
+
+        with procmem.from_file("notepad.exe_400000.bin", base=0x400000) as p:
+            mem = p.readv(...)
+            ...
+
+    If your data are loaded yet into buffer, you can directly use `procmem` constructor:
+
+    .. code-block:: python
+
+        from malduck import procmem
+
+        with open("notepad.exe_400000.bin") as f:
+            payload = f.read()
+
+        p = procmem(payload, base=0x400000)
+
+    Then you can work with PE image contained in dump by creating :class:`ProcessMemoryPE` object, using its
+    :py:meth:`from_memory` constructor method
+
+    .. code-block:: python
+
+        from malduck import procmem
+
+        with open("notepad.exe_400000.bin") as f:
+            payload = f.read()
+
+        p = procmem(payload, base=0x400000)
+        ppe = procmempe.from_memory(p)
+        ppe.pe.resource("NPENCODINGDIALOG")
+
+    If you want to load PE file directly and work with it in a similar way as with memory-mapped files, just use
+    `image` parameter. It also works with :py:meth:`ProcessMemoryPE.from_memory` for embedded binaries. Your file
+    will be loaded and relocated in similar way as it's done by Windows loader.
+
+    .. code-block:: python
+
+        from malduck import procmempe
+
+        with procmempe.from_file("notepad.exe", image=True) as p:
+            p.pe.resource("NPENCODINGDIALOG")
     """
+
     def __init__(self, buf, base=0, regions=None):
         self.f = None
         self.m = buf
@@ -43,6 +88,7 @@ class ProcessMemory(object):
     def close(self, copy=False):
         """
         Closes opened files referenced by ProcessMemory object
+
         :param copy: Copy data into string before closing the mmap object (default: False)
         """
         if self.f is not None:
@@ -61,6 +107,7 @@ class ProcessMemory(object):
     def from_file(cls, filename, **kwargs):
         """
         Opens file and loads its contents into ProcessMemory object
+
         :param filename: File name to load
         :rtype: :class:`ProcessMemory`
 
@@ -94,7 +141,9 @@ class ProcessMemory(object):
     def from_memory(cls, memory):
         """
         Makes new instance based on another ProcessMemory object.
+
         Useful for specialized derived classes like :class:`CuckooProcessMemory`
+
         :param memory: ProcessMemory object to be copied
         :type memory: :class:`ProcessMemory`
         :rtype: :class:`ProcessMemory`
@@ -117,6 +166,7 @@ class ProcessMemory(object):
     def v2p(self, addr):
         """
         Virtual address to buffer (physical) offset translation
+
         :param addr: Virtual address
         :return: Buffer offset or None if virtual address is not mapped
         """
@@ -127,6 +177,7 @@ class ProcessMemory(object):
     def p2v(self, off):
         """
         Buffer (physical) offset to virtual address translation
+
         :param off: Buffer offset
         :return: Virtual address or None if offset is not mapped
         """
@@ -136,7 +187,8 @@ class ProcessMemory(object):
 
     def addr_region(self, addr):
         """
-        Returns Region object mapping specified virtual address
+        Returns :class:`Region` object mapping specified virtual address
+
         :param addr: Virtual address
         :rtype: :class:`Region`
         """
@@ -147,6 +199,7 @@ class ProcessMemory(object):
     def iter_region(self, addr):
         """
         Returns generator of Region objects starting at virtual address
+
         :param addr: Virtual address
         :rtype: Iterator[:class:`Region`]
         """
@@ -163,8 +216,9 @@ class ProcessMemory(object):
 
         .. warning::
 
-           Family of '*p' methods doesn't care about continuity of regions.
-           Use :py:meth:`p2v` and :py:meth:`readv` if you want to operate on continuous regions only
+            Family of *p methods doesn't care about continuity of regions.
+
+            Use :py:meth:`p2v` and :py:meth:`readv` if you want to operate on continuous regions only
 
         :param offset: Buffer offset
         :param length: Length of chunk (optional)
@@ -214,6 +268,7 @@ class ProcessMemory(object):
     def readv(self, addr, length=None):
         """
         Read a chunk of memory from the specified virtual address
+
         :param addr: Virtual address
         :type addr: int
         :param length: Length of chunk (optional)
@@ -226,6 +281,7 @@ class ProcessMemory(object):
     def readv_until(self, addr, s=None):
         """
         Read a chunk of memory until the stop marker
+
         :param addr: Virtual address
         :type addr: int
         :param s: Stop marker
@@ -246,11 +302,33 @@ class ProcessMemory(object):
 
         .. warning::
 
-           Family of '*p' methods doesn't care about continuity of regions.
+           Family of *p methods doesn't care about continuity of regions.
+
            Use :py:meth:`p2v` and :py:meth:`patchv` if you want to operate on continuous regions only
 
         :param offset: Buffer offset
+        :type offset: int
         :param buf: Buffer with patch to apply
+        :type buf: bytes
+
+        Usage example:
+
+        .. code-block:: python
+
+            from malduck import procmempe, aplib
+
+            with procmempe("mal1.exe.dmp") as ppe:
+                # Decompress payload
+                payload = aPLib().decompress(
+                    ppe.readv(ppe.imgbase + 0x8400, ppe.imgend)
+                )
+                embed_pe = procmem(payload, base=0)
+                # Fix headers
+                embed_pe.patchp(0, b"MZ")
+                embed_pe.patchp(embed_pe.uint32p(0x3C), b"PE")
+                # Load patched image into procmempe
+                embed_pe = procmempe.from_memory(embed_pe, image=True)
+                assert embed_pe.asciiz(0x1000a410) == b"StrToIntExA"
         """
         length = len(buf)
         if self._mmaped:
@@ -261,6 +339,7 @@ class ProcessMemory(object):
     def patchv(self, addr, buf):
         """
         Patch bytes under specified virtual address
+
         :param addr: Virtual address
         :type addr: int
         :param buf: Buffer with patch to apply
@@ -315,6 +394,7 @@ class ProcessMemory(object):
     def regexp(self, query, offset=0, length=None):
         """
         Performs regex on the file (non-region-wise)
+
         :param query: Regular expression to find
         :type query: bytes
         :param offset: Offset in buffer where searching starts
@@ -332,6 +412,7 @@ class ProcessMemory(object):
     def regexv(self, query, addr, length=None):
         """
         Performs regex on the file (region-wise)
+
         :param query: Regular expression to find
         :type query: bytes
         :param addr: Virtual address of region where searching starts
@@ -353,6 +434,7 @@ class ProcessMemory(object):
     def disasmv(self, addr, size):
         """
         Disassembles code under specified address
+
         :param addr: Virtual address
         :type addr: int
         :param size: Size of disassembled buffer
@@ -385,7 +467,8 @@ class ProcessMemory(object):
 
     def findbytesp(self, query, offset=0, length=0):
         """
-        Search for byte sequences (4? AA BB ?? DD). Uses regexp internally
+        Search for byte sequences (`4? AA BB ?? DD`). Uses :py:meth:`regexp` internally
+
         :param query: Sequence of wildcarded hexadecimal bytes, separated by spaces
         :type query: str or bytes
         :param offset: Buffer offset where searching will be started
@@ -399,7 +482,8 @@ class ProcessMemory(object):
 
     def findbytesv(self, query, addr, length=None):
         """
-        Search for byte sequences (4? AA BB ?? DD). Uses regexv internally
+        Search for byte sequences (`4? AA BB ?? DD`). Uses :py:meth:`regexv` internally
+
         :param query: Sequence of wildcarded hexadecimal bytes, separated by spaces
         :type query: str or bytes
         :param addr: Virtual address where searching will be started
@@ -426,6 +510,7 @@ class ProcessMemory(object):
     def findmz(self, addr):
         """
         Tries to locate MZ header based on address inside PE image
+
         :param addr: Virtual address inside image
         :type addr: int
         :return: Virtual address of found MZ header or None
