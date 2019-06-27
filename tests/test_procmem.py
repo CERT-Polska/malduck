@@ -141,8 +141,24 @@ def test_findbytes():
         b"\xffoo\x00bar thisis0test\n hAAAA\xc3\xc0\xc2\xc4\n\n\x10\x2f\x1f\x1a\x1b\x1f\x1d\xbb\xcc\xdd\xff",
         0x10000)
     buf = procmem(payload, base=0x400000)
-    assert list(buf.findbytesv("c? c? c? 0A", 0x400000)) == [0x40101B]
-    assert list(buf.findbytesv(b"1f ?? ?b", 0x400000)) == [0x401022, 0x401025]
-    assert list(buf.findbytesv("?f ?? ?? 00", 0x400000)) == [0x401000, 0x40102A]
-    assert not list(buf.findbytesv(hex(b"test hAAAA"), 0x400000))
-    assert list(buf.findbytesv(hex(b"test\n hAAAA"), 0x400000))
+    assert list(buf.findbytesv("c? c? c? 0A")) == [0x40101B]
+    assert list(buf.findbytesv(b"1f ?? ?b")) == [0x401022, 0x401025]
+    assert list(buf.findbytesv("?f ?? ?? 00")) == [0x401000, 0x40102A]
+    assert not list(buf.findbytesv(hex(b"test hAAAA")))
+    assert list(buf.findbytesv(hex(b"test\n hAAAA")))
+
+    payload = b"".join([
+        b"a" * 0x1000,
+        b"b" * 0x1000,
+        b"c" * 0x1000,
+        b"d" * 0x1000
+    ])
+    regions = [
+        Region(0x400000, 0x1000, 0, 0, 0, 0),
+        Region(0x401000, 0x1000, 0, 0, 0, 0x1000),
+        Region(0x402000, 0x1000, 0, 0, 0, 0x2000),
+        Region(0x410000, 0x1000, 0, 0, 0, 0x3000),
+    ]
+
+    p = procmem(payload, regions=regions)
+    assert next(p.findbytesv(hex(b"dddd"))) == 0x410000

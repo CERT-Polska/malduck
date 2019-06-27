@@ -1,3 +1,4 @@
+import operator
 import mmap
 import re
 
@@ -204,7 +205,7 @@ class ProcessMemory(object):
             if region.addr <= addr < region.end:
                 return region
 
-    def iter_region(self, addr):
+    def iter_region(self, addr=None):
         """
         Returns generator of Region objects starting at virtual address
 
@@ -213,7 +214,7 @@ class ProcessMemory(object):
         """
         start = False
         for region in self.regions:
-            if region.addr <= addr < region.end:
+            if addr is None or region.addr <= addr < region.end:
                 start = True
             if start:
                 yield region
@@ -238,7 +239,7 @@ class ProcessMemory(object):
         else:
             return self.m[offset:offset+length]
 
-    def readv_regions(self, addr, length=None):
+    def readv_regions(self, addr=None, length=None, continuous_wise=True):
         """
         Generate chunks of memory from next continuous regions, starting from the specified virtual address,
         until specified length of read data is reached.
@@ -247,7 +248,8 @@ class ProcessMemory(object):
 
         :param addr: Virtual address
         :param length: Size of memory to read (optional)
-        :rtype: Iterator[bytes]
+        :param continuous_wise: If True, readv_regions breaks after first gap
+        :rtype: Iterator[Tuple[int, bytes]]
         """
         regions = self.iter_region(addr)
         prev_region = None
@@ -256,21 +258,22 @@ class ProcessMemory(object):
                 region = next(regions)
             except StopIteration:
                 return
-            if prev_region and prev_region.end != region.addr:
+            if prev_region and continuous_wise and prev_region.end != region.addr:
                 # Gap between regions - break
                 break
+            chunk_addr = addr or region.addr
             # Get starting region offset
-            rel_offs = addr - region.addr
+            rel_offs = chunk_addr - region.addr
             # ... and how many bytes we need to read
             rel_length = region.size - rel_offs
             if length is not None and length < rel_length:
                 rel_length = length
             # Yield read chunk
-            yield self.readp(region.offset + rel_offs, rel_length)
+            yield chunk_addr, self.readp(region.offset + rel_offs, rel_length)
             # Go to next region
             if length is not None:
                 length -= rel_length
-            addr += rel_length
+            addr = None
             prev_region = region
 
     def readv(self, addr, length=None):
@@ -284,7 +287,7 @@ class ProcessMemory(object):
         :return: Chunk from specified location
         :rtype: bytes
         """
-        return b''.join(self.readv_regions(addr, length))
+        return b''.join(map(operator.itemgetter(1), self.readv_regions(addr, length)))
 
     def readv_until(self, addr, s=None):
         """
@@ -297,7 +300,7 @@ class ProcessMemory(object):
         :rtype: bytes
         """
         ret = []
-        for chunk in self.readv_regions(addr):
+        for _, chunk in self.readv_regions(addr):
             if s in chunk:
                 ret.append(chunk[:chunk.index(s)])
                 break
@@ -417,16 +420,16 @@ class ProcessMemory(object):
         for entry in re.finditer(query, chunk, re.DOTALL):
             yield offset + entry.start()
 
-    def regexv(self, query, addr, length=None):
+    def regexv(self, query, addr=None, length=None):
         """
         Performs regex on the file (region-wise)
 
         :param query: Regular expression to find
         :type query: bytes
         :param addr: Virtual address of region where searching starts
-        :type addr: int
+        :type addr: int (optional)
         :param length: Length of searched area
-        :type length: int
+        :type length: int (optional)
         :return: Generates offsets where regex was matched
         :rtype: Iterator[int]
 
@@ -434,10 +437,10 @@ class ProcessMemory(object):
 
            Method doesn't match bytes overlapping the border between regions
         """
-        chunk = self.readv(addr, length)
         query = ensure_bytes(query)
-        for entry in re.finditer(query, chunk, re.DOTALL):
-            yield addr + entry.start()
+        for chunk_addr, chunk in self.readv_regions(addr, length, continuous_wise=False):
+            for entry in re.finditer(query, chunk, re.DOTALL):
+                yield chunk_addr + entry.start()
 
     def disasmv(self, addr, size):
         """
@@ -473,7 +476,7 @@ class ProcessMemory(object):
         rquery = ''.join(map(byte2re, [query[i:i+2] for i in range(0, len(query), 2)]))
         return regex_fn(rquery, addr, length)
 
-    def findbytesp(self, query, offset=0, length=0):
+    def findbytesp(self, query, offset=0, length=None):
         """
         Search for byte sequences (`4? AA BB ?? DD`). Uses :py:meth:`regexp` internally
 
@@ -488,14 +491,14 @@ class ProcessMemory(object):
         """
         return self._findbytes(self.regexp, query, offset, length)
 
-    def findbytesv(self, query, addr, length=None):
+    def findbytesv(self, query, addr=None, length=None):
         """
         Search for byte sequences (`4? AA BB ?? DD`). Uses :py:meth:`regexv` internally
 
         :param query: Sequence of wildcarded hexadecimal bytes, separated by spaces
         :type query: str or bytes
         :param addr: Virtual address where searching will be started
-        :type addr: int
+        :type addr: int (optional)
         :param length: Length of searched area
         :type length: int (optional)
         :return: Iterator returning found virtual addresses
