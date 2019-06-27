@@ -185,6 +185,14 @@ class ProcessMemory(object):
             if region.offset <= off < region.offset + region.size:
                 return region.addr + off - region.offset
 
+    def is_addr(self, addr):
+        """
+        Checks whether provided parameter is correct virtual address
+        :param addr: Virtual address candidate
+        :return: True if it is mapped by ProcessMemory object
+        """
+        return self.v2p(addr) is not None
+
     def addr_region(self, addr):
         """
         Returns :class:`Region` object mapping specified virtual address
