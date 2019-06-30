@@ -11,6 +11,9 @@ Memory = collections.namedtuple(
 
 
 class Operand(object):
+    """
+    Operand object for single :class:`Instruction`
+    """
     # These are initialized the first time disasm() is called, see also below.
     _x86_op_imm = None
     _x86_op_reg = None
@@ -27,21 +30,28 @@ class Operand(object):
 
     @property
     def is_imm(self):
+        """Is it immediate operand?"""
         return self.op.type == Operand._x86_op_imm
 
     @property
     def is_reg(self):
+        """Is it register operand?"""
         return self.op.type == Operand._x86_op_reg
 
     @property
     def is_mem(self):
+        """Is it memory operand?"""
         return self.op.type == Operand._x86_op_mem
 
     @property
     def value(self):
+        """
+        Returns operand value or displacement value for memory operands
+
+        :rtype: str or int
+        """
         if self.is_imm:
             return self.op.value.imm
-        # TODO Improved memory operand support.
         if self.is_mem:
             return self.op.value.mem.disp
         if self.is_reg:
@@ -49,16 +59,28 @@ class Operand(object):
 
     @property
     def reg(self):
+        """
+        Returns register used by operand.
+
+        For memory operands, returns base register or index register if base is not used.
+        For immediate operands or displacement-only memory operands returns None.
+
+        :rtype: str
+        """
         if self.is_mem:
             reg = self.op.value.mem.base or self.op.value.mem.index
             if reg:
                 return self.regs[reg]
         if self.is_reg:
             return self.regs[self.op.reg]
-        # TODO Improved memory operand support.
 
     @property
     def mem(self):
+        """
+        Returns :class:`Memory` object for memory operands
+        """
+        if not self.is_mem:
+            return
         mem = self.op.value.mem
         if mem.base:
             base = self.regs[mem.base]
@@ -103,6 +125,16 @@ class Operand(object):
 
 
 class Instruction(object):
+    """
+    Represents single instruction in :class:`Disassemble`
+
+    short: insn
+
+    .. code-block:: python
+
+        00400000  imul    ecx,   edx,   0
+        [addr]    [mnem]  [op1], [op2], [op3]
+    """
     def __init__(self, mnem=None, op1=None, op2=None, op3=None, addr=None, x64=False):
         self.insn = None
         self.mnem = mnem
@@ -128,18 +160,22 @@ class Instruction(object):
 
     @property
     def op1(self):
+        """First operand"""
         return self.operands[0]
 
     @property
     def op2(self):
+        """Second operand"""
         return self.operands[1]
 
     @property
     def op3(self):
+        """Third operand"""
         return self.operands[2]
 
     @property
     def addr(self):
+        """Instruction address"""
         return self._addr or self.insn.address
 
     def __eq__(self, other):
@@ -166,6 +202,20 @@ class Instruction(object):
 
 class Disassemble(object):
     def disassemble(self, data, addr, x64=False):
+        """
+        Disassembles data from specific address
+
+        short: disasm
+
+        :param data: Block of data to disasseble
+        :type data: bytes
+        :param addr: Virtual address of data
+        :type addr: int
+        :param x64: Disassemble in x86-64 mode?
+        :type x64: bool (default=False)
+        :return: Returns list of instructions
+        :rtype: List[:class:`Instruction`]
+        """
         import capstone
 
         cs = capstone.Cs(capstone.CS_ARCH_X86,
