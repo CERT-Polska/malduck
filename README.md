@@ -1,4 +1,4 @@
-Malduck
+:duck: Malduck
 =========
 
 Malduck is your ducky companion in malware analysis journeys. It is mostly based on [Roach](https://github.com/hatching/roach) project, which derives many concepts from [mlib](https://github.com/mak/mlib) 
