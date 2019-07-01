@@ -130,10 +130,25 @@ class Instruction(object):
 
     short: insn
 
+    Properties correspond to the following elements of instruction:
+
     .. code-block:: python
 
         00400000  imul    ecx,   edx,   0
         [addr]    [mnem]  [op1], [op2], [op3]
+
+    Usage example:
+
+    .. code-block:: python
+
+        def move_command_new(self, p, hit, *args):
+            for c in p.disasmv(hit, 0x1000):
+                if c.mnem == 'mov' and c.op1.value == 0x14:
+                    return c.op2.value
+
+    .. seealso::
+
+       :py:meth:`malduck.procmem.ProcessMemory.disasmv`
     """
     def __init__(self, mnem=None, op1=None, op2=None, op3=None, addr=None, x64=False):
         self.insn = None

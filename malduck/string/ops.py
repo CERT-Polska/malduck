@@ -9,6 +9,12 @@ from ..py2compat import indexbytes, int2byte
 
 
 def asciiz(s):
+    """
+    Treats s as null-terminated string
+
+    :param s: Buffer containing null-terminated string
+    :type s: bytes
+    """
     return s.split(b"\x00")[0]
 
 
@@ -24,6 +30,7 @@ def chunks(l, n):
 
 
 def utf16z(s):
+    """Treats s as null-terminated UTF-16 string"""
     chunked = chunks(s, 2)
     if b'\x00\x00' in chunked:
         return s[:chunked.index(b'\x00\x00')*2]
@@ -39,6 +46,7 @@ def unhex(s):
 
 
 def uleb128(s):
+    """Unsigned Little-Endian Base 128"""
     ret = 0
     for idx in range(len(s)):
         ret += (indexbytes(s, idx) & 0x7f) << (idx*7)
@@ -50,6 +58,7 @@ def uleb128(s):
 
 
 class Base64(object):
+    """Base64 encoder/decoder"""
     def encode(self, s):
         return base64.b64encode(s)
 
@@ -60,6 +69,9 @@ class Base64(object):
 
 
 class Padding(object):
+    """
+    Padding PKCS7/NULL
+    """
     def __init__(self, style):
         self.style = style
 
@@ -83,6 +95,9 @@ class Padding(object):
 
 
 class Unpadding(object):
+    """
+    Unpadding PKCS7/NULL
+    """
     def __init__(self, style):
         self.style = style
 

@@ -28,13 +28,11 @@ and more powerful.
    crypto
    compression
    hash
-   int
+   ints
    procmem
    string
    disasm
    pe
-   structure
-   verify
 
 
 Indices and tables

@@ -68,6 +68,54 @@ class IntType(long, IntTypeBase):
     Fixed-size variant of long type with C-style operators and casting
 
     Supports ctypes-like multiplication for unpacking tuple of values
+
+    * Unsigned types:
+          :class:`UInt64` (:class:`QWORD`), :class:`UInt32` (:class:`DWORD`),
+          :class:`UInt16` (:class:`WORD`), :class:`UInt8` (:class:`BYTE` or :class:`CHAR`)
+    * Signed types:
+          :class:`Int64`, :class:`Int32`, :class:`Int16`, :class:`Int8`
+
+    IntTypes are derived from :class:`long` type, so they are fully compatible with other numeric types
+
+    .. code-block:: python
+
+        res = u32(0x8080FFFF) << 16 | 0xFFFF
+        > 0xFFFFFFFF
+        res = Int32(res)
+        > -1
+
+    Using IntTypes you don't need to mask everything with 0xFFFFFFFF, only if you remember about appropriate casting.
+
+    .. code-block:: python
+
+        from malduck import DWORD
+
+        def rol7_hash(name: bytes):
+            hh = 0
+            for c in name:
+                hh = DWORD(x).rol(7) ^ c
+            return x
+
+        def sdbm_hash(name: bytes):
+            hh = 0
+            for c in name:
+                hh = DWORD(c) + (hh << 6) + (hh << 16) - hh
+            return hh
+
+    Type coercion between native and fixed integers depends on LHS type:
+
+    .. code-block:: python
+
+        UInt32 = UInt32 + int
+        int = int + UInt32
+
+    IntTypes can be multiplied like ctypes classes for unpacking tuple of values:
+
+    .. code-block:: python
+
+        values = (BYTE * 3).unpack('\\x01\\x02\\x03')
+
+        values -> (1, 2, 3)
     """
 
     bits = 64

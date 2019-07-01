@@ -9,12 +9,12 @@ Malduck provides many improvements resulting from CERT.pl codebase, making scrip
 Improvements
 ============
 
-* Many improvements in ProcessMemory
 * Support for (non)memory-mapped PE images without header fix-up.
 * Searching for wildcarded byte sequences
 * Support for x64 disassembly
 * Fixed-precision integer types
 * Supported both Python 2.x and 3.x
+* Many improvements in ProcessMemory
 
 Usage
 ==========
