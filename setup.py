@@ -18,4 +18,9 @@ setup(
     license="GPLv3",
     include_package_data=True,
     install_requires=open("requirements.txt").read().splitlines(),
+    url="https://github.com/CERT-Polska/malduck",
+    classifiers=[
+        "Programming Language :: Python",
+        "Operating System :: POSIX :: Linux",
+    ]
 )
