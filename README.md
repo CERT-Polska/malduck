@@ -25,4 +25,4 @@ Installing may be performed by running
 pip install malduck
 ```
 
-Usage documentation can be found here: [docs]
+Usage documentation can be found here: [https://malduck.readthedocs.io/en/latest/](https://malduck.readthedocs.io/en/latest/)
