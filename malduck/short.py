@@ -7,6 +7,7 @@ from .compression.gzip import Gzip
 from .crypto.aes import AES
 from .crypto.blowfish import Blowfish
 from .crypto.des3 import DES3
+from .crypto.serpent import Serpent
 from .crypto.rabbit import Rabbit
 from .crypto.rc import RC4
 from .crypto.rsa import RSA
@@ -95,6 +96,10 @@ class rabbit_(object):
         return Rabbit(key, iv).encrypt(data)
 
     __call__ = rabbit
+
+
+def serpent(key, data, iv=None):
+    return Serpent(key, iv).decrypt(data)
 
 
 blowfish = blowfish_()

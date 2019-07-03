@@ -16,3 +16,5 @@ Cryptography
 .. autoclass:: malduck.crypto.rsa.RSA
     :members:
 .. autofunction:: malduck.crypto.xor.xor
+.. autoclass:: malduck.crypto.serpent.Serpent
+    :members:

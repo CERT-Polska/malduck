@@ -2,7 +2,7 @@
 # This file is part of Roach - https://github.com/jbremer/roach.
 # See the file 'docs/LICENSE.txt' for copying permission.
 
-from malduck import aes, blowfish, des3, rc4, rsa, xor, base64, unhex, rabbit, p8
+from malduck import aes, blowfish, des3, rc4, rsa, xor, base64, unhex, rabbit, p8, serpent
 
 
 def test_aes():
@@ -217,3 +217,9 @@ def test_rabbit():
     assert rabbit(key1, iv1, b"\x00"*48) == out4
     assert rabbit(key1, iv2, b"\x00"*48) == out5
     assert rabbit(key1, iv3, b"\x00"*48) == out6
+
+
+def test_serpent():
+    payload = unhex("8a516cb035540b5854a18eeccc40299d")
+    key = b"0123456789ABCDEF"
+    assert serpent(key, payload) == b'\xf4\xee\xd1\xec\x04\x01\x00\x00\x00\x04\x00\x00\xc3\xdc\x07\xd4'
