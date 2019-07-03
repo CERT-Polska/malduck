@@ -258,10 +258,17 @@ class ProcessMemory(object):
                 region = next(regions)
             except StopIteration:
                 return
-            if prev_region and continuous_wise and prev_region.end != region.addr:
-                # Gap between regions - break
-                break
-            chunk_addr = addr or region.addr
+            if prev_region:
+                chunk_addr = region.addr
+                if continuous_wise and prev_region.end != region.addr:
+                    # Gap between regions - break
+                    break
+                # If continuous-wise: no-op
+                # Otherwise: skip gap
+                if length is not None:
+                    length -= region.addr - prev_region.end
+            else:
+                chunk_addr = addr or region.addr
             # Get starting region offset
             rel_offs = chunk_addr - region.addr
             # ... and how many bytes we need to read
@@ -273,7 +280,6 @@ class ProcessMemory(object):
             # Go to next region
             if length is not None:
                 length -= rel_length
-            addr = None
             prev_region = region
 
     def readv(self, addr, length=None):
@@ -402,9 +408,53 @@ class ProcessMemory(object):
         """Read a nul-terminated UTF-16 string at address."""
         return self.readv_until(addr, b"\x00\x00")
 
+    def _find(self, buf, query, offset=0, length=None):
+        while True:
+            if length is None:
+                idx = buf.find(query, offset)
+            else:
+                idx = buf.find(query, offset, offset+length)
+            if idx < 0:
+                break
+            yield idx
+            offset = idx + 1
+
+    def findp(self, query, offset=0, length=None):
+        """
+        Find raw bytes in memory (non-region-wise).
+
+        :param query: Substring to find
+        :type query: bytes
+        :param offset: Offset in buffer where searching starts
+        :type offset: int (optional)
+        :param length: Length of searched area
+        :type length: int (optional)
+        :return: Generates offsets where bytes were found
+        :rtype: Iterator[int]
+        """
+        return self._find(self.m, query, offset, length)
+
+    def findv(self, query, addr=None, length=None):
+        """
+        Find raw bytes in memory (region-wise)
+
+        :param query: Substring to find
+        :type query: bytes
+        :param addr: Virtual address of region where searching starts
+        :type addr: int (optional)
+        :param length: Length of searched area
+        :type length: int (optional)
+        :return: Generates offsets where regex was matched
+        :rtype: Iterator[int]
+        """
+        for chunk_addr, chunk in self.readv_regions(addr, length, continuous_wise=False):
+            print(len(chunk))
+            for idx in self._find(chunk, query):
+                yield idx + chunk_addr
+
     def regexp(self, query, offset=0, length=None):
         """
-        Performs regex on the file (non-region-wise)
+        Performs regex on the memory contents (non-region-wise)
 
         :param query: Regular expression to find
         :type query: bytes
@@ -422,7 +472,7 @@ class ProcessMemory(object):
 
     def regexv(self, query, addr=None, length=None):
         """
-        Performs regex on the file (region-wise)
+        Performs regex on the memory contents (region-wise)
 
         :param query: Regular expression to find
         :type query: bytes
