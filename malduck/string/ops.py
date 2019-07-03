@@ -10,9 +10,9 @@ from ..py2compat import indexbytes, int2byte
 
 def asciiz(s):
     """
-    Treats s as null-terminated string
+    Treats s as null-terminated ASCII string
 
-    :param s: Buffer containing null-terminated string
+    :param s: Buffer containing null-terminated ASCII string
     :type s: bytes
     """
     return s.split(b"\x00")[0]
@@ -30,10 +30,17 @@ def chunks(l, n):
 
 
 def utf16z(s):
-    """Treats s as null-terminated UTF-16 string"""
+    """
+    Treats s as null-terminated UTF-16 ASCII string
+
+    :param s: Buffer containing null-terminated UTF-16 string
+    :type s: bytes
+    :return: ASCII string without '\x00' terminator
+    :rtype: bytes
+    """
     chunked = chunks(s, 2)
     if b'\x00\x00' in chunked:
-        return s[:chunked.index(b'\x00\x00')*2]
+        return s[:chunked.index(b'\x00\x00')*2].decode("utf-16").rstrip("\x00").encode("ascii")
     return s
 
 

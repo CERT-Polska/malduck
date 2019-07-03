@@ -136,6 +136,13 @@ def test_cuckoomem_methods():
         ]
 
 
+def test_utf16z():
+    payload = b"\x00\x00a\x00b\x00c\x00\x00\x00"
+    p = procmem(payload, base=0x400000)
+    assert p.utf16z(0x400000) == b""
+    assert p.utf16z(0x400002) == b"abc"
+
+
 def test_findbytes():
     payload = b" " * 0x1000 + pad.null(
         b"\xffoo\x00bar thisis0test\n hAAAA\xc3\xc0\xc2\xc4\n\n\x10\x2f\x1f\x1a\x1b\x1f\x1d\xbb\xcc\xdd\xff",

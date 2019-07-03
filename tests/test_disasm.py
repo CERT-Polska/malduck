@@ -42,7 +42,7 @@ class TestDisasm(object):
 
         insn3 = self.insns[2]
         assert insn3.op1 == "al"
-        assert insn3.op1.mem == ("byte", None, None, None, 1333337)
+        assert insn3.op2.mem == ("byte", None, None, None, 1333337)
 
         insn4 = self.insns[3]
         assert insn4.op1 == "eax"

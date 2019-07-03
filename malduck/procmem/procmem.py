@@ -5,6 +5,7 @@ import re
 from .region import Region, PAGE_EXECUTE_READWRITE
 from ..disasm import disasm
 from ..string.bin import uint8, uint16, uint32, uint64
+from ..string.ops import utf16z
 from ..py2compat import ensure_bytes, ensure_string
 
 
@@ -399,8 +400,20 @@ class ProcessMemory(object):
         return self.readv_until(addr, b"\x00")
 
     def utf16z(self, addr):
-        """Read a nul-terminated UTF-16 string at address."""
-        return self.readv_until(addr, b"\x00\x00")
+        """
+        Read a nul-terminated UTF-16 ASCII string at address.
+
+        :param addr: Virtual address of string
+        :rtype: bytes
+        """
+        buf = self.readv_until(addr, b"\x00\x00")
+        """
+        Can't use \x00\x00\x00 here because string can be just empty
+        We just need to read one more byte in case string length is not even
+        """
+        if len(buf) % 2:
+            buf += self.readv(addr + len(buf), 1)
+        return utf16z(buf + b"\x00\x00")
 
     def regexp(self, query, offset=0, length=None):
         """
