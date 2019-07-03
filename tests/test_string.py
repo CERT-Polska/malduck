@@ -21,7 +21,7 @@ def test_chunks():
 
 
 def test_utf16z():
-    assert utf16z(b"h\x00e\x00l\x00l\x00o\x00\x00\x00world") == b"h\x00e\x00l\x00l\x00o\x00"
+    assert utf16z(b"h\x00e\x00l\x00l\x00o\x00\x00\x00world") == b"hello"
 
 
 def test_hex():
