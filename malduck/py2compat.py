@@ -1,4 +1,5 @@
 from six import add_metaclass, integer_types, string_types, binary_type, PY3, int2byte, indexbytes, text_type
+from six import iterbytes as iterbytes_ord
 
 if PY3:
     from builtins import int as long

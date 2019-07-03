@@ -1,13 +1,12 @@
-# Copyright (C) 2018 Jurriaan Bremer.
-# This file is part of Roach - https://github.com/jbremer/roach.
-# See the file 'docs/LICENSE.txt' for copying permission.
+from itertools import cycle
 
-from Crypto.Cipher import XOR
-from ..py2compat import is_integer, int2byte
+from ..py2compat import is_integer, int2byte, iterbytes_ord
 
 
 def xor(key, data):
     if is_integer(key):
         key = int2byte(key)
-
-    return XOR.new(key).decrypt(data)
+    return b"".join(int2byte(a ^ b) for a, b in zip(
+        iterbytes_ord(data),
+        cycle(iterbytes_ord(key))
+    ))
