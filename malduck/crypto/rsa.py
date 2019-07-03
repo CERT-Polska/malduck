@@ -4,7 +4,8 @@
 
 import io
 
-from Crypto.PublicKey.RSA import RSAImplementation
+from Crypto.PublicKey import RSA as RSA_
+from itertools import takewhile
 
 from .winhdr import BLOBHEADER, BaseBlob
 from ..string.bin import uint32, bigint
@@ -97,7 +98,7 @@ class RSA(object):
     @staticmethod
     def import_key(data):
         try:
-            return RSA_.importKey(data).exportKey()
+            return RSA_.import_key(data).export_key()
         except (ValueError, IndexError):
             pass
 
@@ -120,7 +121,7 @@ class RSA(object):
     def export_key(n, e, d=None, p=None, q=None, crt=None):
         wrap = lambda x: None if x is None else long(x)
         tup = wrap(n), wrap(e), wrap(d), wrap(p), wrap(q), wrap(crt)
-        return RSA_.construct(tup).exportKey()
+        # PyCryptodome accepts only variable-length tuples
+        tup = tuple(takewhile(lambda x: x is not None, tup))
+        return RSA_.construct(tup, consistency_check=False).export_key()
 
-
-RSA_ = RSAImplementation(use_fast_math=False)

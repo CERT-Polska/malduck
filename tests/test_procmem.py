@@ -136,6 +136,13 @@ def test_cuckoomem_methods():
         ]
 
 
+def test_utf16z():
+    payload = b"\x00\x00a\x00b\x00c\x00\x00\x00"
+    p = procmem(payload, base=0x400000)
+    assert p.utf16z(0x400000) == b""
+    assert p.utf16z(0x400002) == b"abc"
+
+
 def test_findbytes():
     payload = b" " * 0x1000 + pad.null(
         b"\xffoo\x00bar thisis0test\n hAAAA\xc3\xc0\xc2\xc4\n\n\x10\x2f\x1f\x1a\x1b\x1f\x1d\xbb\xcc\xdd\xff",
@@ -162,3 +169,24 @@ def test_findbytes():
 
     p = procmem(payload, regions=regions)
     assert next(p.findbytesv(hex(b"dddd"))) == 0x410000
+
+
+def test_findv():
+    payload = b"".join([
+        pad.null(pad.null(b"a" * 0x200 + b"pattern", 0x500) + b"pattern2", 0x1000),
+        pad.null(pad.null(b"b" * 0x200 + b"pattern", 0x500) + b"pattern2", 0x1000),
+        b"c" * 0x1000,
+        pad.null(pad.null(b"d" * 0x200 + b"pattern", 0x500) + b"pattern2", 0x1000)
+    ])
+    regions = [
+        Region(0x400000, 0x1000, 0, 0, 0, 0),
+        Region(0x401000, 0x1000, 0, 0, 0, 0x1000),
+        Region(0x402000, 0x1000, 0, 0, 0, 0x2000),
+        Region(0x410000, 0x1000, 0, 0, 0, 0x3000),
+    ]
+    p = procmem(payload, regions=regions)
+
+    assert list(p.findv(b"pattern")) == [0x400200, 0x400500, 0x401200, 0x401500, 0x410200, 0x410500]
+    assert list(p.findv(b"pattern", 0x401100, 0x405)) == [0x401200]
+    assert list(p.findv(b"pattern", length=0x10300)) == [0x400200, 0x400500, 0x401200, 0x401500, 0x410200]
+    assert list(p.findv(b"pattern", 0x401508)) == [0x410200, 0x410500]

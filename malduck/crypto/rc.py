@@ -4,6 +4,8 @@
 
 from Crypto.Cipher import ARC4
 
+ARC4.key_size = range(3, 256+1)
+
 
 class RC4(object):
     def __init__(self, key):
