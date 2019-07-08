@@ -505,7 +505,7 @@ class ProcessMemory(object):
             for entry in re.finditer(query, chunk, re.DOTALL):
                 yield chunk_addr + entry.start()
 
-    def disasmv(self, addr, size):
+    def disasmv(self, addr, size, x64=False):
         """
         Disassembles code under specified address
 
@@ -513,9 +513,11 @@ class ProcessMemory(object):
         :type addr: int
         :param size: Size of disassembled buffer
         :type size: int
+        :param x64: Assembly is 64bit
+        :type x64: bool (optional)
         :return: :class:`Disassemble`
         """
-        return disasm(self.readv(addr, size), addr)
+        return disasm(self.readv(addr, size), addr, x64=x64)
 
     def _findbytes(self, regex_fn, query, addr, length):
         query = ensure_string(query)
