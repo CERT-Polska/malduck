@@ -2,7 +2,7 @@
 # This file is part of Roach - https://github.com/jbremer/roach.
 # See the file 'docs/LICENSE.txt' for copying permission.
 
-from Crypto.Cipher import ARC4
+from Cryptodome.Cipher import ARC4
 
 ARC4.key_size = range(3, 256+1)
 
