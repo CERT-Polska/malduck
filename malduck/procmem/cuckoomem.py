@@ -24,7 +24,10 @@ class CuckooProcessMemory(ProcessMemory):
             )
             ptr += size
         if base is None:
-            self.imgbase = self.regions[0].addr
+            if self.regions:
+                self.imgbase = self.regions[0].addr
+            else:
+                self.imgbase = 0
 
     def store(self):
         """ TODO """
