@@ -369,37 +369,37 @@ class ProcessMemory(object):
             raise ValueError("Cross-region patching is not supported")
         return self.patchp(region.offset + addr - region.addr, buf)
 
-    def uint8p(self, offset):
+    def uint8p(self, offset, fixed=False):
         """Read unsigned 8-bit value at offset."""
-        return uint8(self.readp(offset, 1))
+        return uint8(self.readp(offset, 1), fixed=fixed)
 
-    def uint16p(self, offset):
+    def uint16p(self, offset, fixed=False):
         """Read unsigned 16-bit value at offset."""
-        return uint16(self.readp(offset, 2))
+        return uint16(self.readp(offset, 2), fixed=fixed)
 
-    def uint32p(self, offset):
+    def uint32p(self, offset, fixed=False):
         """Read unsigned 32-bit value at offset."""
-        return uint32(self.readp(offset, 4))
+        return uint32(self.readp(offset, 4), fixed=fixed)
 
-    def uint64p(self, offset):
+    def uint64p(self, offset, fixed=False):
         """Read unsigned 64-bit value at offset."""
-        return uint64(self.readp(offset, 8))
+        return uint64(self.readp(offset, 8), fixed=fixed)
 
-    def uint8v(self, addr):
+    def uint8v(self, addr, fixed=False):
         """Read unsigned 8-bit value at address."""
-        return uint8(self.readv(addr, 1))
+        return uint8(self.readv(addr, 1), fixed=fixed)
 
-    def uint16v(self, addr):
+    def uint16v(self, addr, fixed=False):
         """Read unsigned 16-bit value at address."""
-        return uint16(self.readv(addr, 2))
+        return uint16(self.readv(addr, 2), fixed=fixed)
 
-    def uint32v(self, addr):
+    def uint32v(self, addr, fixed=False):
         """Read unsigned 32-bit value at address."""
-        return uint32(self.readv(addr, 4))
+        return uint32(self.readv(addr, 4), fixed=fixed)
 
-    def uint64v(self, addr):
+    def uint64v(self, addr, fixed=False):
         """Read unsigned 64-bit value at address."""
-        return uint64(self.readv(addr, 8))
+        return uint64(self.readv(addr, 8), fixed=fixed)
 
     def asciiz(self, addr):
         """Read a nul-terminated ASCII string at address."""

@@ -198,7 +198,7 @@ class IntType(long, IntTypeBase):
         return pack(self.fmt, long(self))
 
     @classmethod
-    def unpack(cls, other, offset=0):
+    def unpack(cls, other, offset=0, fixed=True):
         """
         Unpacks single value from provided buffer
 
@@ -206,13 +206,18 @@ class IntType(long, IntTypeBase):
         :type other: bytes
         :param offset: Buffer offset
         :type offset: int
+        :param fixed: Convert to fixed-size integer (IntType instance)
+        :type fixed: bool (default: True)
         :rtype: IntType instance or None if there are not enough data to unpack
+
+        .. warning::
+            Fixed-size integer operations are 4-5 times slower than equivalent on built-in integer types
         """
         try:
             ret = unpack_from(cls.fmt, other, offset=offset)
         except error:
             return None
-        return cls(ret[0])
+        return cls(ret[0]) if fixed else ret[0]
 
 
 # Unsigned types
