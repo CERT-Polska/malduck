@@ -4,7 +4,7 @@
 
 import io
 
-from Crypto.PublicKey import RSA as RSA_
+from Cryptodome.PublicKey import RSA as RSA_
 from itertools import takewhile
 
 from .winhdr import BLOBHEADER, BaseBlob
