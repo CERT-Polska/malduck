@@ -40,7 +40,10 @@ class MemoryPEData(object):
         return self.memory.readv(start, stop - start)
 
     def find(self, str, beg=0, end=None):
-        return next(self.memory.regexv(str, self.memory.imgbase + beg, end-beg))
+        try:
+            return next(self.memory.regexv(str, self.memory.imgbase + beg, end and end - beg))
+        except StopIteration:
+            return -1
 
 
 class PE(object):
@@ -108,6 +111,104 @@ class PE(object):
         for section in self.pe.sections:
             if section.Name.rstrip(b"\x00") == ensure_bytes(name):
                 return section
+
+    def directory(self, name):
+        """
+        Get pefile directory entry by identifier
+
+        :param name: shortened pefile directory entry identifier (e.g. 'IMPORT' for 'IMAGE_DIRECTORY_ENTRY_IMPORT')
+        :rtype: :class:`pefile.Structure`
+        """
+        return self.optional_header.DATA_DIRECTORY[
+            pefile.DIRECTORY_ENTRY.get('IMAGE_DIRECTORY_ENTRY_'+name)
+        ]
+
+    def structure(self, rva, format):
+        """
+        Get internal pefile Structure from specified rva
+
+        :param format: :class:`pefile.Structure` format
+                       (e.g. :py:attr:`pefile.PE.__IMAGE_LOAD_CONFIG_DIRECTORY64_format__`)
+        :rtype: :class:`pefile.Structure`
+        """
+        structure = pefile.Structure(format)
+        structure.__unpack__(self.pe.get_data(rva, structure.sizeof()))
+        return structure
+
+    def validate_import_names(self):
+        """
+        Returns True if the first 8 imported library entries have valid library names
+        """
+        import_dir = self.directory('IMPORT')
+        if not import_dir.VirtualAddress:
+            # There's nothing wrong with no imports
+            return True
+        try:
+            import_rva = import_dir.VirtualAddress
+            # Don't go further than 8 entries
+            for _ in range(8):
+                import_desc = self.structure(
+                    import_rva,
+                    pefile.PE.__IMAGE_IMPORT_DESCRIPTOR_format__)
+                if import_desc.all_zeroes():
+                    # End of import-table
+                    break
+                import_dllname = self.pe.get_string_at_rva(import_desc.Name, pefile.MAX_DLL_LENGTH)
+                if not pefile.is_valid_dos_filename(import_dllname):
+                    # Invalid import filename found
+                    return False
+                import_rva += import_desc.sizeof()
+            return True
+        except pefile.PEFormatError:
+            return False
+
+    def validate_resources(self):
+        """
+        Returns True if first level of resource tree looks consistent
+        """
+        resource_dir = self.directory('RESOURCE')
+        if not resource_dir.VirtualAddress:
+            # There's nothing wrong with no resources
+            return True
+        try:
+            resource_rva = resource_dir.VirtualAddress
+            resource_desc = self.structure(
+                resource_rva,
+                pefile.PE.__IMAGE_RESOURCE_DIRECTORY_format__)
+            resource_no = resource_desc.NumberOfNamedEntries + resource_desc.NumberOfIdEntries
+            if not 0 <= resource_no < 128:
+                # Incorrect resource number
+                return False
+            for rsrc_idx in range(resource_no):
+                resource_entry_desc = self.structure(
+                    resource_rva + resource_desc.sizeof() + rsrc_idx * 8,
+                    pefile.PE.__IMAGE_RESOURCE_DIRECTORY_ENTRY_format__
+                )
+                if self.pe.get_word_at_rva(resource_rva + resource_entry_desc.OffsetToData & 0x7fffffff) is None:
+                    return False
+            return True
+        except pefile.PEFormatError:
+            return False
+
+    def validate_padding(self):
+        """
+        Returns True if area between first non-bss section and first 4kB doesn't have only null-bytes
+        """
+        section_start_offs = None
+        for section in self.sections:
+            if section.SizeOfRawData > 0:
+                section_start_offs = section.PointerToRawData
+        if section_start_offs is None:
+            # No non-bss sections? Is it real PE file?
+            return False
+        if section_start_offs > 0x1000:
+            # Unusual - try checking last 512 bytes
+            section_start_offs = 0x800
+        try:
+            data_len = 0x1000 - section_start_offs
+            return self.pe.get_data(section_start_offs, data_len) != b"\x00" * data_len
+        except pefile.PEFormatError:
+            return False
 
     def resources(self, name):
         """
