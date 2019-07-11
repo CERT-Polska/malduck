@@ -114,6 +114,44 @@ class ProcessMemoryPE(ProcessMemory):
             )
         return self._imgend
 
-    def store(self, image=False):
-        """TODO"""
-        raise NotImplementedError()
+    def store(self):
+        """
+        Store ProcessMemoryPE contents as PE file data.
+
+        :rtype: bytes
+
+        .. note::
+            It's possible but not recommended to store data this way from correct PE file loaded with `image=True`.
+            Method tries to adjust section values to match the memory-mapped contents, so the results may differ from
+            the original file.
+        """
+        current_offs = 0x1000
+        data = []
+
+        pe = PE(self.readv(self.imgbase, 0x1000), fast_load=True)
+
+        for section in pe.sections:
+            # Get possible section size
+            section_size = max(section.Misc_VirtualSize, section.SizeOfRawData)
+            # Find corresponding region
+            section_region = self.addr_region(self.imgbase + section.VirtualAddress)
+            # Sometimes real region size is less than virtual size (image=True)
+            section_size = min(section_region.size, section_size)
+            # Align to 512 bytes (FileAlignment). Maybe it should be aligned to 4K
+            # data out of Misc_VirtualSize can be lost
+            section_size = ((section_size - 1) // 0x200 + 1) * 0x200
+            # Read section data including appropriate padding
+            section_data = self.readv(self.imgbase + section.VirtualAddress, section_size)
+            section_data += (section_size - len(section_data)) * b'\x00'
+            data.append(section_data)
+            # Fix section values
+            section.PointerToRawData, section.SizeOfRawData = current_offs, section_size
+            current_offs += section_size
+
+        pe.optional_header.ImageBase = self.imgbase
+
+        # Generate header data
+        data = b''.join([bytes(pe.pe.write()[:0x1000])] + data)
+
+        # Return PE file data
+        return data
