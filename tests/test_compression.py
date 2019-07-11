@@ -4,7 +4,7 @@
 
 import pytest
 
-from malduck import aplib, gzip, base64
+from malduck import aplib, gzip, base64, lznt1
 
 
 @pytest.mark.skipif("sys.platform == 'darwin'")
@@ -40,3 +40,7 @@ def test_gzip():
     assert gzip(
         base64("H4sICCOZt1oCAzEtOQDLSM3JyVcozy/KSQEAhRFKDQsAAAA=")
     ) == b"hello world"
+
+
+def test_lznt1():
+    assert lznt1(b"\x1a\xb0\x00compress\x00edtestda\x04ta\x07\x88alot") == b"compressedtestdatacompressedalot"
