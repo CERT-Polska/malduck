@@ -20,7 +20,7 @@ from .procmem import (
 
 from .short import (
     aes, blowfish, des3, rc4, pe, aplib, gzip, procmem, procmempe, cuckoomem, pad, unpad,
-    insn, rsa, verify, base64, rabbit, serpent
+    insn, rsa, verify, base64, rabbit, serpent, lznt1
 )
 
 from .string.bin import (
