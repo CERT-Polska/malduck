@@ -7,3 +7,5 @@ Compression algorithms
     :members:
 .. autoclass:: malduck.compression.gzip.Gzip
     :members:
+.. autoclass:: malduck.compression.lznt1.Lznt1
+    :members:

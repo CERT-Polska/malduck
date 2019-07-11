@@ -4,6 +4,7 @@
 
 from .compression.aplib import aPLib
 from .compression.gzip import Gzip
+from .compression.lznt1 import Lznt1
 from .crypto.aes import AES
 from .crypto.blowfish import Blowfish
 from .crypto.des3 import DES3
@@ -117,3 +118,4 @@ insn = Instruction
 rsa = RSA
 verify = Verify
 gzip = Gzip()
+lznt1 = Lznt1()
