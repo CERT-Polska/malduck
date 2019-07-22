@@ -5,6 +5,7 @@
 import os
 import struct
 import tempfile
+import pytest
 
 from malduck import procmem, procmempe, cuckoomem, pad, pe, insn, PAGE_READWRITE, hex
 from malduck.procmem import Region
@@ -25,6 +26,7 @@ def test_readv():
     ]
 
     p = procmem(payload, regions=regions)
+    assert p.readv(0x3fffff, 16) == b""
     assert p.readv(0x400000, 16) == b"a" * 16
     assert p.readv(0x400fff, 16) == b"a" + b"b" * 15
     assert p.readv(0x400ffe, 0x1100) == b"aa" + (b"b" * 0x1000) + (b"c" * 0xfe)
@@ -190,3 +192,25 @@ def test_findv():
     assert list(p.findv(b"pattern", 0x401100, 0x405)) == [0x401200]
     assert list(p.findv(b"pattern", length=0x10300)) == [0x400200, 0x400500, 0x401200, 0x401500, 0x410200]
     assert list(p.findv(b"pattern", 0x401508)) == [0x410200, 0x410500]
+
+def test_patchv():
+    payload = b"".join([
+        b"a" * 0x1000,
+        b"b" * 0x1000,
+        b"c" * 0x1000,
+        b"d" * 0x1000
+    ])
+    regions = [
+        Region(0x400000, 0x1000, 0, 0, 0, 0),
+        Region(0x401000, 0x1000, 0, 0, 0, 0x1000),
+        Region(0x402000, 0x1000, 0, 0, 0, 0x2000),
+        Region(0x410000, 0x1000, 0, 0, 0, 0x3000),
+    ]
+
+    p = procmem(payload, regions=regions)
+    with pytest.raises(ValueError, match="Cross-region patching is not supported"):
+        p.patchv(0x3fffff, b"p" * 16)
+    p.patchv(0x400000, b"p" * 16)
+    assert p.readv(0x400000, 17) == b"p" * 16 + b"a"
+    with pytest.raises(ValueError, match="Cross-region patching is not supported"):
+        p.patchv(0x401fff, b"p" * 2)

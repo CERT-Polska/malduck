@@ -365,7 +365,7 @@ class ProcessMemory(object):
         """
         region = self.addr_region(addr)
         # Bound check
-        if region.end > (addr + len(buf)):
+        if region is None or region.end < (addr + len(buf)):
             raise ValueError("Cross-region patching is not supported")
         return self.patchp(region.offset + addr - region.addr, buf)
 
@@ -402,12 +402,12 @@ class ProcessMemory(object):
         return uint64(self.readv(addr, 8), fixed=fixed)
 
     def asciiz(self, addr):
-        """Read a nul-terminated ASCII string at address."""
+        """Read a null-terminated ASCII string at address."""
         return self.readv_until(addr, b"\x00")
 
     def utf16z(self, addr):
         """
-        Read a nul-terminated UTF-16 ASCII string at address.
+        Read a null-terminated UTF-16 ASCII string at address.
 
         :param addr: Virtual address of string
         :rtype: bytes
@@ -543,7 +543,7 @@ class ProcessMemory(object):
 
     def findbytesp(self, query, offset=0, length=None):
         """
-        Search for byte sequences (`4? AA BB ?? DD`). Uses :py:meth:`regexp` internally
+        Search for byte sequences (e.g., `4? AA BB ?? DD`). Uses :py:meth:`regexp` internally
 
         :param query: Sequence of wildcarded hexadecimal bytes, separated by spaces
         :type query: str or bytes
@@ -558,7 +558,7 @@ class ProcessMemory(object):
 
     def findbytesv(self, query, addr=None, length=None):
         """
-        Search for byte sequences (`4? AA BB ?? DD`). Uses :py:meth:`regexv` internally
+        Search for byte sequences (e.g., `4? AA BB ?? DD`). Uses :py:meth:`regexv` internally
 
         :param query: Sequence of wildcarded hexadecimal bytes, separated by spaces
         :type query: str or bytes
