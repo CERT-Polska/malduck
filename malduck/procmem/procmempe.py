@@ -46,7 +46,8 @@ class ProcessMemoryPE(ProcessMemory):
 
     def _pe_direct_load(self, fast_load=True):
         offset = self.v2p(self.imgbase)
-        m = self.m[offset:]
+        # Expected m type: bytearray
+        m = bytearray(self.readp(offset))
         pe = PE(data=m, fast_load=fast_load)
         return pe
 
@@ -59,9 +60,6 @@ class ProcessMemoryPE(ProcessMemory):
         self.regions = [
             Region(self.imgbase, 0x1000, 0, 0, 0, 0)
         ]
-        # Apply relocations
-        if hasattr(pe.pe, "DIRECTORY_ENTRY_BASERELOC"):
-            pe.pe.relocate_image(self.imgbase)
         # Load image sections
         for section in pe.sections:
             if section.SizeOfRawData > 0:

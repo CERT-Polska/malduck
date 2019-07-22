@@ -3,7 +3,41 @@
 # See the file 'docs/LICENSE.txt' for copying permission.
 
 import pefile
-from .py2compat import binary_type, text_type, ensure_bytes, ensure_string
+from .py2compat import binary_type, text_type, ensure_bytes, ensure_string, PY3
+
+
+if not PY3:
+    """
+    Workaround for https://github.com/erocarrera/pefile/issues/267
+    """
+    from pefile import bytes
+    pefile.allowed_function_name = bytes(pefile.allowed_function_name)
+    pefile.allowed_filename = bytes(pefile.allowed_filename)
+
+
+class FastPE(pefile.PE):
+    def set_bytes_at_offset(self, offset, data):
+        """
+        Overwrite the bytes at the given file offset with the given string.
+
+        Return True if successful, False otherwise. It can fail if the
+        offset is outside the file's boundaries.
+
+        Remove after merge of https://github.com/erocarrera/pefile/pull/266
+        """
+
+        if not isinstance(data, bytes):
+            raise TypeError('data should be of type: bytes')
+
+        if 0 <= offset < len(self.__data__):
+            if isinstance(self.__data__, bytearray):
+                self.__data__[offset:offset + len(data)] = data
+            else:
+                self.__data__ = (self.__data__[:offset] + data + self.__data__[offset + len(data):])
+        else:
+            return False
+
+        return True
 
 
 class MemoryPEData(object):
@@ -16,7 +50,7 @@ class MemoryPEData(object):
     def __init__(self, memory, fast_load):
         self.memory = memory
         # Preload headers
-        self.pe = pefile.PE(data=self, fast_load=True)
+        self.pe = FastPE(data=self, fast_load=True)
         # Perform full_load if needed
         if not fast_load:
             self.pe.full_load()
@@ -58,7 +92,7 @@ class PE(object):
             self.pe = self.data.pe
         else:
             self.data = data
-            self.pe = pefile.PE(data=data, fast_load=fast_load)
+            self.pe = FastPE(data=data, fast_load=fast_load)
 
     @property
     def dos_header(self):
