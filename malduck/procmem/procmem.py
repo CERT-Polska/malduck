@@ -6,7 +6,7 @@ from .region import Region, PAGE_EXECUTE_READWRITE
 from ..disasm import disasm
 from ..string.bin import uint8, uint16, uint32, uint64
 from ..string.ops import utf16z
-from ..py2compat import ensure_bytes, ensure_string
+from ..py2compat import ensure_bytes, ensure_string, binary_type
 
 
 class ProcessMemory(object):
@@ -16,7 +16,7 @@ class ProcessMemory(object):
     Short name: `procmem`
 
     :param buf: Object with memory contents
-    :type buf: bytes, mmap or memoryview object
+    :type buf: bytes, mmap, memoryview or bytearray object
     :param base: Virtual address of the beginning of buf
     :type base: int, optional (default: 0)
     :param regions: Regions mapping. If set to None (default), buf is mapped into single-region with VA specified in
@@ -73,7 +73,11 @@ class ProcessMemory(object):
 
     def __init__(self, buf, base=0, regions=None):
         self.f = None
-        self.m = buf
+
+        if isinstance(buf, binary_type):
+            self.m = bytearray(buf)
+        else:
+            self.m = buf
         self.imgbase = base
 
         if regions is not None:
@@ -97,7 +101,7 @@ class ProcessMemory(object):
             if self._mmaped:
                 if copy:
                     self.m.seek(0)
-                    buf = self.m.read()
+                    buf = bytearray(self.m.read())
                 else:
                     buf = None
                 self.m.close()
@@ -236,9 +240,9 @@ class ProcessMemory(object):
         :rtype: bytes
         """
         if length is None:
-            return self.m[offset:]
+            return binary_type(self.m[offset:])
         else:
-            return self.m[offset:offset+length]
+            return binary_type(self.m[offset:offset+length])
 
     def readv_regions(self, addr=None, length=None, continuous_wise=True):
         """
@@ -349,7 +353,7 @@ class ProcessMemory(object):
                 assert embed_pe.asciiz(0x1000a410) == b"StrToIntExA"
         """
         length = len(buf)
-        if self._mmaped:
+        if hasattr(self.m, "__setitem__"):
             self.m[offset:offset + length] = buf
         else:
             self.m = self.m[:offset] + buf + self.m[offset + length:]
