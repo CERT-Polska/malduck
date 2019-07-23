@@ -232,6 +232,7 @@ class PE(object):
         for section in self.sections:
             if section.SizeOfRawData > 0:
                 section_start_offs = section.PointerToRawData
+                break
         if section_start_offs is None:
             # No non-bss sections? Is it real PE file?
             return False
@@ -240,6 +241,9 @@ class PE(object):
             section_start_offs = 0x800
         try:
             data_len = 0x1000 - section_start_offs
+            if not data_len:
+                # Probably fixpe'd - seems to be ok
+                return True
             return self.pe.get_data(section_start_offs, data_len) != b"\x00" * data_len
         except pefile.PEFormatError:
             return False
