@@ -35,3 +35,7 @@ from .ints import (
     UInt64, UInt32, UInt16, UInt8,
     Int64, Int32, Int16, Int8
 )
+
+from .yara import (
+    Yara, YaraString
+)
