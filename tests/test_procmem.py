@@ -11,6 +11,7 @@ from malduck import procmem, procmempe, cuckoomem, pad, pe, insn, PAGE_READWRITE
 from malduck.procmem import Region
 from malduck.py2compat import binary_type
 
+
 def test_readv():
     payload = b"".join([
         b"a" * 0x1000,

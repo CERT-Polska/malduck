@@ -33,6 +33,7 @@ and more powerful.
    string
    disasm
    pe
+   yara
 
 
 Indices and tables

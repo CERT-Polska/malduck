@@ -287,7 +287,7 @@ class ProcessMemory(object):
                 length -= rel_length
             prev_region = region
 
-    def readv(self, addr, length=None):
+    def readv(self, addr, length=None, continuous_wise=True):
         """
         Read a chunk of memory from the specified virtual address
 
@@ -298,7 +298,7 @@ class ProcessMemory(object):
         :return: Chunk from specified location
         :rtype: bytes
         """
-        return b''.join(map(operator.itemgetter(1), self.readv_regions(addr, length)))
+        return b''.join(map(operator.itemgetter(1), self.readv_regions(addr, length, continuous_wise=continuous_wise)))
 
     def readv_until(self, addr, s=None):
         """
@@ -523,31 +523,62 @@ class ProcessMemory(object):
         """
         return disasm(self.readv(addr, size), addr, x64=x64)
 
-    def _findbytes(self, regex_fn, query, addr, length):
+    def yarap(self, ruleset, offset=0, length=None):
+        """
+        Perform yara matching (non-region-wise)
+
+        :param ruleset: Yara object with loaded yara rules
+        :type ruleset: :class:`malduck.yara.Yara`
+        :param offset: Offset in buffer where searching starts
+        :type offset: int (optional)
+        :param length: Length of searched area
+        :type length: int (optional)
+        :rtype: :class:`malduck.yara.YaraMatches`
+        """
+        return ruleset.match(data=self.readp(offset, length))
+
+    def yarav(self, ruleset, addr=None, length=None):
+        """
+        Perform yara matching (region-wise)
+
+        :param ruleset: Yara object with loaded yara rules
+        :type ruleset: :class:`malduck.yara.Yara`
+        :param addr: Virtual address of region where searching starts
+        :type addr: int (optional)
+        :param length: Length of searched area
+        :type length: int (optional)
+        :rtype: :class:`malduck.yara.YaraMatches`
+        """
+        if addr is None:
+            addr = self.regions[0].addr
+            start_offs = self.regions[0].offset
+        else:
+            start_offs = self.v2p(addr)
+
+        def map_offset(off, len):
+            # TODO: This could be better, but works in most cases
+            addr = self.p2v(off + start_offs)
+            if self.is_addr(addr + len - 1):
+                return addr
+
+        return ruleset.match(data=self.readv(addr, length, continuous_wise=False), offset_mapper=map_offset)
+
+    def _findbytes(self, yara_fn, query, addr, length):
+        from ..yara import Yara, YaraString
         query = ensure_string(query)
-
-        def byte2re(b):
-            hexrange = "0123456789abcdef?"
-            if len(b) != 2:
-                raise ValueError("Length of query should be even")
-            first, second = b
-
-            if first not in hexrange or second not in hexrange:
-                raise ValueError("Incorrect query - only 0-9a-fA-F? chars are allowed")
-            if b == "??":
-                return "."
-            if first == "?":
-                return "[{}]".format(''.join("\\x" + ch + second for ch in "0123456789abcdef"))
-            if second == "?":
-                return "[\\x{first}0-\\x{first}f]".format(first=first)
-            return "\\x" + b
-        query = ''.join(query.lower().split(" "))
-        rquery = ''.join(map(byte2re, [query[i:i+2] for i in range(0, len(query), 2)]))
-        return regex_fn(rquery, addr, length)
+        rule = Yara(strings=YaraString(query, type=YaraString.HEX))
+        match = yara_fn(rule, addr, length)
+        if match:
+            return match.r.string
+        else:
+            return []
 
     def findbytesp(self, query, offset=0, length=None):
         """
         Search for byte sequences (e.g., `4? AA BB ?? DD`). Uses :py:meth:`regexp` internally
+
+        .. versionadded:: 1.4.0
+           Query is passed to yarap as single hexadecimal string rule. Use Yara-compatible strings only
 
         :param query: Sequence of wildcarded hexadecimal bytes, separated by spaces
         :type query: str or bytes
@@ -558,11 +589,14 @@ class ProcessMemory(object):
         :return: Iterator returning next offsets
         :rtype: Iterator[int]
         """
-        return self._findbytes(self.regexp, query, offset, length)
+        return iter(self._findbytes(self.yarap, query, offset, length))
 
     def findbytesv(self, query, addr=None, length=None):
         """
         Search for byte sequences (e.g., `4? AA BB ?? DD`). Uses :py:meth:`regexv` internally
+
+        .. versionadded:: 1.4.0
+           Query is passed to yarav as single hexadecimal string rule. Use Yara-compatible strings only
 
         :param query: Sequence of wildcarded hexadecimal bytes, separated by spaces
         :type query: str or bytes
@@ -585,7 +619,7 @@ class ProcessMemory(object):
                 if hex(mem.readv(va, 5)) == "4aaabbccdd":
                     findings.append(va)
         """
-        return self._findbytes(self.regexv, query, addr, length)
+        return iter(self._findbytes(self.yarav, query, addr, length))
 
     def findmz(self, addr):
         """
