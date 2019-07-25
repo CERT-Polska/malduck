@@ -22,18 +22,29 @@ and more powerful.
 .. _pwntools: https://github.com/Gallopsled/pwntools
 
 .. toctree::
-   :maxdepth: 2
-   :caption: Overview:
+   :maxdepth: 3
+   :caption: Extraction tools:
+
+   procmem
+   disasm
+   pe
+   yara
+
+
+.. toctree::
+   :maxdepth: 3
+   :caption: Algorithms:
 
    crypto
    compression
    hash
+
+.. toctree::
+   :maxdepth: 3
+   :caption: Utilities:
+
    ints
-   procmem
    string
-   disasm
-   pe
-   yara
 
 
 Indices and tables
