@@ -67,11 +67,11 @@ class MemoryPEData(object):
     def __getitem__(self, item):
         if type(item) is slice:
             start = self.map_offset(item.start or 0)
-            stop = self.map_offset(item.stop)
+            stop = self.map_offset(item.stop - 1)
         else:
             start = self.map_offset(item)
-            stop = start + 1
-        return self.memory.readv(start, stop - start)
+            stop = start
+        return self.memory.readv(start, stop - start + 1)
 
     def find(self, str, beg=0, end=None):
         try:
