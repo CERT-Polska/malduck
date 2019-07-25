@@ -105,6 +105,7 @@ def test_calc_dmp():
         data = pe(p).resource(b"WEVT_TEMPLATE")
         assert data.startswith(b"CRIM")
         assert len(data) == 4750
+        assert len(ppe.pe.section(".text").get_data()) == 0x52e00
 
 
 def test_calc_exe():
@@ -119,6 +120,7 @@ def test_calc_exe():
         assert len(data) == 4750
         # Check relocations
         assert not ppe.readv(0x10016C2, 4) == 0x10551f8
+        assert len(ppe.pe.section(".text").get_data()) == 0x52e00
 
 
 def test_cuckoomem_methods():
