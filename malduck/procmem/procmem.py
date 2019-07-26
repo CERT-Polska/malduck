@@ -287,7 +287,7 @@ class ProcessMemory(object):
                 length -= rel_length
             prev_region = region
 
-    def readv(self, addr, length=None, continuous_wise=True):
+    def readv(self, addr, length=None):
         """
         Read a chunk of memory from the specified virtual address
 
@@ -298,7 +298,7 @@ class ProcessMemory(object):
         :return: Chunk from specified location
         :rtype: bytes
         """
-        return b''.join(map(operator.itemgetter(1), self.readv_regions(addr, length, continuous_wise=continuous_wise)))
+        return b''.join(map(operator.itemgetter(1), self.readv_regions(addr, length)))
 
     def readv_until(self, addr, s=None):
         """
@@ -551,17 +551,18 @@ class ProcessMemory(object):
         """
         if addr is None:
             addr = self.regions[0].addr
-            start_offs = self.regions[0].offset
-        else:
-            start_offs = self.v2p(addr)
+        if length is None:
+            length = self.regions[-1].end - addr
 
         def map_offset(off, len):
             # TODO: This could be better, but works in most cases
-            addr = self.p2v(off + start_offs)
-            if self.is_addr(addr + len - 1):
-                return addr
+            va = self.p2v(off)
+            if (addr <= va < addr + length and
+                self.is_addr(va + len - 1) and
+                addr <= va + len - 1 < addr + length):
+                return va
 
-        return ruleset.match(data=self.readv(addr, length, continuous_wise=False), offset_mapper=map_offset)
+        return ruleset.match(data=self.readp(0), offset_mapper=map_offset)
 
     def _findbytes(self, yara_fn, query, addr, length):
         from ..yara import Yara, YaraString
