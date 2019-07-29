@@ -57,8 +57,9 @@ class ProcessMemoryPE(ProcessMemory):
         # Reset regions
         self.m = pe.data
         self.imgbase = pe.optional_header.ImageBase
+
         self.regions = [
-            Region(self.imgbase, 0x1000, 0, 0, 0, 0)
+            Region(self.imgbase, pe.headers_size, 0, 0, 0, 0)
         ]
         # Load image sections
         for section in pe.sections:
@@ -117,27 +118,28 @@ class ProcessMemoryPE(ProcessMemory):
         Store ProcessMemoryPE contents as PE file data.
 
         :rtype: bytes
-
-        .. note::
-            It's possible but not recommended to store data this way from correct PE file loaded with `image=True`.
-            Method tries to adjust section values to match the memory-mapped contents, so the results may differ from
-            the original file.
         """
-        current_offs = 0x1000
         data = []
+        current_offs = self.pe.headers_size
+        # Read headers (until first section page in raw data)
+        pe = PE(self.readv(self.imgbase, current_offs), fast_load=True)
 
-        pe = PE(self.readv(self.imgbase, 0x1000), fast_load=True)
-
-        for section in pe.sections:
-            # Get possible section size
-            section_size = max(section.Misc_VirtualSize, section.SizeOfRawData)
+        for idx, section in enumerate(pe.sections):
             # Find corresponding region
             section_region = self.addr_region(self.imgbase + section.VirtualAddress)
+            # No corresponding region? BSS.
+            if not section_region:
+                continue
+            # Get possible section size
+            section_size = max(section.Misc_VirtualSize, section.SizeOfRawData)
+            # Align to section alignment (usually 0x1000)
+            section_alignment = max(0x1000, pe.optional_header.SectionAlignment)
+            section_size = ((section_size - 1) // section_alignment + 1) * section_alignment
             # Sometimes real region size is less than virtual size (image=True)
             section_size = min(section_region.size, section_size)
-            # Align to 512 bytes (FileAlignment). Maybe it should be aligned to 4K
-            # data out of Misc_VirtualSize can be lost
-            section_size = ((section_size - 1) // 0x200 + 1) * 0x200
+            # Align to file alignment (usually 0x200)
+            file_alignment = max(0x200, pe.optional_header.FileAlignment)
+            section_size = ((section_size - 1) // file_alignment + 1) * file_alignment
             # Read section data including appropriate padding
             section_data = self.readv(self.imgbase + section.VirtualAddress, section_size)
             section_data += (section_size - len(section_data)) * b'\x00'
@@ -149,7 +151,7 @@ class ProcessMemoryPE(ProcessMemory):
         pe.optional_header.ImageBase = self.imgbase
 
         # Generate header data
-        data = b''.join([bytes(pe.pe.write()[:0x1000])] + data)
+        data = b''.join([bytes(pe.pe.write())] + data)
 
         # Return PE file data
         return data

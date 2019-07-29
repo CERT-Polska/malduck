@@ -135,6 +135,14 @@ class PE(object):
             self.optional_header.Magic == pefile.OPTIONAL_HEADER_MAGIC_PE_PLUS
         )
 
+    @property
+    def headers_size(self):
+        """
+        Estimated size of PE headers (first section offset).
+        If there are no sections: returns 0x1000 or size of input if provided data are shorter than single page
+        """
+        return self.sections[0].PointerToRawData if self.sections else min(len(self.pe.__data__), 0x1000)
+
     def section(self, name):
         """
         Get section by name
