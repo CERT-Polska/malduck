@@ -219,3 +219,23 @@ def test_patchv():
     assert p.readv(0x400000, 17) == b"p" * 16 + b"a"
     with pytest.raises(ValueError, match="Cross-region patching is not supported"):
         p.patchv(0x401fff, b"p" * 2)
+
+
+def test_procmempe_image_sections():
+    with procmempe.from_file("tests/files/96emptysections.exe", image=True) as p:
+        assert p.store() == p.readp(0)
+        original_data = p.pe.sections[0].get_data()
+        stored_pe = p.store()
+    p = procmempe(stored_pe, image=True)
+    stored_data = p.pe.sections[0].get_data()
+    assert original_data == stored_data
+    assert len(p.pe.sections) == 96
+
+    with procmempe.from_file("tests/files/96workingsections.exe", image=True) as p:
+        assert p.store() == p.readp(0)
+        stored_pe = p.store()
+    p = procmempe(stored_pe, image=True)
+    assert len(p.pe.sections) == 96
+
+    with procmempe.from_file("tests/files/96emptysections.exe.bin") as p:
+        assert p.readv(0x2000, 8) == b"\x68\x28\x20\x40\x00\xe8\x0e\x00"
