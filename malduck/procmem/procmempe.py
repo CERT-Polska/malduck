@@ -1,5 +1,7 @@
 from .region import Region
 from .procmem import ProcessMemory
+
+from ..bits import align
 from ..pe import PE
 
 
@@ -134,12 +136,12 @@ class ProcessMemoryPE(ProcessMemory):
             section_size = max(section.Misc_VirtualSize, section.SizeOfRawData)
             # Align to section alignment (usually 0x1000)
             section_alignment = max(0x1000, pe.optional_header.SectionAlignment)
-            section_size = ((section_size - 1) // section_alignment + 1) * section_alignment
+            section_size = align(section_size, section_alignment)
             # Sometimes real region size is less than virtual size (image=True)
             section_size = min(section_region.size, section_size)
             # Align to file alignment (usually 0x200)
             file_alignment = max(0x200, pe.optional_header.FileAlignment)
-            section_size = ((section_size - 1) // file_alignment + 1) * file_alignment
+            section_size = align(section_size, file_alignment)
             # Read section data including appropriate padding
             section_data = self.readv(self.imgbase + section.VirtualAddress, section_size)
             section_data += (section_size - len(section_data)) * b'\x00'
