@@ -2,7 +2,7 @@
 # This file is part of Roach - https://github.com/jbremer/roach.
 # See the file 'docs/LICENSE.txt' for copying permission.
 
-from .bits import rol, ror
+from .bits import rol, ror, align, align_down
 from .crypto.xor import xor
 from .disasm import disasm
 from .hash.crc import crc32
