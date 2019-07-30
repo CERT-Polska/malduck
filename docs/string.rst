@@ -19,7 +19,7 @@ Supports most common string operations e.g.:
 .. autofunction:: malduck.string.ops.chunks_iter
 .. autofunction:: malduck.string.ops.chunks
 .. autofunction:: malduck.string.ops.utf16z
-.. autofunction:: malduck.string.ops.hex
+.. autofunction:: malduck.string.ops.enhex
 .. autofunction:: malduck.string.ops.unhex
 .. autofunction:: malduck.string.ops.uleb128
 .. autoclass:: malduck.string.ops.Base64

@@ -7,7 +7,7 @@ import struct
 import tempfile
 import pytest
 
-from malduck import procmem, procmempe, cuckoomem, pad, pe, insn, PAGE_READWRITE, hex
+from malduck import procmem, procmempe, cuckoomem, pad, pe, insn, PAGE_READWRITE, enhex
 from malduck.procmem import Region
 from malduck.py2compat import binary_type
 
@@ -158,8 +158,8 @@ def test_findbytes():
     assert list(buf.findbytesv("c? c? c? 0A")) == [0x40101B]
     assert list(buf.findbytesv(b"1f ?? ?b")) == [0x401022, 0x401025]
     assert list(buf.findbytesv("?f ?? ?? 00")) == [0x401000, 0x40102A]
-    assert not list(buf.findbytesv(hex(b"test hAAAA")))
-    assert list(buf.findbytesv(hex(b"test\n hAAAA")))
+    assert not list(buf.findbytesv(enhex(b"test hAAAA")))
+    assert list(buf.findbytesv(enhex(b"test\n hAAAA")))
 
     payload = b"".join([
         b"a" * 0x1000,
@@ -175,7 +175,7 @@ def test_findbytes():
     ]
 
     p = procmem(payload, regions=regions)
-    assert next(p.findbytesv(hex(b"dddd"))) == 0x410000
+    assert next(p.findbytesv(enhex(b"dddd"))) == 0x410000
 
 
 def test_findv():

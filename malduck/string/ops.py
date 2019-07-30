@@ -44,7 +44,7 @@ def utf16z(s):
     return s
 
 
-def hex(s):
+def enhex(s):
     return binascii.hexlify(s)
 
 

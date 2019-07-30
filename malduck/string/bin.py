@@ -4,7 +4,7 @@
 import struct
 
 from ..py2compat import is_integer
-from ..string.ops import Padding, hex, unhex
+from ..string.ops import Padding, enhex, unhex
 from ..ints import UInt8, UInt16, UInt32, UInt64
 
 
@@ -15,7 +15,7 @@ def bigint(s, bitsize):
     if len(s) < bitsize // 8:
         raise ValueError("Buffer is trimmed: {} < {}".format(len(s)*8, bitsize))
 
-    return int(hex(s[:bitsize // 8][::-1]), 16)
+    return int(enhex(s[:bitsize // 8][::-1]), 16)
 
 
 # Shortcuts for mostly used unpack methods
