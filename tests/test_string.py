@@ -7,7 +7,7 @@ import pytest
 from malduck import (
     uint8, uint16, uint32, uint64, bigint,
     p8, p16, p32, p64,
-    asciiz, pad, unpad, ipv4, pack, unpack, hex, unhex, base64, uleb128,
+    asciiz, pad, unpad, ipv4, pack, unpack, enhex, unhex, base64, uleb128,
     chunks, utf16z
 )
 
@@ -25,7 +25,7 @@ def test_utf16z():
 
 
 def test_hex():
-    assert hex(b"hello") == b"68656c6c6f"
+    assert enhex(b"hello") == b"68656c6c6f"
     assert unhex("68656c6c6f") == b"hello"
 
 
