@@ -16,6 +16,11 @@ Object properties
 
 UInt64/UInt32/UInt16/UInt8 (QWORD/DWORD/WORD/BYTE)
 --------------------------------------------------
+.. autoclass:: malduck.QWORD
+.. autoclass:: malduck.DWORD
+.. autoclass:: malduck.WORD
+.. autoclass:: malduck.BYTE
+
 .. autoclass:: malduck.ints.UInt64
 .. autoclass:: malduck.ints.UInt32
 .. autoclass:: malduck.ints.UInt16

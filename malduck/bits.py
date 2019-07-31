@@ -5,10 +5,15 @@
 
 def rol(value, count, bits=32):
     """
-    Rotate bitwise left
+    Bitwise rotate left
     :param value: Value to rotate
     :param count: Number of bits to rotate
     :param bits: Bit-length of rotated value (default: 32-bit, DWORD)
+
+    .. seealso::
+
+       :py:meth:`malduck.ints.IntType.rol`
+
     """
     count = (bits - 1) & count
     value = (value << count) | ((2**count - 1) & (value >> (bits - count)))
@@ -17,10 +22,15 @@ def rol(value, count, bits=32):
 
 def ror(value, count, bits=32):
     """
-    Rotate bitwise right
+    Bitwise rotate right
     :param value: Value to rotate
     :param count: Number of bits to rotate
     :param bits: Bit-length of rotated value (default: 32-bit, DWORD)
+
+    .. seealso::
+
+       :py:meth:`malduck.ints.IntType.ror`
+
     """
     return rol(value, bits - count, bits)
 

@@ -4,16 +4,25 @@ import warnings
 
 
 class aPLib(object):
-    """
+    r"""
     aPLib decompression
+
+    .. versionchanged:: 2.0
+        `length` argument is deprecated
+
+    .. code-block:: python
+
+        from malduck import aplib
+
+        # Headerless compressed buffer
+        aplib(b'T\x00he quick\xecb\x0erown\xcef\xaex\x80jumps\xed\xe4veur`t?lazy\xead\xfeg\xc0\x00')
+        # Header included
+        aplib(b'AP32\x18\x00\x00\x00\r\x00\x00\x00\xbc\x9ab\x9b\x0b\x00\x00\x00\x85\x11J\rh8el\x8eo wnr\xecd\x00')
 
     :param buf: Buffer to decompress
     :type buf: bytes
     :param headerless: Force headerless decompression (don't perform 'AP32' magic detection)
     :type headerless: bool (default: `True`)
-
-    .. versionchanged:: 2.0
-        `length` argument is deprecated
     """
     def decompress(self, buf, length=None, headerless=False):
         if length is not None:

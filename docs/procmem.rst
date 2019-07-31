@@ -6,19 +6,26 @@ Memory model objects with PE support (procmem)
 ProcessMemory (procmem)
 ------------------------
 
-.. autoclass:: malduck.procmem.ProcessMemory
+.. autoclass:: malduck.procmem
+
+.. autoclass:: malduck.procmem.procmem.ProcessMemory
+    :members:
+
+.. autoclass:: malduck.procmem.procmem.Region
     :members:
 
 ProcessMemoryPE (procmempe)
 ----------------------------
 
-.. autoclass:: malduck.procmem.ProcessMemoryPE
+.. autoclass:: malduck.procmempe
+
+.. autoclass:: malduck.procmem.procmempe.ProcessMemoryPE
     :members:
 
 CuckooProcessMemory (cuckoomem)
 ---------------------------------
 
-.. autoclass:: malduck.procmem.CuckooProcessMemory
-    :members:
-.. autoclass:: malduck.procmem.Region
+.. autoclass:: malduck.cuckoomem
+
+.. autoclass:: malduck.procmem.cuckoomem.CuckooProcessMemory
     :members:

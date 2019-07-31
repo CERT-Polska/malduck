@@ -97,6 +97,14 @@ class RSA(object):
 
     @staticmethod
     def import_key(data):
+        r"""
+        Extracts key from buffer containing :class:`PublicKeyBlob` or :class:`PrivateKeyBlob` data
+
+        :param data: Buffer with `BLOB` structure data
+        :type data: bytes
+        :return: RSA key in PEM format
+        :rtype: bytes
+        """
         try:
             return RSA_.import_key(data).export_key()
         except (ValueError, IndexError):
@@ -119,6 +127,18 @@ class RSA(object):
 
     @staticmethod
     def export_key(n, e, d=None, p=None, q=None, crt=None):
+        r"""
+        Constructs key from tuple of RSA components
+
+        :param n: RSA modulus n
+        :param e: Public exponent e
+        :param d: Private exponent d
+        :param p: First factor of n
+        :param q: Second factor of n
+        :param crt: CRT coefficient q
+        :return: RSA key in PEM format
+        :rtype: bytes
+        """
         wrap = lambda x: None if x is None else long(x)
         tup = wrap(n), wrap(e), wrap(d), wrap(p), wrap(q), wrap(crt)
         # PyCryptodome accepts only variable-length tuples

@@ -6,41 +6,43 @@ Cryptography
 AES
 --------------
 
+.. autofunction:: malduck.aes.cbc
+.. autofunction:: malduck.aes.ecb
+.. autofunction:: malduck.aes.ctr
+
 .. autoclass:: malduck.crypto.aes.AES
     :members:
 
 Blowfish
 ---------
 
-.. autoclass:: malduck.crypto.blowfish.Blowfish
-    :members:
+.. autofunction:: malduck.blowfish
 
 DES3
 --------------
 
-.. autoclass:: malduck.crypto.des3.DES3
-    :members:
+.. autofunction:: malduck.des3.cbc
 
 Serpent
 --------------
 
-.. autoclass:: malduck.crypto.serpent.Serpent
-    :members:
+.. autofunction:: malduck.serpent
 
 Rabbit
 --------------
 
-.. autoclass:: malduck.crypto.rabbit.Rabbit
-    :members:
+.. autofunction:: malduck.rabbit
 
 RC4
 --------------
 
-.. autoclass:: malduck.crypto.rc.RC4
-    :members:
+.. autofunction:: malduck.rc4
 
 RSA
 --------------
+
+.. autoclass:: malduck.rsa
+    :members:
 
 .. autoclass:: malduck.crypto.rsa.RSA
     :members:
@@ -48,4 +50,19 @@ RSA
 XOR
 --------------
 
-.. autofunction:: malduck.crypto.xor.xor
+.. autofunction:: malduck.xor
+
+BLOB struct
+-----------
+
+.. autoclass:: malduck.crypto.winhdr.BLOBHEADER
+    :members:
+
+.. autoclass:: malduck.crypto.aes.PlaintextKeyBlob
+    :members:
+
+.. autoclass:: malduck.crypto.rsa.PublicKeyBlob
+    :members:
+
+.. autoclass:: malduck.crypto.rsa.PrivateKeyBlob
+    :members:

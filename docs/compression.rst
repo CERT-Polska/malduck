@@ -6,17 +6,14 @@ Compression algorithms
 aPLib
 ------
 
-.. autoclass:: malduck.compression.aplib.aPLib
-    :members:
+.. autofunction:: malduck.aplib
 
 gzip
 ------
 
-.. autoclass:: malduck.compression.gzip.Gzip
-    :members:
+.. autofunction:: malduck.gzip
 
 lznt1 (RtlDecompressBuffer)
 ----------------------------
 
-.. autoclass:: malduck.compression.lznt1.Lznt1
-    :members:
+.. autofunction:: malduck.lznt1

@@ -189,12 +189,15 @@ class IntType(long, IntTypeBase):
         return self.__class__(res)
 
     def rol(self, other):
+        """Bitwise rotate left"""
         return self.__class__(rol(long(self), other, bits=self.bits))
 
     def ror(self, other):
+        """Bitwise rotate right"""
         return self.rol(self.bits - other)
 
     def pack(self):
+        """Pack value into bytes with little-endian order"""
         return pack(self.fmt, long(self))
 
     @classmethod

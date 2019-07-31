@@ -12,6 +12,11 @@ from ..string.bin import uint32
 
 
 class PlaintextKeyBlob(BaseBlob):
+    r"""
+    `BLOB` object (`PLAINTEXTKEYBLOB`) for `CALG_AES`
+
+    .. seealso:: :class:`malduck.crypto.BLOBHEADER`
+    """
     types = {
         16: "AES-128",
         24: "AES-192",
@@ -23,6 +28,12 @@ class PlaintextKeyBlob(BaseBlob):
         self.key = None
 
     def parse(self, buf):
+        """
+        Parse structure from buffer
+
+        :param buf: Buffer with structure data
+        :type buf: :class:`io.BytesIO`
+        """
         length = uint32(buf.read(4))
         value = buf.read()
         if length != len(value):
@@ -30,6 +41,12 @@ class PlaintextKeyBlob(BaseBlob):
         self.key = value
 
     def export_key(self):
+        """
+        Exports key from structure
+
+        :return: Tuple (`algorithm`, `key`). `Algorithm` is one of: "AES-128", "AES-192", "AES-256"
+        :rtype: Tuple[str, bytes]
+        """
         return self.types[len(self.key)], self.key
 
 
@@ -39,6 +56,16 @@ BlobTypes = {
 
 
 class AES(object):
+    r"""
+    AES decryption object
+
+    :param key: Encryption key
+    :type key: bytes
+    :param iv: Initialization vector (IV for CBC mode, nonce for CTR)
+    :type iv: bytes, optional
+    :param mode: Block cipher mode (default: "cbc")
+    :type mode: str ("cbc", "ecb", "ctr")
+    """
     algorithms = (
         0x0000660e,  # AES 128
         0x0000660f,  # AES 192
@@ -58,10 +85,24 @@ class AES(object):
         ).decryptor()
 
     def decrypt(self, data):
+        """
+        Decrypt provided data
+
+        :param data: Buffer with encrypted data
+        :type data: bytes
+        :return: Decrypted data
+        """
         return self.aes.update(data) + self.aes.finalize()
 
     @staticmethod
     def import_key(data):
+        """
+        Extracts key from buffer containing :class:`PlaintextKeyBlob` data
+
+        :param data: Buffer with `BLOB` structure data
+        :type data: bytes
+        :return: Tuple (`algorithm`, `key`). `Algorithm` is one of: "AES-128", "AES-192", "AES-256"
+        """
         if len(data) < BLOBHEADER.sizeof():
             return
 
