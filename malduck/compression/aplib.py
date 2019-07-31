@@ -1,4 +1,6 @@
 from .components.aplib import ap_depack
+from ..py2compat import binary_type
+
 import struct
 import warnings
 
@@ -23,6 +25,7 @@ class aPLib(object):
     :type buf: bytes
     :param headerless: Force headerless decompression (don't perform 'AP32' magic detection)
     :type headerless: bool (default: `True`)
+    :rtype: bytes
     """
     def decompress(self, buf, length=None, headerless=False):
         if length is not None:
@@ -33,7 +36,7 @@ class aPLib(object):
                 hdr_length = struct.unpack_from("<I", buf, 4)[0]
                 buf = buf[hdr_length:]
             # Decompress aPLib
-            return ap_depack(buf)
+            return binary_type(ap_depack(buf))
         except Exception as e:
             return None
 
