@@ -10,10 +10,24 @@ import zlib
 
 
 class Gzip(object):
-    def decompress(self, data):
-        # TODO Is this non-strict enough (it's what Python's gzip accepts)?
-        if data.startswith(b"\x1f\x8b\x08"):
-            return gzip.GzipFile(fileobj=io.BytesIO(data)).read()
-        return zlib.decompress(data)
+    r"""
+    gzip/zlib decompression
+
+    .. code-block:: python
+
+        from malduck import gzip, unhex
+
+        # zlib decompression
+        gzip(unhex(b'789ccb48cdc9c95728cf2fca4901001a0b045d'))
+        # gzip decompression (detected by 1f8b08 prefix)
+        gzip(unhex(b'1f8b08082199b75a0403312d3100cb48cdc9c95728cf2fca49010085114a0d0b000000'))
+
+    :param buf: Buffer to decompress
+    :type buf: bytes
+    """
+    def decompress(self, buf):
+        if buf.startswith(b"\x1f\x8b\x08"):
+            return gzip.GzipFile(fileobj=io.BytesIO(buf)).read()
+        return zlib.decompress(buf)
 
     __call__ = decompress

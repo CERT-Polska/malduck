@@ -4,19 +4,19 @@ Hashing algorithms
 
 CRC32
 -----
-.. autofunction:: malduck.hash.crc.crc32
+.. autofunction:: malduck.crc32
 
 MD5
 -----
-.. autofunction:: malduck.hash.sha.md5
+.. autofunction:: malduck.md5
 
 SHA1
 -----
-.. autofunction:: malduck.hash.sha.sha1
+.. autofunction:: malduck.sha1
 
 SHA224/256/384/512
 -------------------
-.. autofunction:: malduck.hash.sha.sha224
-.. autofunction:: malduck.hash.sha.sha256
-.. autofunction:: malduck.hash.sha.sha384
-.. autofunction:: malduck.hash.sha.sha512
+.. autofunction:: malduck.sha224
+.. autofunction:: malduck.sha256
+.. autofunction:: malduck.sha384
+.. autofunction:: malduck.sha512

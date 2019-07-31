@@ -45,6 +45,11 @@ def utf16z(s):
 
 
 def enhex(s):
+    """
+    .. versionchanged:: 2.0.0
+
+        Renamed from :py:meth:`malduck.hex`
+    """
     return binascii.hexlify(s)
 
 

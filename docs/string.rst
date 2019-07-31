@@ -16,51 +16,48 @@ Supports most common string operations e.g.:
 chunks/chunks_iter
 -------------------
 
-.. autofunction:: malduck.string.ops.chunks_iter
-.. autofunction:: malduck.string.ops.chunks
+.. autofunction:: malduck.chunks_iter
+.. autofunction:: malduck.chunks
 
 asciiz/utf16z
 --------------
 
-.. autofunction:: malduck.string.ops.asciiz
-.. autofunction:: malduck.string.ops.utf16z
+.. autofunction:: malduck.asciiz
+.. autofunction:: malduck.utf16z
 
 enhex/unhex
 ----------
-.. autofunction:: malduck.string.ops.enhex
-.. autofunction:: malduck.string.ops.unhex
+.. autofunction:: malduck.enhex
+.. autofunction:: malduck.unhex
 
-.. autofunction:: malduck.string.ops.uleb128
-.. autoclass:: malduck.string.ops.Base64
-    :members:
+.. autofunction:: malduck.uleb128
+.. autofunction:: malduck.base64
 
 Padding (null/pkcs7)
 ---------------------
 
-.. autoclass:: malduck.string.ops.Padding
-    :members:
-.. autoclass:: malduck.string.ops.Unpadding
-    :members:
+.. autofunction:: malduck.pad
+.. autofunction:: malduck.unpad
 
 Packing/unpacking (p64/p32/p16/p8, u64/u32/u16/u8, bigint)
 -----------------------------------------------------------
 
-.. autofunction:: malduck.string.bin.uint64
-.. autofunction:: malduck.string.bin.uint32
-.. autofunction:: malduck.string.bin.uint16
-.. autofunction:: malduck.string.bin.uint8
+.. autofunction:: malduck.uint64
+.. autofunction:: malduck.uint32
+.. autofunction:: malduck.uint16
+.. autofunction:: malduck.uint8
 
-.. autofunction:: malduck.string.bin.u64
-.. autofunction:: malduck.string.bin.u32
-.. autofunction:: malduck.string.bin.u16
-.. autofunction:: malduck.string.bin.u8
-.. autofunction:: malduck.string.bin.p64
-.. autofunction:: malduck.string.bin.p32
-.. autofunction:: malduck.string.bin.p16
-.. autofunction:: malduck.string.bin.p8
+.. autofunction:: malduck.u64
+.. autofunction:: malduck.u32
+.. autofunction:: malduck.u16
+.. autofunction:: malduck.u8
+.. autofunction:: malduck.p64
+.. autofunction:: malduck.p32
+.. autofunction:: malduck.p16
+.. autofunction:: malduck.p8
 
-.. autofunction:: malduck.string.bin.bigint
+.. autofunction:: malduck.bigint
 
 IPv4 inet_ntoa
 ---------------
-.. autofunction:: malduck.string.inet.ipv4
+.. autofunction:: malduck.ipv4
