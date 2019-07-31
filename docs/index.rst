@@ -43,6 +43,7 @@ and more powerful.
    :maxdepth: 3
    :caption: Utilities:
 
+   bits
    ints
    string
 
