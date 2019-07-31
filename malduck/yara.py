@@ -241,6 +241,10 @@ class YaraMatch(object):
         """List of matched string identifiers"""
         return self.offsets.keys()
 
+    def get(self, item):
+        """Get matched string offsets or empty list if not matched"""
+        return self.offsets.get(item, [])
+
     def __bool__(self):
         return bool(self.offsets)
 

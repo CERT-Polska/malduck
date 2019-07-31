@@ -38,3 +38,14 @@ def ensure_string(v):
     Py3: bytes -> str
     """
     return v.decode("utf8") if PY3 and isinstance(v, binary_type) else v
+
+
+def import_module(importer, module_name):
+    """
+    Imports module from arbitrary path using importer returned by pkgutil.iter_modules
+    """
+    if PY3:
+        module = importer.find_spec(module_name).loader.load_module()
+    else:
+        module = importer.find_module(module_name).load_module(module_name)
+    return module

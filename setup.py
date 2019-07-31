@@ -22,5 +22,6 @@ setup(
     classifiers=[
         "Programming Language :: Python",
         "Operating System :: POSIX :: Linux",
-    ]
+    ],
+    zip_safe=False
 )
