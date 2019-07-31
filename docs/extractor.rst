@@ -1,5 +1,5 @@
-Static configuration extractor
-==============================
+Static configuration extractor engine
+=====================================
 
 .. automodule:: malduck.extractor
 
