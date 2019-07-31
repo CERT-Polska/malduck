@@ -523,6 +523,25 @@ class ProcessMemory(object):
         """
         return disasm(self.readv(addr, size), addr, x64=x64)
 
+    def extract(self, modules=None, extract_manager=None):
+        """
+        Tries to extract config from ProcessMemory object
+
+        :param modules: Extractor modules object (optional, loads '~/.malduck' by default)
+        :type modules: :class:`malduck.extractor.ExtractorModules`
+        :param extract_manager: ExtractManager object (optional, creates ExtractManager by default)
+        :type extract_manager: :class:`malduck.extractor.ExtractManager`
+        :return: Static configuration(s) (:py:attr:`malduck.extractor.ExtractManager.config`) or None if not extracted
+        :rtype: List[dict] or None
+        """
+        from ..extractor import ExtractManager, ExtractorModules
+        if extract_manager is None:
+            if modules is None:
+                modules = ExtractorModules()
+            extract_manager = ExtractManager(modules)
+        extract_manager.push_procmem(self)
+        return extract_manager.config
+
     def yarap(self, ruleset, offset=0, length=None):
         """
         Perform yara matching (non-region-wise)

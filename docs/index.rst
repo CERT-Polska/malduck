@@ -25,6 +25,7 @@ and more powerful.
    :maxdepth: 3
    :caption: Extraction tools:
 
+   extractor
    procmem
    disasm
    pe

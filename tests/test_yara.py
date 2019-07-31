@@ -106,3 +106,6 @@ def test_procmem_yara():
     assert matchv.regions.b_series == list(range(0x401000, 0x402000 - 63))
     assert matchv.regions.c_series == list(range(0x402000, 0x403000 - 63))
     assert matchv.regions.d_series == list(range(0x410000, 0x411000 - 63))
+    assert matchv.regions.get("a_series")
+    assert not matchv.regions.get("e_series")
+
