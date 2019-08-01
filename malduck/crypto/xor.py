@@ -10,7 +10,7 @@ def xor(key, data):
     :param key: Encryption key
     :type key: int or bytes
     :param data: Buffer containing data to decrypt
-    :type data: bytes
+    :type data: bytes
     :return:
     """
     if is_integer(key):
