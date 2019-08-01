@@ -83,7 +83,7 @@ class ProcessMemoryELF(ProcessMemory):
 
     @property
     def imgend(self):
-        """Address where PE image ends"""
+        """Address where ELF image ends"""
         if not self._imgend:
             lastSegment = self.elf.get_segment(self.elf.num_segment()-1)
             self._imgend = lastSegment.header['p_vaddr'] + lastSegment.header['p_memsz']
