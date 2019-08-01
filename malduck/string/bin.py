@@ -5,7 +5,7 @@ import struct
 
 from ..py2compat import is_integer
 from ..string.ops import Padding, enhex, unhex
-from ..ints import UInt8, UInt16, UInt32, UInt64
+from ..ints import UInt8, UInt16, UInt32, UInt64, Int8, Int16, Int32, Int64
 
 
 def bigint(s, bitsize):
@@ -23,6 +23,12 @@ uint64 = u64 = UInt64.unpack
 uint32 = u32 = UInt32.unpack
 uint16 = u16 = UInt16.unpack
 uint8 = u8 = UInt8.unpack
+
+int64 = i64 = Int64.unpack
+int32 = i32 = Int32.unpack
+int16 = i16 = Int16.unpack
+int8 = i8 = Int8.unpack
+
 
 # Shortcuts for mostly used pack methods
 p64 = lambda v: UInt64(v).pack()

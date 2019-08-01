@@ -4,7 +4,7 @@ import re
 
 from .region import Region, PAGE_EXECUTE_READWRITE
 from ..disasm import disasm
-from ..string.bin import uint8, uint16, uint32, uint64
+from ..string.bin import uint8, uint16, uint32, uint64, int8, int16, int32, int64
 from ..string.ops import utf16z
 from ..py2compat import ensure_bytes, ensure_string, binary_type
 
@@ -404,6 +404,22 @@ class ProcessMemory(object):
     def uint64v(self, addr, fixed=False):
         """Read unsigned 64-bit value at address."""
         return uint64(self.readv(addr, 8), fixed=fixed)
+
+    def int8v(self, addr, fixed=False):
+        """Read signed 8-bit value at address."""
+        return int8(self.readv(addr, 1), fixed=fixed)
+
+    def int16v(self, addr, fixed=False):
+        """Read signed 16-bit value at address."""
+        return int16(self.readv(addr, 2), fixed=fixed)
+
+    def int32v(self, addr, fixed=False):
+        """Read signed 32-bit value at address."""
+        return int32(self.readv(addr, 4), fixed=fixed)
+
+    def int64v(self, addr, fixed=False):
+        """Read signed 64-bit value at address."""
+        return int64(self.readv(addr, 8), fixed=fixed)
 
     def asciiz(self, addr):
         """Read a null-terminated ASCII string at address."""

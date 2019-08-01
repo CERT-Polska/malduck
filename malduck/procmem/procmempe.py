@@ -34,7 +34,7 @@ class ProcessMemoryPE(ProcessMemory):
         :param image: True if memory contains EXE file instead of memory-mapped PE (default: False)
         :param detect_image: ProcessMemoryPE automatically detect whether image or memory-mapped PE is loaded
                              (default: False)
-        :rtype: :class:`ProcessMemory`
+        :rtype: :class:`ProcessMemoryPE`
 
         When image is True - PE file will be loaded under location specified in PE header
         (pe.optional_header.ImageBase). :class:`ProcessMemoryPE` object created that way contains only memory regions
