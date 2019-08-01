@@ -22,6 +22,14 @@ ProcessMemoryPE (procmempe)
 .. autoclass:: malduck.procmem.procmempe.ProcessMemoryPE
     :members:
 
+ProcessMemoryELF (procmemelf)
+----------------------------
+
+.. autoclass:: malduck.procmemelf
+
+.. autoclass:: malduck.procmem.procmemelf.ProcessMemoryELF
+    :members:
+
 CuckooProcessMemory (cuckoomem)
 ---------------------------------
 
