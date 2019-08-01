@@ -14,7 +14,7 @@ from .crypto.rc import RC4
 from .crypto.rsa import RSA
 from .disasm import Instruction
 from .pe import PE
-from .procmem import ProcessMemory, ProcessMemoryPE, CuckooProcessMemory
+from .procmem import ProcessMemory, ProcessMemoryPE, ProcessMemoryELF, CuckooProcessMemory
 from .string.ops import Padding, Unpadding, Base64
 from .verify import Verify
 
@@ -221,6 +221,7 @@ pe = PE
 aplib = aPLib()
 procmem = ProcessMemory
 procmempe = ProcessMemoryPE
+procmemelf = ProcessMemoryELF
 cuckoomem = CuckooProcessMemory
 base64 = Base64()
 pad = Padding("pkcs7")
