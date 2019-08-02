@@ -35,8 +35,8 @@ class ExtractorModules(object):
     def __init__(self, modules_path=None):
         if modules_path is None:
             modules_path = os.path.join(os.path.expanduser("~"), ".malduck")
-            if not os.path.isdir(modules_path):
-                os.makedirs(modules_path, exist_ok=True)
+            if not os.path.exists(modules_path):
+                os.makedirs(modules_path)
         # Load Yara rules
         self.rules = Yara.from_dir(modules_path)
         # Preload modules
