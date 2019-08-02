@@ -252,7 +252,8 @@ class PE(object):
             if not data_len:
                 # Probably fixpe'd - seems to be ok
                 return True
-            return self.pe.get_data(section_start_offs, data_len) != b"\x00" * data_len
+            return not all(
+                b in [0, '\0'] for b in self.pe.__data__[section_start_offs:section_start_offs+data_len])
         except pefile.PEFormatError:
             return False
 
