@@ -120,7 +120,7 @@ class IntType(long, IntTypeBase):
 
     bits = 64
     signed = False
-    fmt = "<Q"
+    fmt = "Q"
 
     def __new__(cls, value):
         value = long(value) & cls.mask
@@ -198,12 +198,16 @@ class IntType(long, IntTypeBase):
 
     def pack(self):
         """Pack value into bytes with little-endian order"""
-        return pack(self.fmt, long(self))
+        return pack("<" + self.fmt, long(self))
+
+    def pack_be(self):
+        """Pack value into bytes with big-endian order"""
+        return pack(">" + self.fmt, long(self))
 
     @classmethod
     def unpack(cls, other, offset=0, fixed=True):
         """
-        Unpacks single value from provided buffer
+        Unpacks single value from provided buffer with little-endian order
 
         :param other: Buffer object containing value to unpack
         :type other: bytes
@@ -217,7 +221,29 @@ class IntType(long, IntTypeBase):
             Fixed-size integer operations are 4-5 times slower than equivalent on built-in integer types
         """
         try:
-            ret = unpack_from(cls.fmt, other, offset=offset)
+            ret = unpack_from("<" + cls.fmt, other, offset=offset)
+        except error:
+            return None
+        return cls(ret[0]) if fixed else ret[0]
+
+    @classmethod
+    def unpack_be(cls, other, offset=0, fixed=True):
+        """
+        Unpacks single value from provided buffer with big-endian order
+
+        :param other: Buffer object containing value to unpack
+        :type other: bytes
+        :param offset: Buffer offset
+        :type offset: int
+        :param fixed: Convert to fixed-size integer (IntType instance)
+        :type fixed: bool (default: True)
+        :rtype: IntType instance or None if there are not enough data to unpack
+
+        .. warning::
+            Fixed-size integer operations are 4-5 times slower than equivalent on built-in integer types
+        """
+        try:
+            ret = unpack_from(">" + cls.fmt, other, offset=offset)
         except error:
             return None
         return cls(ret[0]) if fixed else ret[0]
@@ -225,15 +251,15 @@ class IntType(long, IntTypeBase):
 
 # Unsigned types
 
-QWORD = UInt64 = type("UInt64", (IntType,), dict(bits=64, signed=False, fmt="<Q"))
-DWORD = UInt32 = type("UInt32", (IntType,), dict(bits=32, signed=False, fmt="<I"))
-WORD = UInt16 = type("UInt16", (IntType,), dict(bits=16, signed=False, fmt="<H"))
-CHAR = BYTE = UInt8 = type("UInt8", (IntType,), dict(bits=8, signed=False, fmt="<B"))
+QWORD = UInt64 = type("UInt64", (IntType,), dict(bits=64, signed=False, fmt="Q"))
+DWORD = UInt32 = type("UInt32", (IntType,), dict(bits=32, signed=False, fmt="I"))
+WORD = UInt16 = type("UInt16", (IntType,), dict(bits=16, signed=False, fmt="H"))
+CHAR = BYTE = UInt8 = type("UInt8", (IntType,), dict(bits=8, signed=False, fmt="B"))
 
 # Signed types
 
-Int64 = type("Int64", (IntType,), dict(bits=64, signed=True, fmt="<q"))
-Int32 = type("Int32", (IntType,), dict(bits=32, signed=True, fmt="<i"))
-Int16 = type("Int16", (IntType,), dict(bits=16, signed=True, fmt="<h"))
-Int8 = type("Int8", (IntType,), dict(bits=8, signed=True, fmt="<b"))
+Int64 = type("Int64", (IntType,), dict(bits=64, signed=True, fmt="q"))
+Int32 = type("Int32", (IntType,), dict(bits=32, signed=True, fmt="i"))
+Int16 = type("Int16", (IntType,), dict(bits=16, signed=True, fmt="h"))
+Int8 = type("Int8", (IntType,), dict(bits=8, signed=True, fmt="b"))
 
