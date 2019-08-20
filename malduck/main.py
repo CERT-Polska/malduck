@@ -34,11 +34,12 @@ def fixpe(mempath, outpath, force):
 @click.argument("paths", nargs=-1, type=click.Path(exists=True), required=True)
 @click.option("--base", "-b", default=None, help="Base address of dump (use '0x' prefix for hexadecimal value)")
 @click.option("--pe/--non-pe", default=None, help="Specified files are PE executables/dumps (default: detect)")
+@click.option("--elf/--non-elf", default=None, help="Specified files are ELF executables (default: detect)")
 @click.option("--single/--multi", default=False, help="Treat files as single analysis "
                                                       "(merge all configs from the same family into one)")
 @click.option("--modules", default=None, type=click.Path(exists=True), required=False,
               help="Specify directory where Yara files and modules are located (default path is ~/.malduck)")
-def extract(ctx, paths, base, pe, single, modules):
+def extract(ctx, paths, base, pe, elf, single, modules):
     """Extract static configuration from dumps"""
     from .extractor import ExtractManager, ExtractorModules
 
@@ -74,7 +75,7 @@ def extract(ctx, paths, base, pe, single, modules):
             click.echo("[!] Symbolic links are not supported, {} ignored.".format(path), err=True)
 
         for file_path in files:
-            extract_manager.push_file(file_path, base=base, pe=pe)
+            extract_manager.push_file(file_path, base=base, pe=pe, elf=elf)
             if not single:
                 echo_config(extract_manager, file_path)
                 extract_manager = ExtractManager(extractor_modules)
