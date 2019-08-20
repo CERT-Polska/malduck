@@ -85,9 +85,9 @@ class ExtractManager(object):
             extractor.__class__.__name__,
             traceback.format_exc()))
 
-    def push_file(self, filepath, base=0, pe=None, image=None):
+    def push_file(self, filepath, base=0, pe=None, elf=None, image=None):
         """
-        Pushes file for extraction. Config extractor entrypoint. 
+        Pushes file for extraction. Config extractor entrypoint.
         
         :param filepath: Path to extracted file
         :type filepath: str
@@ -95,15 +95,21 @@ class ExtractManager(object):
         :type base: int
         :param pe: Determines whether file contains PE (default: detect automatically)
         :type pe: bool or None ("detect")
+        :param elf: Determines whether file contains ELF (default: detect automatically)
+        :type elf: bool or None ("detect")
         :param image: If pe is True, determines whether file contains PE image (default: detect automatically)
         :type image: bool or None ("detect")
         """
-        from ..procmem import ProcessMemory, ProcessMemoryPE
+        from ..procmem import ProcessMemory, ProcessMemoryPE, ProcessMemoryELF
         with ProcessMemory.from_file(filepath, base=base) as p:
-            if pe is None and p.readp(0, 2) == "MZ":
+            if pe is None and p.readp(0, 2) == b"MZ":
                 pe = True
+            if elf is None and p.readp(0, 4) == b"\x7fELF":
+                elf = True
             if pe:
                 p = ProcessMemoryPE.from_memory(p, image=image, detect_image=image is None)
+            elif elf:
+                p = ProcessMemoryELF.from_memory(p, image=image)
             self.push_procmem(p)
 
     def push_procmem(self, p):
