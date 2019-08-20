@@ -109,7 +109,7 @@ class ExtractManager(object):
             if pe:
                 p = ProcessMemoryPE.from_memory(p, image=image, detect_image=image is None)
             elif elf:
-                p = ProcessMemoryELF.from_memory(p, image=image)
+                p = ProcessMemoryELF.from_memory(p, image=True)
             self.push_procmem(p)
 
     def push_procmem(self, p):
