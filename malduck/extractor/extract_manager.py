@@ -106,9 +106,13 @@ class ExtractManager(object):
                 pe = True
             if elf is None and p.readp(0, 4) == b"\x7fELF":
                 elf = True
+            if pe and elf:
+                raise RuntimeError("A binary can't be both ELF and PE file")
             if pe:
                 p = ProcessMemoryPE.from_memory(p, image=image, detect_image=image is None)
             elif elf:
+                if image is False:
+                    raise RuntimeError("ELF dumps are not supported yet")
                 p = ProcessMemoryELF.from_memory(p, image=True)
             self.push_procmem(p)
 
