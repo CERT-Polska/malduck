@@ -54,7 +54,7 @@ class ExtractorModules(object):
         :param module_name: Name of module which throwed exception
         :type module_name: str
         """
-        warnings.warn("%s not loaded: %s", module_name, exc)
+        warnings.warn("{} not loaded: {}".format(module_name, exc))
 
 
 class ExtractManager(object):
@@ -112,10 +112,10 @@ class ExtractManager(object):
         :type method_name: str
         """
         import traceback
-        warnings.warn("%s.%s throwed exception: %s",
+        warnings.warn("{}.{} throwed exception: {}".format(
                       extractor.__class__.__name__,
                       method_name,
-                      traceback.format_exc())
+                      traceback.format_exc()))
 
     def push_file(self, filepath, base=0, pe=None, elf=None, image=None):
         """
