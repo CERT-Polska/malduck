@@ -5,8 +5,8 @@ from malduck import procmem, procmempe, align_down
 
 class aPLiebe(Extractor):
     family = "apliebe"
-    overrides = ["base64"]
-    yara_rules = ["aPLiebe"]
+    overrides = "base64",
+    yara_rules = "aPLiebe",
 
     @Extractor.needs_pe
     @Extractor.extractor("apliebe")
