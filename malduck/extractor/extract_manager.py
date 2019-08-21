@@ -40,8 +40,21 @@ class ExtractorModules(object):
         # Load Yara rules
         self.rules = Yara.from_dir(modules_path)
         # Preload modules
-        load_modules(modules_path)
+        load_modules(modules_path, onerror=self.on_error)
         self.extractors = Extractor.__subclasses__()
+
+    def on_error(self, exc, module_name):
+        """
+        Handler for all Exception's throwed during module load
+
+        Override this method if you want to set your own error handler.
+
+        :param exc: Exception object
+        :type exc: :class:`Exception`
+        :param module_name: Name of module which throwed exception
+        :type module_name: str
+        """
+        warnings.warn("%s not loaded: %s", module_name, exc)
 
 
 class ExtractManager(object):
@@ -73,17 +86,36 @@ class ExtractManager(object):
 
     def on_error(self, exc, extractor):
         """
-        Handler for all Exception's throwed by :py:meth:`Extractor.handle_yara`.
+        Handler for all Exception's thrown by :py:meth:`Extractor.handle_yara`.
+
+        .. deprecated:: 2.1.0
+           Look at :py:meth:`ExtractManager.on_extractor_error` instead.
 
         :param exc: Exception object
         :type exc: :class:`Exception`
         :param extractor: Extractor object which throwed exception
         :type extractor: :class:`malduck.extractor.Extractor`
         """
+        self.on_extractor_error(exc, extractor, "handle_yara")
+
+    def on_extractor_error(self, exc, extractor, method_name):
+        """
+        Handler for all Exception's thrown by extractor methods (including :py:meth:`Extractor.handle_yara`).
+
+        Override this method if you want to set your own error handler.
+
+        :param exc: Exception object
+        :type exc: :class:`Exception`
+        :param extractor: Extractor instance
+        :type extractor: :class:`extractor.Extractor`
+        :param method_name: Name of method which throwed exception
+        :type method_name: str
+        """
         import traceback
-        warnings.warn("Extractor {} throwed exception: {}".format(
-            extractor.__class__.__name__,
-            traceback.format_exc()))
+        warnings.warn("%s.%s throwed exception: %s",
+                      extractor.__class__.__name__,
+                      method_name,
+                      traceback.format_exc())
 
     def push_file(self, filepath, base=0, pe=None, elf=None, image=None):
         """
@@ -148,6 +180,19 @@ class ProcmemExtractManager(object):
         self.globals = {}
         self.parent = parent        #: Bound ExtractManager instance
         self.family = None          #: Matched family
+
+    def on_extractor_error(self, exc, extractor, method_name):
+        """
+        Handler for all Exception's throwed by extractor methods.
+
+        :param exc: Exception object
+        :type exc: :class:`Exception`
+        :param extractor: Extractor instance
+        :type extractor: :class:`extractor.Extractor`
+        :param method_name: Name of method which throwed exception
+        :type method_name: str
+        """
+        self.parent.on_extractor_error(exc, extractor, method_name)
 
     def push_procmem(self, p):
         """
