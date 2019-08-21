@@ -1,4 +1,5 @@
 import functools
+import logging
 import types
 import warnings
 
@@ -20,7 +21,7 @@ class MetaExtractor(type):
         klass.extractor_methods = dict(getattr(klass, "extractor_methods", {}))
         klass.final_methods = list(getattr(klass, "final_methods", []))
 
-        if type(attrs.get("yara_rules")) not in (list, tuple):
+        if type(getattr(klass, "yara_rules")) not in (list, tuple):
             raise TypeError("'yara_rules' field must be 'list' or 'tuple' in {}".format(str(name)))
 
         for name, method in attrs.items():
@@ -84,6 +85,17 @@ class ExtractorBase(object):
         :rtype: dict
         """
         return self.parent.globals
+
+    @property
+    def log(self):
+        """
+        Logger instance for Extractor methods
+
+        :return: :class:`logging.Logger`
+        """
+        return logging.getLogger("{}.{}".format(
+            self.__class__.__module__,  # should be malduck.extractor.modules (see malduck.extractor.loaders)
+            self.__class__.__name__))
 
 
 @add_metaclass(MetaExtractor)
@@ -223,9 +235,9 @@ class Extractor(ExtractorBase):
         for method_name in getattr(self, "final_methods", []):
             method = getattr(self, method_name)
             if hasattr(method, "ext_needs_pe") and not isinstance(p, ProcessMemoryPE):
-                warnings.warn("Method %s.%s not called because object is not ProcessMemoryPE",
+                warnings.warn("Method {}.{} not called because object is not ProcessMemoryPE".format(
                               self.__class__.__name__,
-                              method_name)
+                              method_name))
                 continue
             try:
                 method(p)

@@ -23,7 +23,7 @@ def load_modules(search_path, onerror=None):
         if not is_pkg:
             continue
         if module_name in modules:
-            warnings.warn("Module collision - %s overridden", module_name)
+            warnings.warn("Module collision - {} overridden".format(module_name))
         try:
             modules[module_name] = import_module(importer, module_name)
         except Exception as exc:

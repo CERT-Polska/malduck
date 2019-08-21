@@ -1,5 +1,5 @@
-import codecs
 import click
+import logging
 import json
 import os
 
@@ -7,8 +7,11 @@ from .procmem import ProcessMemoryPE
 
 
 @click.group()
-def main():
-    pass
+@click.option("--log-level", "-l", type=str, default="info", help="")
+def main(log_level):
+    log_level = logging.getLevelName(log_level.upper())
+    logging.basicConfig(level=log_level)
+    logging.captureWarnings(True)
 
 
 @main.command("fixpe")
