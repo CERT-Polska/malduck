@@ -3,7 +3,7 @@ from malduck import base64, procmempe
 
 
 class Unbase64(Extractor):
-    yara_rules = ["Based64Binary"]
+    yara_rules = "Based64Binary",
     family = "base64"
 
     @Extractor.final

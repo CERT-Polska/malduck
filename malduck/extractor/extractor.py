@@ -20,6 +20,9 @@ class MetaExtractor(type):
         klass.extractor_methods = dict(getattr(klass, "extractor_methods", {}))
         klass.final_methods = list(getattr(klass, "final_methods", []))
 
+        if type(attrs.get("yara_rules")) not in (list, tuple):
+            raise TypeError("'yara_rules' field must be 'list' or 'tuple' in {}".format(str(name)))
+
         for name, method in attrs.items():
             if hasattr(method, 'ext_yara_string'):
                 klass.extractor_methods[method.ext_yara_string] = name
@@ -176,7 +179,7 @@ class Extractor(ExtractorBase):
         Use this decorator for extractors that need PE instance. (:class:`malduck.procmem.ProcessMemoryPE`)
 
     """
-    yara_rules = []  #: Names of Yara rules for which handle_yara is called
+    yara_rules = ()  #: Names of Yara rules for which handle_yara is called
 
     def on_error(self, exc, method_name):
         """
