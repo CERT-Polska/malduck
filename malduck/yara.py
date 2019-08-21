@@ -88,7 +88,7 @@ class Yara(object):
         self.rules = yara.compile(source=yara_source)
 
     @staticmethod
-    def from_dir(path, recursive=True):
+    def from_dir(path, recursive=True, followlinks=True):
         """
         Find rules (recursively) in specified path. Supported extensions: *.yar, *.yara
 
@@ -96,10 +96,12 @@ class Yara(object):
         :type path: str
         :param recursive: Search recursively (default: enabled)
         :type recursive: bool
+        :param followlinks: Follow symbolic links (default: enabled)
+        :type followlinks: bool
         :rtype: :class:`Yara`
         """
         rule_paths = {}
-        for root, _, files in os.walk(path):
+        for root, _, files in os.walk(path, followlinks=followlinks):
             for fname in files:
                 if not fname.endswith(".yar") and not fname.endswith(".yara"):
                     continue
