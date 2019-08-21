@@ -9,11 +9,14 @@ from .procmem import ProcessMemoryPE
 @click.group()
 @click.option("--log-level", "-l", type=str, default=None,
               help="Set logging level for commands: critical, error, warning (default), info, debug")
-@click.option("--verbose/--quiet", "-v/-q", default=False,
-              help="Verbose mode (log-level=debug) / quiet mode (log-level=warning)")
+@click.option("--verbose/--quiet", "-v/-q", default=None,
+              help="Verbose mode (shortcut for '--log-level debug') / quiet mode ('--log-level error')")
 def main(log_level, verbose):
     if log_level is None:
-        log_level = "debug" if verbose else "warning"
+        if verbose is None:
+            log_level = "warning"
+        else:
+            log_level = "debug" if verbose else "error"
     log_level = logging.getLevelName(log_level.upper())
     logging.basicConfig(level=log_level)
     logging.captureWarnings(True)
