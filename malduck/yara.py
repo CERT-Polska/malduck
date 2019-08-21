@@ -108,10 +108,9 @@ class Yara(object):
                 ruleset_name = os.path.splitext(os.path.basename(fname))[0]
                 ruleset_path = os.path.join(root, fname)
                 if ruleset_name in rule_paths:
-                    warnings.warn("Yara file name collision - {} overriden by {}".format(
-                        rule_paths[ruleset_name],
-                        ruleset_path
-                    ))
+                    warnings.warn("Yara file name collision - %s overridden by %s",
+                                  rule_paths[ruleset_name],
+                                  ruleset_path)
                 rule_paths[ruleset_name] = ruleset_path
             if not recursive:
                 break

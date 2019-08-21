@@ -190,11 +190,7 @@ class Extractor(ExtractorBase):
         :param method_name: Name of method which throwed exception
         :type method_name: str
         """
-        import traceback
-        warnings.warn("{}.{} throwed exception: {}".format(
-            self.__class__.__name__,
-            method_name,
-            traceback.format_exc()))
+        self.parent.on_extractor_error(exc, self, method_name)
 
     def handle_yara(self, p, match):
         """
@@ -227,8 +223,9 @@ class Extractor(ExtractorBase):
         for method_name in getattr(self, "final_methods", []):
             method = getattr(self, method_name)
             if hasattr(method, "ext_needs_pe") and not isinstance(p, ProcessMemoryPE):
-                warnings.warn('Method {}.{} not called because object is not ProcessMemoryPE'.format(
-                    self.__class__.__name__, method_name))
+                warnings.warn("Method %s.%s not called because object is not ProcessMemoryPE",
+                              self.__class__.__name__,
+                              method_name)
                 continue
             try:
                 method(p)
