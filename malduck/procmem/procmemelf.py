@@ -73,6 +73,8 @@ class ProcessMemoryELF(ProcessMemory):
                     0,  # TODO: protect flags
                     segment.header['p_offset'] - presegment_len
                 ))
+        if len(self.regions) == 0:
+            raise elftools.elf.elffile.ELFError('No regions in ELF file!')
 
     @property
     def elf(self):
