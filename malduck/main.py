@@ -2,8 +2,11 @@ import click
 import logging
 import json
 import os
+import warnings
 
 from .procmem import ProcessMemoryPE
+from pefile import PEFormatError
+from elftools.elf.elffile import ELFError
 
 
 @click.group()
@@ -86,9 +89,16 @@ def extract(ctx, paths, base, pe, elf, single, modules):
             click.echo("[!] Symbolic links are not supported, {} ignored.".format(path), err=True)
 
         for file_path in files:
-            extract_manager.push_file(file_path, base=base, pe=pe, elf=elf)
-            if not single:
-                echo_config(extract_manager, file_path)
-                extract_manager = ExtractManager(extractor_modules)
+            try:
+                extract_manager.push_file(file_path, base=base, pe=pe, elf=elf)
+                if not single:
+                    echo_config(extract_manager, file_path)
+                    extract_manager = ExtractManager(extractor_modules)
+            except PEFormatError as e:
+                warnings.warn('Error parsing ' + file_path + ' as PE: ' + str(e))
+            except ELFError as e:
+                warnings.warn('Error parsing ' + file_path + ' as ELF: ' + str(e))
+            #except Exception as e:
+            #    warnings.warn('Unknown exception loading ' + file_path + ': ' + str(e))
         if single:
             echo_config(extract_manager)
