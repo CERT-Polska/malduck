@@ -87,6 +87,7 @@ def extract(ctx, paths, base, pe, elf, single, modules):
         else:
             files = []
             click.echo("[!] Symbolic links are not supported, {} ignored.".format(path), err=True)
+        files.sort()
 
         for file_path in files:
             try:
