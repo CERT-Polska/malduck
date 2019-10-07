@@ -44,3 +44,19 @@ def test_apliebe():
         "family": "apliebe",
         "str_to_int_offs": [0x1000a410]
     }]
+
+
+def test_weaky():
+    modules = ExtractorModules("tests/files/modules")
+    weaky = procmem(b"weakyx")
+    strongy = procmem(b"strongy")
+    strongyweaky = procmem(b"strongyweakyx")
+    assert not weaky.extract(modules)
+    assert strongy.extract(modules) == [{
+        "family": "weaky"
+    }]
+    assert strongyweaky.extract(modules) == [{
+        "family": "weaky",
+        "weak": True,
+        "weaky": True
+    }]

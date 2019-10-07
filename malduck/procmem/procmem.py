@@ -592,7 +592,8 @@ class ProcessMemory(object):
         def map_offset(off, len):
             # TODO: This could be better, but works in most cases
             va = self.p2v(off)
-            if (addr <= va < addr + length and
+            if (va is not None and
+                addr <= va < addr + length and
                 self.is_addr(va + len - 1) and
                 addr <= va + len - 1 < addr + length):
                 return va
