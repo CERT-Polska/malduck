@@ -1,0 +1,1 @@
+from .weak import Weaky

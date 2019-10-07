@@ -1,6 +1,5 @@
 import functools
 import logging
-import types
 import warnings
 
 from ..procmem.procmempe import ProcessMemoryPE
@@ -25,12 +24,44 @@ class MetaExtractor(type):
             raise TypeError("'yara_rules' field must be 'list' or 'tuple' in {}".format(str(name)))
 
         for name, method in attrs.items():
-            if hasattr(method, 'ext_yara_string'):
-                klass.extractor_methods[method.ext_yara_string] = name
-            if hasattr(method, 'ext_final'):
-                klass.final_methods.append(name)
+            if isinstance(method, ExtractorMethod):
+                if method.final:
+                    klass.final_methods.append(name)
+                else:
+                    if method.yara_string in klass.extractor_methods:
+                        raise TypeError('There can be only one extractor method '
+                                        'for "{}" string'.format(method.yara_string))
+                    klass.extractor_methods[method.yara_string] = name
 
         return klass
+
+
+class ExtractorMethod(object):
+    """
+    Represents registered extractor method
+    """
+    def __init__(self, method):
+        self.method = method
+        self.weak = False
+        self.needs_pe = False
+        self.final = False
+        self.yara_string = method.__name__
+        functools.update_wrapper(self, method)
+
+    def __call__(self, extractor, *args, **kwargs):
+        # Get config from extractor method
+        config = self.method(extractor, *args, **kwargs)
+        if not config:
+            return
+        # If method returns True - family matched (for non-weak methods)
+        if config is True:
+            config = {}
+        # If method is "strong" - "family" key will be automatically added
+        if not self.weak and extractor.family and "family" not in config:
+            config["family"] = extractor.family
+        # If config is not empty - push it
+        if config:
+            extractor.push_config(config)
 
 
 class ExtractorBase(object):
@@ -221,26 +252,26 @@ class Extractor(ExtractorBase):
             method = getattr(self, method_name)
             for va in match[identifier]:
                 try:
-                    if hasattr(method, "ext_needs_pe"):
+                    if method.needs_pe:
                         # If extractor explicitly needs this and p is raw procmem: find PE for specified offset
                         p_pe = ProcessMemoryPE.from_memory(p, base=p.findmz(va)) \
                             if not isinstance(p, ProcessMemoryPE) else p
-                        method(p_pe, va)
+                        method(self, p_pe, va)
                     else:
-                        method(p, va)
+                        method(self, p, va)
                 except Exception as exc:
                     self.on_error(exc, method_name)
 
         # Call final extractors
-        for method_name in getattr(self, "final_methods", []):
+        for method_name in self.final_methods:
             method = getattr(self, method_name)
-            if hasattr(method, "ext_needs_pe") and not isinstance(p, ProcessMemoryPE):
+            if method.needs_pe and not isinstance(p, ProcessMemoryPE):
                 warnings.warn("Method {}.{} not called because object is not ProcessMemoryPE".format(
                               self.__class__.__name__,
                               method_name))
                 continue
             try:
-                method(p)
+                method(self, p)
             except Exception as exc:
                 self.on_error(exc, method_name)
 
@@ -248,12 +279,14 @@ class Extractor(ExtractorBase):
 
     @staticmethod
     def needs_pe(method):
-        Extractor._set_extattr(method, "needs_pe")
+        method = Extractor._extractor_method(method)
+        method.needs_pe = True
         return method
 
     @staticmethod
     def weak(method):
-        Extractor._set_extattr(method, "weak")
+        method = Extractor._extractor_method(method)
+        method.weak = True
         return method
 
     @staticmethod
@@ -262,35 +295,14 @@ class Extractor(ExtractorBase):
             raise ValueError("String identifier is unnecessary for final methods")
 
         def extractor_wrapper(method):
-            @functools.wraps(method)
-            def extractor_method(self, *args, **kwargs):
-                # Get config from extractor method
-                config = method(self, *args, **kwargs)
-                if config:
-                    # If method is "strong" - "family" key will be automatically added
-                    if not getattr(method, "ext_weak", False):
-                        # If method returns True - family matched
-                        if config is True:
-                            config = {}
-                        # Add "family" for strong configs
-                        if self.family and "family" not in config:
-                            config["family"] = self.family
-                    self.push_config(config)
-
-            # If there is no alias for Yara string - use method name
-            if not string_or_method or isinstance(string_or_method, types.FunctionType):
-                yara_string = method.__name__
-            else:
-                yara_string = string_or_method
-
-            # Final extractors doesn't match specific string
-            if not final:
-                Extractor._set_extattr(extractor_method, "yara_string", yara_string)
-            else:
-                Extractor._set_extattr(extractor_method, "final")
+            extractor_method = Extractor._extractor_method(method)
+            # If there is string provided, use it as yara_string
+            if string_or_method and not callable(string_or_method):
+                extractor_method.yara_string = string_or_method
+            extractor_method.final = final
             return extractor_method
 
-        if isinstance(string_or_method, types.FunctionType):
+        if callable(string_or_method):
             return extractor_wrapper(string_or_method)
         else:
             return extractor_wrapper
@@ -302,15 +314,8 @@ class Extractor(ExtractorBase):
     # Internals
 
     @staticmethod
-    def _is_extattr_set(method, flag):
-        """
-        Check whether method is marked using extra flag
-        """
-        return hasattr(method, "ext_" + flag)
-
-    @staticmethod
-    def _set_extattr(method, flag, value=True):
-        if flag == "final":
-            if Extractor._is_extattr_set(method, "yara_string") or Extractor._is_extattr_set(method, "final"):
-                raise ValueError("Extractor can't be used both as yara handler and final")
-        setattr(method, "ext_" + flag, value)
+    def _extractor_method(method):
+        if isinstance(method, ExtractorMethod):
+            return method
+        else:
+            return ExtractorMethod(method)
