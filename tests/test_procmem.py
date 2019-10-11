@@ -178,6 +178,25 @@ def test_findbytes():
     assert next(p.findbytesv(enhex(b"dddd"))) == 0x410000
 
 
+def test_simple_findv():
+    payload = b"12ab34cd45ef"
+    regions = [
+        Region(0x10000, 2, 0, 0, 0, 2),
+        Region(0x10002, 2, 0, 0, 0, 6),
+        Region(0x10010, 2, 0, 0, 0, 10)
+    ]
+    p = procmem(payload, regions=regions)
+
+    assert list(p.findv(b"12")) == []
+    assert list(p.findv(b"ab")) == [0x10000]
+    assert list(p.findv(b"ab", addr=0x10002)) == []
+    assert list(p.findv(b"ab34")) == []
+    assert list(p.findv(b"abcd")) == [0x10000]
+    assert list(p.findv(b"abcdef")) == []
+    assert list(p.findv(b"cdef")) == []
+    assert list(p.findv(b"ef")) == [0x10010]
+
+
 def test_findv():
     payload = b"".join([
         pad.null(pad.null(b"a" * 0x200 + b"pattern", 0x500) + b"pattern2", 0x1000),
@@ -197,6 +216,8 @@ def test_findv():
     assert list(p.findv(b"pattern", 0x401100, 0x405)) == [0x401200]
     assert list(p.findv(b"pattern", length=0x10300)) == [0x400200, 0x400500, 0x401200, 0x401500, 0x410200]
     assert list(p.findv(b"pattern", 0x401508)) == [0x410200, 0x410500]
+    assert list(p.findv(b"pattern", 0x403508)) == [0x410200, 0x410500]
+
 
 def test_patchv():
     payload = b"".join([

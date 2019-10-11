@@ -74,6 +74,8 @@ class MemoryPEData(object):
         return self.memory.readv(start, stop - start + 1)
 
     def find(self, str, beg=0, end=None):
+        if end and beg >= end:
+            return -1
         try:
             return next(self.memory.regexv(str, self.memory.imgbase + beg, end and end - beg))
         except StopIteration:
