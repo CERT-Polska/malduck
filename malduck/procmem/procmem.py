@@ -669,7 +669,7 @@ class ProcessMemory(object):
 
     def findbytesp(self, query, offset=0, length=None):
         """
-        Search for byte sequences (e.g., `4? AA BB ?? DD`). Uses :py:meth:`regexp` internally
+        Search for byte sequences (e.g., `4? AA BB ?? DD`). Uses :py:meth:`yarap` internally
 
         .. versionadded:: 1.4.0
            Query is passed to yarap as single hexadecimal string rule. Use Yara-compatible strings only
@@ -687,7 +687,7 @@ class ProcessMemory(object):
 
     def findbytesv(self, query, addr=None, length=None):
         """
-        Search for byte sequences (e.g., `4? AA BB ?? DD`). Uses :py:meth:`regexv` internally
+        Search for byte sequences (e.g., `4? AA BB ?? DD`). Uses :py:meth:`yarav` internally
 
         .. versionadded:: 1.4.0
            Query is passed to yarav as single hexadecimal string rule. Use Yara-compatible strings only
