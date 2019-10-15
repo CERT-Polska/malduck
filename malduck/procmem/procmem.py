@@ -655,7 +655,12 @@ class ProcessMemory(object):
             addr = self.regions[0].addr
         if length is None:
             length = self.regions[-1].end - addr
-        return ruleset.match(data=self.readp(0), offset_mapper=self.p2v)
+
+        def map_offset(off, len):
+            ptr = self.p2v(off, len)
+            if ptr is not None and addr <= ptr < addr + length:
+                return ptr
+        return ruleset.match(data=self.readp(0), offset_mapper=map_offset)
 
     def _findbytes(self, yara_fn, query, addr, length):
         from ..yara import Yara, YaraString

@@ -161,6 +161,10 @@ def test_findbytes():
     assert not list(buf.findbytesv(enhex(b"test hAAAA")))
     assert list(buf.findbytesv(enhex(b"test\n hAAAA")))
 
+    assert list(buf.findbytesv(enhex(b"is"), length=0x100b)) == [0x40100a]
+    assert list(buf.findbytesv(enhex(b"is"), length=0x100d)) == [0x40100a, 0x40100c]
+    assert list(buf.findbytesv(enhex(b"is"), addr=0x40100b, length=0x100d)) == [0x40100c]
+
     payload = b"".join([
         b"a" * 0x1000,
         b"b" * 0x1000,
