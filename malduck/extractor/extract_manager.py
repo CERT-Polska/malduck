@@ -1,9 +1,12 @@
+import logging
 import os
 import warnings
 
 from .extractor import Extractor
 from .loaders import load_modules
 from ..yara import Yara
+
+log = logging.getLogger(__name__)
 
 
 def merge_configs(config, new_config):
@@ -112,7 +115,7 @@ class ExtractManager(object):
         :type method_name: str
         """
         import traceback
-        warnings.warn("{}.{} throwed exception: {}".format(
+        log.warning("{}.{} throwed exception: {}".format(
                       extractor.__class__.__name__,
                       method_name,
                       traceback.format_exc()))
@@ -120,7 +123,7 @@ class ExtractManager(object):
     def push_file(self, filepath, base=0, pe=None, elf=None, image=None):
         """
         Pushes file for extraction. Config extractor entrypoint.
-        
+
         :param filepath: Path to extracted file
         :type filepath: str
         :param base: Memory dump base address
