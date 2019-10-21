@@ -9,7 +9,29 @@ from ..yara import Yara
 log = logging.getLogger(__name__)
 
 
-def merge_configs(config, new_config):
+def is_config_better(base_config, new_config):
+    """
+    Checks whether new config looks more reliable than base.
+    Currently just checking the amount of non-empty keys.
+    """
+    base = [(k, v) for k, v in base_config.items() if v]
+    new = [(k, v) for k, v in new_config.items() if v]
+    return len(new) > len(base)
+
+
+def merge_configs(base_config, new_config, resolve_conflicts=False):
+    """
+    Merge static configurations
+    :param base_config: Base configuration
+    :param new_config: Changes to apply
+    :param resolve_conflicts: Warn about conflicts without raising an Exception
+    :return: Merged configuration
+    """
+    if resolve_conflicts:
+        # Choose better config in case of conflicts
+        if is_config_better(base_config, new_config):
+            base_config, new_config = new_config, base_config
+    config = dict(base_config)
     for k, v in new_config.items():
         if k == "family":
             continue
@@ -21,11 +43,17 @@ def merge_configs(config, new_config):
             for el in v:
                 if el not in config[k]:
                     config[k] = config[k] + [el]
-        else:
+        elif not resolve_conflicts:
             raise RuntimeError("Extractor tries to override '{old_value}' "
                                "value of '{key}' with '{new_value}'".format(key=k,
                                                                             old_value=config[k],
                                                                             new_value=v))
+        else:
+            log.warning("Extractor tries to override '{old_value}' "
+                        "value of '{key}' with '{new_value}'".format(key=k,
+                                                                     old_value=config[k],
+                                                                     new_value=v))
+    return config
 
 
 class ExtractorModules(object):
@@ -164,7 +192,9 @@ class ExtractManager(object):
             if extractor.family not in self.configs:
                 self.configs[extractor.family] = extractor.config
             else:
-                merge_configs(self.configs[extractor.family], extractor.config)
+                base_config = self.configs[extractor.family]
+                new_config = extractor.config
+                self.configs[extractor.family] = merge_configs(base_config, new_config, resolve_conflicts=True)
 
     @property
     def config(self):
@@ -235,10 +265,7 @@ class ProcmemExtractManager(object):
                     self.family in extractor.overrides):
                 self.family = config["family"]
 
-        new_config = dict(self.collected_config)
-
-        merge_configs(new_config, config)
-
+        new_config = merge_configs(self.collected_config, config)
         if self.family:
             new_config["family"] = self.family
         self.collected_config = new_config
