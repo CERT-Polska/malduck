@@ -2,6 +2,7 @@ from .procmem import ProcessMemory
 from .procmempe import ProcessMemoryPE
 from .procmemelf import ProcessMemoryELF
 from .cuckoomem import CuckooProcessMemory
+from .idamem import IDAProcessMemory
 
 from .region import (
     Region,
