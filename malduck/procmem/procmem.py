@@ -17,7 +17,7 @@ class ProcessMemory(object):
 
     :param buf: Object with memory contents
     :type buf: bytes, mmap, memoryview or bytearray object
-    :param base: Virtual address of the beginning of buf
+    :param base: Virtual address of the region of interest (or beginning of buf when no regions provided)
     :type base: int, optional (default: 0)
     :param regions: Regions mapping. If set to None (default), buf is mapped into single-region with VA specified in
                     `base` argument
@@ -144,7 +144,7 @@ class ProcessMemory(object):
         return memory
 
     @classmethod
-    def from_memory(cls, memory):
+    def from_memory(cls, memory, base=None, **kwargs):
         """
         Makes new instance based on another ProcessMemory object.
 
@@ -152,9 +152,11 @@ class ProcessMemory(object):
 
         :param memory: ProcessMemory object to be copied
         :type memory: :class:`ProcessMemory`
+        :param base: Virtual address of region of interest (imgbase)
+        :type base: int
         :rtype: :class:`ProcessMemory`
         """
-        copied = cls(memory.m, base=memory.imgbase, regions=memory.regions)
+        copied = cls(memory.m, base=base or memory.imgbase, regions=memory.regions, **kwargs)
         copied.f = memory.f
         return copied
 
@@ -368,6 +370,8 @@ class ProcessMemory(object):
         :return: Chunk from specified location
         :rtype: bytes
         """
+        if length is not None and length <= 0:
+            return b''
         _, chunk = next(self.readv_regions(addr, length), (0, b''))
         return chunk
 
