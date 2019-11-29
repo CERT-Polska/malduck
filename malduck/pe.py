@@ -61,8 +61,7 @@ class MemoryPEData(object):
         return self.memory.imgbase + (self.pe.get_rva_from_offset(offs) or offs)
 
     def __len__(self):
-        r = self.memory.regions[-1]
-        return r.addr + r.size
+        return self.memory.regions[-1].addr - self.memory.regions[0].addr + self.memory.regions[-1].size
 
     def __getitem__(self, item):
         if type(item) is slice:

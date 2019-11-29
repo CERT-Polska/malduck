@@ -1,12 +1,12 @@
 from .region import Region
-from .procmem import ProcessMemory
+from .binmem import ProcessMemoryBinary
 
 import elftools
 import elftools.elf.elffile
 import io
 
 
-class ProcessMemoryELF(ProcessMemory):
+class ProcessMemoryELF(ProcessMemoryBinary):
     """
     Representation of memory-mapped ELF file
 
@@ -15,42 +15,30 @@ class ProcessMemoryELF(ProcessMemory):
     ELF files can be read directly using inherited :py:meth:`ProcessMemory.from_file` with `image` argument set
     (look at :py:meth:`from_memory` method).
     """
-    def __init__(self, buf, base=0, regions=None, image=False):
-        super(ProcessMemoryELF, self).__init__(buf, base=base, regions=regions)
+    __magic__ = b"\x7fELF"
+
+    def __init__(self, buf, base=0, regions=None, image=False, detect_image=False):
         self._elf = None
-        self._imgend = None
-        if image:
-            self._load_image(page_size=0x1000)
+        super(ProcessMemoryELF, self).__init__(buf, base=base, regions=regions, image=image, detect_image=detect_image)
 
-    @classmethod
-    def from_memory(cls, memory, base=None, image=False):
-        """
-        Creates ProcessMemoryELF instance from ProcessMemory object.
-
-        :param memory: ProcessMemory object containing ELF image
-        :type memory: :class:`ProcessMemory`
-        :param base: Virtual address where ELF image is located (default: beginning of procmem)
-        :param image: True if memory contains ELF executable file instead of memory-mapped ELF (default: False)
-        :param detect_image: ProcessMemoryELF automatically detect whether image or memory-mapped ELF is loaded
-                             (default: False)
-        :rtype: :class:`ProcessMemory`
-
-        When image is True - ELF file will be loaded under location specified in program header
-        (elf.get_segment(0).header['p_vaddr']). :class:`ProcessMemoryELF` object created that way contains only memory regions
-        created during load (all other data will be wiped out).
-        """
-        copied = cls(memory.m, base=base or memory.imgbase, regions=memory.regions, image=image)
-        copied.f = memory.f
-        return copied
-
-    def _elf_direct_load(self, fast_load=True):
+    def _elf_direct_load(self):
         offset = self.v2p(self.imgbase)
         # Stream required for ELFFile()
         stream = io.BytesIO(self.readp(offset))
         elf = elftools.elf.elffile.ELFFile(stream)
         return elf
 
-    def _load_image(self, page_size=None):
+    def is_valid(self):
+        if self.readv(self.imgbase, 4) != self.__magic__:
+            return False
+        try:
+            self._elf_direct_load()
+            return True
+        except Exception:
+            return False
+
+    def _reload_as_image(self):
+        page_size = 0x1000
         # Reset regions
         self.imgbase = None
         self.regions = []
@@ -80,14 +68,14 @@ class ProcessMemoryELF(ProcessMemory):
     def elf(self):
         """Related :class:`ELFFile` object"""
         if not self._elf:
-            self._elf = self._elf_direct_load(fast_load=False)
+            self._elf = self._elf_direct_load()
         return self._elf
+
+    def is_image_loaded_as_memdump(self):
+        raise NotImplementedError()
 
     @property
     def imgend(self):
         """Address where ELF image ends"""
-        if not self._imgend:
-            lastSegment = self.elf.get_segment(self.elf.num_segment()-1)
-            self._imgend = lastSegment.header['p_vaddr'] + lastSegment.header['p_memsz']
-        return self._imgend
-
+        lastSegment = self.elf.get_segment(self.elf.num_segment()-1)
+        return lastSegment.header['p_vaddr'] + lastSegment.header['p_memsz']
