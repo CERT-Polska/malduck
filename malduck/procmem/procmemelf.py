@@ -26,6 +26,8 @@ class ProcessMemoryELF(ProcessMemoryBinary):
         # Stream required for ELFFile()
         stream = io.BytesIO(self.readp(offset))
         elf = elftools.elf.elffile.ELFFile(stream)
+        # Try to iter_segments to check whether ELFFile is really correct
+        list(elf.iter_segments())
         return elf
 
     def is_valid(self):

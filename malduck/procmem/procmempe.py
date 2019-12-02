@@ -51,6 +51,8 @@ class ProcessMemoryPE(ProcessMemoryBinary):
         if self.readv(self.imgbase, 2) != self.__magic__:
             return False
         pe_offs = self.uint32v(self.imgbase + 0x3C)
+        if pe_offs is None:
+            return False
         if self.readv(self.imgbase + pe_offs, 2) != b"PE":
             return False
         try:

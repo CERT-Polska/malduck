@@ -137,9 +137,9 @@ class Extractor(ExtractorBase):
 
     Following parameters need to be defined:
 
-    * :py:attr:`family` (:py:attr:`extractor.ExtractorBase.family`)
+    * :py:attr:`family` (see :py:attr:`extractor.ExtractorBase.family`)
     * :py:attr:`yara_rules`
-    * :py:attr:`overrides` (optional, :py:attr:`extractor.ExtractorBase.overrides`)
+    * :py:attr:`overrides` (optional, see :py:attr:`extractor.ExtractorBase.overrides`)
 
     Example extractor code for Citadel:
 

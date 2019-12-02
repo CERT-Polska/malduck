@@ -25,13 +25,16 @@ class ProcessMemoryBinary(ProcessMemory):
     @property
     def image(self):
         """
-        Returns ProcessMemory object loaded with image=True
+        Returns ProcessMemory object loaded with image=True or None if can't be loaded or is loaded as image yet
         """
         if self.is_image:
-            return self
-        if not self._image:
-            self._image = self.__class__.from_memory(self, image=True)
-        return self._image
+            return None
+        try:
+            if not self._image:
+                self._image = self.__class__.from_memory(self, image=True)
+            return self._image
+        except Exception:
+            return None
 
     def is_valid(self):
         """
