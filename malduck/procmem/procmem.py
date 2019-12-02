@@ -182,6 +182,8 @@ class ProcessMemory(object):
             be counter-intuitive when length is set. It literally means "get <length> of mapped bytes".
             If you want to look for regions from address 0, you need to explicitly provide this address as an argument.
 
+        .. versionadded:: 3.0.0
+
         :param addr: Virtual address of starting point
         :type addr: int (default: None)
         :param offset: Offset of starting point, which will be translated to virtual address
@@ -315,9 +317,9 @@ class ProcessMemory(object):
 
         .. warning::
 
-            Family of *p methods doesn't care about continuity of regions.
+            Family of *p methods doesn't care about contiguity of regions.
 
-            Use :py:meth:`p2v` and :py:meth:`readv` if you want to operate on continuous regions only
+            Use :py:meth:`p2v` and :py:meth:`readv` if you want to operate on contiguous regions only
 
         :param offset: Buffer offset
         :param length: Length of chunk (optional)
@@ -385,7 +387,7 @@ class ProcessMemory(object):
         :type s: bytes
         :rtype: bytes
         """
-        # readv_regions is merging continuous regions now
+        # readv_regions is merging contiguous regions now
         _, chunk = next(self.readv_regions(addr), (0, b''))
         idx = chunk.find(s)
         return chunk[:idx] if idx >= 0 else chunk
@@ -396,9 +398,9 @@ class ProcessMemory(object):
 
         .. warning::
 
-           Family of *p methods doesn't care about continuity of regions.
+           Family of *p methods doesn't care about contiguity of regions.
 
-           Use :py:meth:`p2v` and :py:meth:`patchv` if you want to operate on continuous regions only
+           Use :py:meth:`p2v` and :py:meth:`patchv` if you want to operate on contiguous regions only
 
         :param offset: Buffer offset
         :type offset: int

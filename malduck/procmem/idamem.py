@@ -48,7 +48,7 @@ class IDAVM(object):
 
 class IDAProcessMemory(ProcessMemory):
     """
-    ProcessMemory representation operating in IDAPython context
+    ProcessMemory representation operating in IDAPython context [BETA]
     """
     def __init__(self):
         if not IDAPYTHON:
