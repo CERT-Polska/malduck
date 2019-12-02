@@ -30,9 +30,9 @@ def test_scan_ollydbg():
 
     assert cfg["family"] == "ollydbg"
     assert sorted(cfg["olly"]) == [
-        b' - OllyDbg is a JIT debugger\n',
-        b" - OllyDbg is in Explorer's menu\n",
-        b" - OllyDbg is not in Explorer's menu"
+        " - OllyDbg is a JIT debugger\n",
+        " - OllyDbg is in Explorer's menu\n",
+        " - OllyDbg is not in Explorer's menu"
     ]
 
 

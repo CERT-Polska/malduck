@@ -171,8 +171,13 @@ class YaraMatches(object):
     Rules can be referenced by both attribute and index.
     """
     def __init__(self, match_results, offset_mapper=None):
+        self.match_results = match_results
         self.matched_rules = {}
-        for match in match_results:
+        self.remap(offset_mapper)
+
+    def remap(self, offset_mapper=None):
+        self.matched_rules = {}
+        for match in self.match_results:
             yara_match = YaraMatch(match, offset_mapper=offset_mapper)
             if yara_match:
                 self.matched_rules[match.rule] = yara_match

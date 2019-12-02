@@ -7,8 +7,8 @@ class Ollydbg(Extractor):
 
     @Extractor.extractor
     def olly_is(self, p, hit):
-        return {"olly": [p.asciiz(hit)]}
+        return {"olly": [p.asciiz(hit).decode("utf8")]}
 
     @Extractor.extractor("olly_is_not")
     def olly_isnt(self, p, hit):
-        return {"olly": [p.asciiz(hit)]}
+        return {"olly": [p.asciiz(hit).decode("utf8")]}

@@ -1,4 +1,5 @@
 import logging
+import json
 import os
 import warnings
 
@@ -19,18 +20,25 @@ def is_config_better(base_config, new_config):
     return len(new) > len(base)
 
 
-def merge_configs(base_config, new_config, resolve_conflicts=False):
+def sanitize_config(config):
     """
-    Merge static configurations
+    Sanitize static configuration by removing empty strings/collections
+
+    :param config: Configuration to sanitize
+    :return: Sanitized configuration
+    """
+    return {k: v for k, v in config.items() if v in [0, False] or v}
+
+
+def merge_configs(base_config, new_config):
+    """
+    Merge static configurations.
+    Used internally. Removes "family" key from the result, which is set explicitly by ExtractManager.push_config
+
     :param base_config: Base configuration
     :param new_config: Changes to apply
-    :param resolve_conflicts: Warn about conflicts without raising an Exception
     :return: Merged configuration
     """
-    if resolve_conflicts:
-        # Choose better config in case of conflicts
-        if is_config_better(base_config, new_config):
-            base_config, new_config = new_config, base_config
     config = dict(base_config)
     for k, v in new_config.items():
         if k == "family":
@@ -43,16 +51,11 @@ def merge_configs(base_config, new_config, resolve_conflicts=False):
             for el in v:
                 if el not in config[k]:
                     config[k] = config[k] + [el]
-        elif not resolve_conflicts:
+        else:
             raise RuntimeError("Extractor tries to override '{old_value}' "
                                "value of '{key}' with '{new_value}'".format(key=k,
                                                                             old_value=config[k],
                                                                             new_value=v))
-        else:
-            log.warning("Extractor tries to override '{old_value}' "
-                        "value of '{key}' with '{new_value}'".format(key=k,
-                                                                     old_value=config[k],
-                                                                     new_value=v))
     return config
 
 
@@ -148,7 +151,7 @@ class ExtractManager(object):
                       method_name,
                       traceback.format_exc()))
 
-    def push_file(self, filepath, base=0, pe=None, elf=None, image=None):
+    def push_file(self, filepath, base=0):
         """
         Pushes file for extraction. Config extractor entrypoint.
 
@@ -156,45 +159,62 @@ class ExtractManager(object):
         :type filepath: str
         :param base: Memory dump base address
         :type base: int
-        :param pe: Determines whether file contains PE (default: detect automatically)
-        :type pe: bool or None ("detect")
-        :param elf: Determines whether file contains ELF (default: detect automatically)
-        :type elf: bool or None ("detect")
-        :param image: If pe is True, determines whether file contains PE image (default: detect automatically)
-        :type image: bool or None ("detect")
         """
-        from ..procmem import ProcessMemory, ProcessMemoryPE, ProcessMemoryELF
+        from ..procmem import ProcessMemory
+        log.debug("Started extraction of file {}:{:x}".format(filepath, base))
         with ProcessMemory.from_file(filepath, base=base) as p:
-            if pe is None and p.readp(0, 2) == b"MZ":
-                pe = True
-            if elf is None and p.readp(0, 4) == b"\x7fELF":
-                elf = True
-            if pe and elf:
-                raise RuntimeError("A binary can't be both ELF and PE file")
-            if pe:
-                p = ProcessMemoryPE.from_memory(p, image=image, detect_image=image is None)
-            elif elf:
-                if image is False:
-                    raise RuntimeError("ELF dumps are not supported yet")
-                p = ProcessMemoryELF.from_memory(p, image=True)
-            self.push_procmem(p)
+            self.push_procmem(p, rip_binaries=True)
 
-    def push_procmem(self, p):
+    def push_config(self, family, config):
+        config["family"] = family
+        if family not in self.configs:
+            self.configs[family] = config
+        else:
+            base_config = self.configs[family]
+            if is_config_better(base_config, config):
+                log.debug("Config looks better")
+                self.configs[family] = config
+            else:
+                log.debug("Config doesn't look better - ignoring.")
+
+    def push_procmem(self, p, rip_binaries=False):
         """
         Pushes ProcessMemory object for extraction
 
         :param p: ProcessMemory object
         :type p: :class:`malduck.procmem.ProcessMemory`
+        :param rip_binaries: Look for binaries (PE, ELF) in provided ProcessMemory and try to perform extraction using
+        specialized variants (ProcessMemoryPE, ProcessMemoryELF)
+        :type rip_binaries: bool (default: False)
         """
-        extractor = ProcmemExtractManager(self)
-        extractor.push_procmem(p)
-        if extractor.config:
-            if extractor.family not in self.configs:
-                self.configs[extractor.family] = extractor.config
+        from ..procmem import ProcessMemoryPE, ProcessMemoryELF
+        from ..procmem.binmem import ProcessMemoryBinary
+
+        binaries = [p]
+        if rip_binaries:
+            binaries += list(ProcessMemoryPE.load_binaries_from_memory(p)) + \
+                        list(ProcessMemoryELF.load_binaries_from_memory(p))
+        matches = p.yarav(self.rules)
+
+        fmt_procmem = lambda p: "{}:{}:{:x}".format(p.__class__.__name__,
+                                                    "IMG" if getattr(p, "is_image", False) else "DMP", p.imgbase)
+
+        def extract_config(procmem):
+            log.debug("{} - ripping...".format(fmt_procmem(procmem)))
+            extractor = ProcmemExtractManager(self)
+            matches.remap(procmem.p2v)
+            extractor.push_procmem(procmem, _matches=matches)
+            if extractor.family:
+                log.debug("{} - found {}!".format(fmt_procmem(procmem), extractor.family))
+                self.push_config(extractor.family, extractor.config)
             else:
-                base_config = self.configs[extractor.family]
-                new_config = extractor.config
-                self.configs[extractor.family] = merge_configs(base_config, new_config, resolve_conflicts=True)
+                log.debug("{} - No luck.".format(fmt_procmem(procmem)))
+
+        log.debug("Matched rules: {}".format(matches.keys()))
+        for binary in binaries:
+            extract_config(binary)
+            if isinstance(binary, ProcessMemoryBinary) and binary.image is not None:
+                extract_config(binary.image)
 
     @property
     def config(self):
@@ -227,22 +247,24 @@ class ProcmemExtractManager(object):
         """
         self.parent.on_extractor_error(exc, extractor, method_name)
 
-    def push_procmem(self, p):
+    def push_procmem(self, p, _matches=None):
         """
         Pushes ProcessMemory object for extraction
 
         :param p: ProcessMemory object
         :type p: :class:`malduck.procmem.ProcessMemory`
+        :param _matches: YaraMatches object (used internally)
+        :type _matches: :class:`malduck.yara.YaraMatches`
         """
-        matched = p.yarav(self.parent.rules)
+        matches = _matches or p.yarav(self.parent.rules)
         # For each extractor...
         for ext_class in self.parent.extractors:
             extractor = ext_class(self)
             # For each rule identifier in extractor.yara_rules...
             for rule in extractor.yara_rules:
-                if rule in matched:
+                if rule in matches:
                     try:
-                        extractor.handle_yara(p, matched[rule])
+                        extractor.handle_yara(p, matches[rule])
                     except Exception as exc:
                         self.parent.on_error(exc, extractor)
 
@@ -259,21 +281,30 @@ class ProcmemExtractManager(object):
         :param extractor: Extractor object reference
         :type extractor: :class:`malduck.extractor.Extractor`
         """
-        if "family" in config:
-            if not self.family or (
-                    self.family != extractor.family and
-                    self.family in extractor.overrides):
-                self.family = config["family"]
+        try:
+            json.dumps(config)
+        except (TypeError, OverflowError):
+            raise RuntimeError("Config must be JSON-encodable")
 
-        new_config = merge_configs(self.collected_config, config)
-        if self.family:
-            new_config["family"] = self.family
-        self.collected_config = new_config
+        config = sanitize_config(config)
+
+        if not config:
+            return
+
+        log.debug("%s found the following config parts: %s", extractor.__class__.__name__, sorted(config.keys()))
+
+        self.collected_config = merge_configs(self.collected_config, config)
+
+        if "family" in config and (
+                not self.family or (self.family != extractor.family and self.family in extractor.overrides)):
+            self.family = config["family"]
+            log.debug("%s tells it's %s", extractor.__class__.__name__, self.family)
 
     @property
     def config(self):
         """
-        Returns collected config, but if family is not matched - returns empty dict
+        Returns collected config, but if family is not matched - returns empty dict.
+        Family is not included in config itself, look at :py:attr:`ProcmemExtractManager.family`.
         """
         if self.family is None:
             return {}
