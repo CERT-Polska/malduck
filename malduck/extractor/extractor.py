@@ -1,10 +1,11 @@
 import functools
 import logging
-import warnings
 
-from ..procmem.procmempe import ProcessMemoryPE
+from ..procmem import ProcessMemoryPE, ProcessMemoryELF
 
 from ..py2compat import add_metaclass
+
+log = logging.getLogger(__name__)
 
 
 class MetaExtractor(type):
@@ -43,7 +44,7 @@ class ExtractorMethod(object):
     def __init__(self, method):
         self.method = method
         self.weak = False
-        self.needs_pe = False
+        self.needs_exec = None
         self.final = False
         self.yara_string = method.__name__
         functools.update_wrapper(self, method)
@@ -136,9 +137,9 @@ class Extractor(ExtractorBase):
 
     Following parameters need to be defined:
 
-    * :py:attr:`family` (:py:attr:`extractor.ExtractorBase.family`)
+    * :py:attr:`family` (see :py:attr:`extractor.ExtractorBase.family`)
     * :py:attr:`yara_rules`
-    * :py:attr:`overrides` (optional, :py:attr:`extractor.ExtractorBase.overrides`)
+    * :py:attr:`overrides` (optional, see :py:attr:`extractor.ExtractorBase.overrides`)
 
     Example extractor code for Citadel:
 
@@ -221,6 +222,10 @@ class Extractor(ExtractorBase):
 
         Use this decorator for extractors that need PE instance. (:class:`malduck.procmem.ProcessMemoryPE`)
 
+    .. py:decoratormethod:: Extractor.needs_elf
+
+        Use this decorator for extractors that need ELF instance. (:class:`malduck.procmem.ProcessMemoryELF`)
+
     """
     yara_rules = ()  #: Names of Yara rules for which handle_yara is called
 
@@ -252,24 +257,37 @@ class Extractor(ExtractorBase):
             method = getattr(self, method_name)
             for va in match[identifier]:
                 try:
-                    if method.needs_pe:
-                        # If extractor explicitly needs this and p is raw procmem: find PE for specified offset
-                        p_pe = ProcessMemoryPE.from_memory(p, base=p.findmz(va)) \
-                            if not isinstance(p, ProcessMemoryPE) else p
-                        method(self, p_pe, va)
-                    else:
-                        method(self, p, va)
+                    if method.needs_exec and not isinstance(p, method.needs_exec):
+                        log.debug("Omitting %s.%s for %s@%x - %s is not %s",
+                                  self.__class__.__name__,
+                                  method_name,
+                                  identifier,
+                                  va,
+                                  p.__class__.__name__,
+                                  method.needs_exec.__name__)
+                        continue
+                    log.debug("Trying %s.%s for %s@%x",
+                              self.__class__.__name__,
+                              method_name,
+                              identifier,
+                              va)
+                    method(self, p, va)
                 except Exception as exc:
                     self.on_error(exc, method_name)
 
         # Call final extractors
         for method_name in self.final_methods:
             method = getattr(self, method_name)
-            if method.needs_pe and not isinstance(p, ProcessMemoryPE):
-                warnings.warn("Method {}.{} not called because object is not ProcessMemoryPE".format(
-                              self.__class__.__name__,
-                              method_name))
+            if method.needs_exec and not isinstance(p, method.needs_exec):
+                log.debug("Omitting %s.%s (final) - %s is not %s",
+                          self.__class__.__name__,
+                          method_name,
+                          p.__class__.__name__,
+                          method.needs_exec.__name__)
                 continue
+            log.debug("Trying %s.%s (final)",
+                      self.__class__.__name__,
+                      method_name)
             try:
                 method(self, p)
             except Exception as exc:
@@ -280,7 +298,13 @@ class Extractor(ExtractorBase):
     @staticmethod
     def needs_pe(method):
         method = Extractor._extractor_method(method)
-        method.needs_pe = True
+        method.needs_exec = ProcessMemoryPE
+        return method
+
+    @staticmethod
+    def needs_elf(method):
+        method = Extractor._extractor_method(method)
+        method.needs_exec = ProcessMemoryELF
         return method
 
     @staticmethod
@@ -315,6 +339,7 @@ class Extractor(ExtractorBase):
 
     @staticmethod
     def _extractor_method(method):
+        # Check whether method is already wrapped by ExtractorMethod
         if isinstance(method, ExtractorMethod):
             return method
         else:

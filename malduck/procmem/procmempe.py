@@ -1,11 +1,11 @@
 from .region import Region
-from .procmem import ProcessMemory
+from .binmem import ProcessMemoryBinary
 
 from ..bits import align
 from ..pe import PE
 
 
-class ProcessMemoryPE(ProcessMemory):
+class ProcessMemoryPE(ProcessMemoryBinary):
     """
     Representation of memory-mapped PE file
 
@@ -14,37 +14,11 @@ class ProcessMemoryPE(ProcessMemory):
     PE files can be read directly using inherited :py:meth:`ProcessMemory.from_file` with `image` argument set
     (look at :py:meth:`from_memory` method).
     """
+    __magic__ = b"MZ"
+
     def __init__(self, buf, base=0, regions=None, image=False, detect_image=False):
-        super(ProcessMemoryPE, self).__init__(buf, base=base, regions=regions)
         self._pe = None
-        self._imgend = None
-        if detect_image:
-            image = self.is_image_loaded_as_memdump()
-        if image:
-            self._load_image()
-
-    @classmethod
-    def from_memory(cls, memory, base=None, image=False, detect_image=False):
-        """
-        Creates ProcessMemoryPE instance from ProcessMemory object.
-
-        :param memory: ProcessMemory object containing PE image
-        :type memory: :class:`ProcessMemory`
-        :param base: Virtual address where PE image is located (default: beginning of procmem)
-        :param image: True if memory contains EXE file instead of memory-mapped PE (default: False)
-        :param detect_image: ProcessMemoryPE automatically detect whether image or memory-mapped PE is loaded
-                             (default: False)
-        :rtype: :class:`ProcessMemoryPE`
-
-        When image is True - PE file will be loaded under location specified in PE header
-        (pe.optional_header.ImageBase). :class:`ProcessMemoryPE` object created that way contains only memory regions
-        created during load (all other data will be wiped out). If image contains relocation info, relocations will be
-        applied using :py:meth:`pefile.relocate_image` method.
-        """
-        copied = cls(memory.m, base=base or memory.imgbase, regions=memory.regions,
-                     image=image, detect_image=detect_image)
-        copied.f = memory.f
-        return copied
+        super(ProcessMemoryPE, self).__init__(buf, base=base, regions=regions, image=image, detect_image=detect_image)
 
     def _pe_direct_load(self, fast_load=True):
         offset = self.v2p(self.imgbase)
@@ -53,7 +27,7 @@ class ProcessMemoryPE(ProcessMemory):
         pe = PE(data=m, fast_load=fast_load)
         return pe
 
-    def _load_image(self):
+    def _reload_as_image(self):
         # Load PE data from imgbase offset
         pe = self._pe_direct_load(fast_load=False)
         # Reset regions
@@ -72,6 +46,20 @@ class ProcessMemoryPE(ProcessMemory):
                     0, 0, 0,
                     section.PointerToRawData
                 ))
+
+    def is_valid(self):
+        if self.readv(self.imgbase, 2) != self.__magic__:
+            return False
+        pe_offs = self.uint32v(self.imgbase + 0x3C)
+        if pe_offs is None:
+            return False
+        if self.readv(self.imgbase + pe_offs, 2) != b"PE":
+            return False
+        try:
+            PE(self)
+            return True
+        except Exception:
+            return False
 
     def is_image_loaded_as_memdump(self):
         """
@@ -107,13 +95,8 @@ class ProcessMemoryPE(ProcessMemory):
     @property
     def imgend(self):
         """Address where PE image ends"""
-        if not self._imgend:
-            section = self.pe.sections[-1]
-            self._imgend = (
-                self.imgbase +
-                section.VirtualAddress + section.Misc_VirtualSize
-            )
-        return self._imgend
+        section = self.pe.sections[-1]
+        return self.imgbase + section.VirtualAddress + section.Misc_VirtualSize
 
     def store(self):
         """

@@ -17,7 +17,7 @@ class ProcessMemory(object):
 
     :param buf: Object with memory contents
     :type buf: bytes, mmap, memoryview or bytearray object
-    :param base: Virtual address of the beginning of buf
+    :param base: Virtual address of the region of interest (or beginning of buf when no regions provided)
     :type base: int, optional (default: 0)
     :param regions: Regions mapping. If set to None (default), buf is mapped into single-region with VA specified in
                     `base` argument
@@ -144,7 +144,7 @@ class ProcessMemory(object):
         return memory
 
     @classmethod
-    def from_memory(cls, memory):
+    def from_memory(cls, memory, base=None, **kwargs):
         """
         Makes new instance based on another ProcessMemory object.
 
@@ -152,9 +152,11 @@ class ProcessMemory(object):
 
         :param memory: ProcessMemory object to be copied
         :type memory: :class:`ProcessMemory`
+        :param base: Virtual address of region of interest (imgbase)
+        :type base: int
         :rtype: :class:`ProcessMemory`
         """
-        copied = cls(memory.m, base=memory.imgbase, regions=memory.regions)
+        copied = cls(memory.m, base=base or memory.imgbase, regions=memory.regions, **kwargs)
         copied.f = memory.f
         return copied
 
@@ -169,27 +171,128 @@ class ProcessMemory(object):
         else:
             return len(self.m)
 
-    def v2p(self, addr):
+    def iter_regions(self, addr=None, offset=None, length=None, contiguous=False, trim=False):
+        """
+        Iterates over Region objects starting at provided virtual address or offset
+
+        This method is used internally to enumerate regions using provided strategy.
+
+        .. warning::
+            If starting point is not provided, iteration will start from the first mapped region. This could
+            be counter-intuitive when length is set. It literally means "get <length> of mapped bytes".
+            If you want to look for regions from address 0, you need to explicitly provide this address as an argument.
+
+        .. versionadded:: 3.0.0
+
+        :param addr: Virtual address of starting point
+        :type addr: int (default: None)
+        :param offset: Offset of starting point, which will be translated to virtual address
+        :type offset: int (default: None)
+        :param length: Length of queried range in VM mapping context
+        :type length: int (default: None, unlimited)
+        :param contiguous: If True, break after first gap. Starting point must be inside mapped region.
+        :type contiguous: bool (default: False)
+        :param trim: Trim Region objects to range boundaries (addr, addr+length)
+        :type trim: bool (default: False)
+        :rtype: Iterator[:class:`Region`]
+        """
+        if addr is not None and offset is not None:
+            raise ValueError("'addr' and 'offset' arguments should be provided exclusively")
+        if addr is None and offset is None and contiguous:
+            raise ValueError("Starting point (addr or offset) must be provided for contiguous regions")
+        if length and length < 0:
+            raise ValueError("Length can't be less than 0")
+        # No length, no problem
+        if length == 0:
+            return
+        # If we don't have starting point provided: first region is the starting point
+        if addr is None and offset is None:
+            addr = self.regions[0].addr
+        # Skipping regions before starting point
+        for region_idx, region in enumerate(self.regions):
+            if (addr is not None and addr < region.end) or \
+               (offset is not None and offset < region.end_offset):
+                break
+        else:
+            return
+        # If starting region is placed after starting point
+        if (addr is not None and addr < region.addr) or \
+           (offset is not None and offset < region.offset):
+            # If expect only contiguous regions: we can't return anything
+            if contiguous:
+                return
+            # If not, we just need to adjust our starting point
+            if addr is not None:
+                if length is not None:
+                    length -= region.addr - addr
+                addr = region.addr
+            else:
+                if length is not None:
+                    raise ValueError("Don't know how to retrieve length-limited regions with offset from unmapped area")
+                offset = region.offset
+            # If we're out of length after adjustment: time to stop
+            if length is not None and length <= 0:
+                return
+        # Now, our starting "addr"/"offset" is placed inside starting "region"
+        # Let's translate our offset to addr if necessary
+        if addr is None:
+            addr = region.p2v(offset)
+        # Continue enumeration
+        prev_region = None
+        for region in self.regions[region_idx:]:
+            intersection = region.trim_range(addr, length)
+            # If we've got empty intersection: time to break
+            if not intersection:
+                break
+            # Is it still contiguous to previous?
+            if contiguous and prev_region and prev_region.end != region.addr:
+                break
+            yield intersection if trim else region
+            prev_region = region
+
+    def v2p(self, addr, length=None):
         """
         Virtual address to buffer (physical) offset translation
 
+        .. versionchanged:: 3.0.0
+
+            Added optional mapping length check
+
         :param addr: Virtual address
+        :param length: Expected minimal length of mapping (optional)
         :return: Buffer offset or None if virtual address is not mapped
         """
-        for region in self.regions:
-            if region.addr <= addr < region.end:
-                return region.offset + addr - region.addr
+        if addr is None:
+            return None
+        mapping_length = 0
+        for region in self.iter_regions(addr=addr, length=length, contiguous=True, trim=True):
+            if length is None:
+                return region.v2p(addr)
+            mapping_length += region.size
+            if mapping_length >= length:
+                return region.v2p(addr)
 
-    def p2v(self, off):
+    def p2v(self, off, length=None):
         """
         Buffer (physical) offset to virtual address translation
 
+        .. versionchanged:: 3.0.0
+
+            Added optional mapping length check
+
         :param off: Buffer offset
+        :param length: Expected minimal length of mapping (optional)
         :return: Virtual address or None if offset is not mapped
         """
-        for region in self.regions:
-            if region.offset <= off < region.offset + region.size:
-                return region.addr + off - region.offset
+        if off is None:
+            return None
+        mapping_length = 0
+        for region in self.iter_regions(offset=off, length=length, contiguous=True, trim=True):
+            if length is None:
+                return region.p2v(off)
+            mapping_length += region.size
+            if mapping_length >= length:
+                return region.p2v(off)
 
     def is_addr(self, addr):
         """
@@ -206,23 +309,7 @@ class ProcessMemory(object):
         :param addr: Virtual address
         :rtype: :class:`Region`
         """
-        for region in self.regions:
-            if region.addr <= addr < region.end:
-                return region
-
-    def iter_region(self, addr=None):
-        """
-        Returns generator of Region objects starting at virtual address
-
-        :param addr: Virtual address
-        :rtype: Iterator[:class:`Region`]
-        """
-        start = False
-        for region in self.regions:
-            if addr is None or region.addr <= addr < region.end:
-                start = True
-            if start:
-                yield region
+        return next(self.iter_regions(addr=addr, contiguous=True), None)
 
     def readp(self, offset, length=None):
         """
@@ -230,9 +317,9 @@ class ProcessMemory(object):
 
         .. warning::
 
-            Family of *p methods doesn't care about continuity of regions.
+            Family of *p methods doesn't care about contiguity of regions.
 
-            Use :py:meth:`p2v` and :py:meth:`readv` if you want to operate on continuous regions only
+            Use :py:meth:`p2v` and :py:meth:`readv` if you want to operate on contiguous regions only
 
         :param offset: Buffer offset
         :param length: Length of chunk (optional)
@@ -244,48 +331,35 @@ class ProcessMemory(object):
         else:
             return binary_type(self.m[offset:offset+length])
 
-    def readv_regions(self, addr=None, length=None, continuous_wise=True):
+    def readv_regions(self, addr=None, length=None, contiguous=True):
         """
-        Generate chunks of memory from next continuous regions, starting from the specified virtual address,
+        Generate chunks of memory from next contiguous regions, starting from the specified virtual address,
         until specified length of read data is reached.
 
         Used internally.
 
+        .. versionchanged: 3.0.0
+
+            Contents of contiguous regions are merged into single string
+
         :param addr: Virtual address
         :param length: Size of memory to read (optional)
-        :param continuous_wise: If True, readv_regions breaks after first gap
+        :param contiguous: If True, readv_regions breaks after first gap
         :rtype: Iterator[Tuple[int, bytes]]
         """
-        regions = self.iter_region(addr)
+        current_addr = None
+        current_strings = []
         prev_region = None
-        while length or length is None:
-            try:
-                region = next(regions)
-            except StopIteration:
-                return
-            if prev_region:
-                chunk_addr = region.addr
-                if continuous_wise and prev_region.end != region.addr:
-                    # Gap between regions - break
-                    break
-                # If continuous-wise: no-op
-                # Otherwise: skip gap
-                if length is not None:
-                    length -= region.addr - prev_region.end
-            else:
-                chunk_addr = addr or region.addr
-            # Get starting region offset
-            rel_offs = chunk_addr - region.addr
-            # ... and how many bytes we need to read
-            rel_length = region.size - rel_offs
-            if length is not None and length < rel_length:
-                rel_length = length
-            # Yield read chunk
-            yield chunk_addr, self.readp(region.offset + rel_offs, rel_length)
-            # Go to next region
-            if length is not None:
-                length -= rel_length
+        for region in self.iter_regions(addr=addr, length=length, contiguous=contiguous, trim=True):
+            if not prev_region or prev_region.end != region.addr:
+                if current_strings:
+                    yield current_addr, b"".join(current_strings)
+                current_addr = region.addr
+                current_strings = []
+            current_strings.append(self.readp(region.offset, region.size))
             prev_region = region
+        if current_strings:
+            yield current_addr, b"".join(current_strings)
 
     def readv(self, addr, length=None):
         """
@@ -298,7 +372,10 @@ class ProcessMemory(object):
         :return: Chunk from specified location
         :rtype: bytes
         """
-        return b''.join(map(operator.itemgetter(1), self.readv_regions(addr, length)))
+        if length is not None and length <= 0:
+            return b''
+        _, chunk = next(self.readv_regions(addr, length), (0, b''))
+        return chunk
 
     def readv_until(self, addr, s=None):
         """
@@ -310,13 +387,10 @@ class ProcessMemory(object):
         :type s: bytes
         :rtype: bytes
         """
-        ret = []
-        for _, chunk in self.readv_regions(addr):
-            if s in chunk:
-                ret.append(chunk[:chunk.index(s)])
-                break
-            ret.append(chunk)
-        return b"".join(ret)
+        # readv_regions is merging contiguous regions now
+        _, chunk = next(self.readv_regions(addr), (0, b''))
+        idx = chunk.find(s)
+        return chunk[:idx] if idx >= 0 else chunk
 
     def patchp(self, offset, buf):
         """
@@ -324,9 +398,9 @@ class ProcessMemory(object):
 
         .. warning::
 
-           Family of *p methods doesn't care about continuity of regions.
+           Family of *p methods doesn't care about contiguity of regions.
 
-           Use :py:meth:`p2v` and :py:meth:`patchv` if you want to operate on continuous regions only
+           Use :py:meth:`p2v` and :py:meth:`patchv` if you want to operate on contiguous regions only
 
         :param offset: Buffer offset
         :type offset: int
@@ -368,10 +442,10 @@ class ProcessMemory(object):
         :type buf: bytes
         """
         region = self.addr_region(addr)
-        # Bound check
+        # Boundary check
         if region is None or region.end < (addr + len(buf)):
             raise ValueError("Cross-region patching is not supported")
-        return self.patchp(region.offset + addr - region.addr, buf)
+        return self.patchp(region.v2p(addr), buf)
 
     def uint8p(self, offset, fixed=False):
         """Read unsigned 8-bit value at offset."""
@@ -480,8 +554,7 @@ class ProcessMemory(object):
         :return: Generates offsets where regex was matched
         :rtype: Iterator[int]
         """
-        for chunk_addr, chunk in self.readv_regions(addr, length, continuous_wise=False):
-            print(len(chunk))
+        for chunk_addr, chunk in self.readv_regions(addr, length, contiguous=False):
             for idx in self._find(chunk, query):
                 yield idx + chunk_addr
 
@@ -521,7 +594,7 @@ class ProcessMemory(object):
            Method doesn't match bytes overlapping the border between regions
         """
         query = ensure_bytes(query)
-        for chunk_addr, chunk in self.readv_regions(addr, length, continuous_wise=False):
+        for chunk_addr, chunk in self.readv_regions(addr, length, contiguous=False):
             for entry in re.finditer(query, chunk, re.DOTALL):
                 yield chunk_addr + entry.start()
 
@@ -590,14 +663,9 @@ class ProcessMemory(object):
             length = self.regions[-1].end - addr
 
         def map_offset(off, len):
-            # TODO: This could be better, but works in most cases
-            va = self.p2v(off)
-            if (va is not None and
-                addr <= va < addr + length and
-                self.is_addr(va + len - 1) and
-                addr <= va + len - 1 < addr + length):
-                return va
-
+            ptr = self.p2v(off, len)
+            if ptr is not None and addr <= ptr < addr + length:
+                return ptr
         return ruleset.match(data=self.readp(0), offset_mapper=map_offset)
 
     def _findbytes(self, yara_fn, query, addr, length):
@@ -612,7 +680,7 @@ class ProcessMemory(object):
 
     def findbytesp(self, query, offset=0, length=None):
         """
-        Search for byte sequences (e.g., `4? AA BB ?? DD`). Uses :py:meth:`regexp` internally
+        Search for byte sequences (e.g., `4? AA BB ?? DD`). Uses :py:meth:`yarap` internally
 
         .. versionadded:: 1.4.0
            Query is passed to yarap as single hexadecimal string rule. Use Yara-compatible strings only
@@ -630,7 +698,7 @@ class ProcessMemory(object):
 
     def findbytesv(self, query, addr=None, length=None):
         """
-        Search for byte sequences (e.g., `4? AA BB ?? DD`). Uses :py:meth:`regexv` internally
+        Search for byte sequences (e.g., `4? AA BB ?? DD`). Uses :py:meth:`yarav` internally
 
         .. versionadded:: 1.4.0
            Query is passed to yarav as single hexadecimal string rule. Use Yara-compatible strings only

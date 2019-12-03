@@ -1,4 +1,4 @@
-Memory model objects with PE support (procmem)
+Memory model objects (procmem)
 ==============================================
 
 .. automodule:: malduck.procmem
@@ -36,4 +36,12 @@ CuckooProcessMemory (cuckoomem)
 .. autoclass:: malduck.cuckoomem
 
 .. autoclass:: malduck.procmem.cuckoomem.CuckooProcessMemory
+    :members:
+
+IDAProcessMemory (idamem)
+---------------------------------
+
+.. autoclass:: malduck.idamem
+
+.. autoclass:: malduck.procmem.idamem.IDAProcessMemory
     :members:

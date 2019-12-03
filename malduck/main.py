@@ -2,11 +2,8 @@ import click
 import logging
 import json
 import os
-import warnings
 
 from .procmem import ProcessMemoryPE
-from pefile import PEFormatError
-from elftools.elf.elffile import ELFError
 
 
 @click.group()
@@ -47,13 +44,11 @@ def fixpe(mempath, outpath, force):
 @click.pass_context
 @click.argument("paths", nargs=-1, type=click.Path(exists=True), required=True)
 @click.option("--base", "-b", default=None, help="Base address of dump (use '0x' prefix for hexadecimal value)")
-@click.option("--pe/--non-pe", default=None, help="Specified files are PE executables/dumps (default: detect)")
-@click.option("--elf/--non-elf", default=None, help="Specified files are ELF executables (default: detect)")
-@click.option("--single/--multi", default=False, help="Treat files as single analysis "
-                                                      "(merge all configs from the same family into one)")
+@click.option("--analysis/--files", default=False, help="Treat files as dumps from single analysis "
+                                                        "(merge configs from the same family)")
 @click.option("--modules", default=None, type=click.Path(exists=True), required=False,
               help="Specify directory where Yara files and modules are located (default path is ~/.malduck)")
-def extract(ctx, paths, base, pe, elf, single, modules):
+def extract(ctx, paths, base, analysis, modules):
     """Extract static configuration from dumps"""
     from .extractor import ExtractManager, ExtractorModules
 
@@ -90,16 +85,9 @@ def extract(ctx, paths, base, pe, elf, single, modules):
         files.sort()
 
         for file_path in files:
-            try:
-                extract_manager.push_file(file_path, base=base, pe=pe, elf=elf)
-                if not single:
-                    echo_config(extract_manager, file_path)
-                    extract_manager = ExtractManager(extractor_modules)
-            except PEFormatError as e:
-                warnings.warn('Error parsing ' + file_path + ' as PE: ' + str(e))
-            except ELFError as e:
-                warnings.warn('Error parsing ' + file_path + ' as ELF: ' + str(e))
-            #except Exception as e:
-            #    warnings.warn('Unknown exception loading ' + file_path + ': ' + str(e))
-        if single:
+            extract_manager.push_file(file_path, base=base)
+            if not analysis:
+                echo_config(extract_manager, file_path)
+                extract_manager = ExtractManager(extractor_modules)
+        if analysis:
             echo_config(extract_manager)

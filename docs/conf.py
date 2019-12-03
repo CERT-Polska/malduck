@@ -22,7 +22,7 @@ copyright = '2019, CERT Polska'
 author = 'CERT Polska'
 
 # The full version, including alpha/beta/rc tags
-release = '2.1.1'
+release = '3.0.0'
 
 
 # -- General configuration ---------------------------------------------------

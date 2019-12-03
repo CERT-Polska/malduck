@@ -8,7 +8,7 @@ from .disasm import disasm
 from .hash.crc import crc32
 from .hash.sha import md5, sha1, sha224, sha384, sha256, sha512
 from .string.inet import ipv4
-from .string.ops import asciiz, utf16z, chunks, enhex, unhex, uleb128
+from .string.ops import asciiz, utf16z, chunks, chunks_iter, enhex, unhex, uleb128
 from .structure import Structure
 
 from .pe import pe2cuckoo
@@ -19,7 +19,7 @@ from .procmem import (
 )
 
 from .short import (
-    aes, blowfish, des3, rc4, pe, aplib, gzip, procmem, procmempe, procmemelf, cuckoomem, pad, unpad,
+    aes, blowfish, des3, rc4, pe, aplib, gzip, procmem, procmempe, procmemelf, cuckoomem, idamem, pad, unpad,
     insn, rsa, verify, base64, rabbit, serpent, lznt1, pkcs7, unpkcs7
 )
 

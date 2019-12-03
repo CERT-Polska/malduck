@@ -61,8 +61,7 @@ class MemoryPEData(object):
         return self.memory.imgbase + (self.pe.get_rva_from_offset(offs) or offs)
 
     def __len__(self):
-        r = self.memory.regions[-1]
-        return r.addr + r.size
+        return self.memory.regions[-1].addr - self.memory.regions[0].addr + self.memory.regions[-1].size
 
     def __getitem__(self, item):
         if type(item) is slice:
@@ -74,6 +73,8 @@ class MemoryPEData(object):
         return self.memory.readv(start, stop - start + 1)
 
     def find(self, str, beg=0, end=None):
+        if end and beg >= end:
+            return -1
         try:
             return next(self.memory.regexv(str, self.memory.imgbase + beg, end and end - beg))
         except StopIteration:

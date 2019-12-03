@@ -1,10 +1,12 @@
 from __future__ import absolute_import
 
 import json
+import logging
 import os
 import re
-import warnings
 import yara
+
+log = logging.getLogger(__name__)
 
 _YARA_RULE_FORMAT = """
 rule {name} {{
@@ -108,7 +110,7 @@ class Yara(object):
                 ruleset_name = os.path.splitext(os.path.basename(fname))[0]
                 ruleset_path = os.path.join(root, fname)
                 if ruleset_name in rule_paths:
-                    warnings.warn("Yara file name collision - {} overridden by {}".format(
+                    log.warning("Yara file name collision - {} overridden by {}".format(
                                   rule_paths[ruleset_name],
                                   ruleset_path))
                 rule_paths[ruleset_name] = ruleset_path
@@ -171,8 +173,13 @@ class YaraMatches(object):
     Rules can be referenced by both attribute and index.
     """
     def __init__(self, match_results, offset_mapper=None):
+        self.match_results = match_results
         self.matched_rules = {}
-        for match in match_results:
+        self.remap(offset_mapper)
+
+    def remap(self, offset_mapper=None):
+        self.matched_rules = {}
+        for match in self.match_results:
             yara_match = YaraMatch(match, offset_mapper=offset_mapper)
             if yara_match:
                 self.matched_rules[match.rule] = yara_match
