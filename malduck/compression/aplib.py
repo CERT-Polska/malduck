@@ -1,8 +1,10 @@
 from .components.aplib import ap_depack
 from ..py2compat import binary_type
 
+import logging
 import struct
-import warnings
+
+log = logging.getLogger(__name__)
 
 
 class aPLib(object):
@@ -29,7 +31,7 @@ class aPLib(object):
     """
     def decompress(self, buf, length=None, headerless=False):
         if length is not None:
-            warnings.warn("Length argument is ignored by aPLib.decompress")
+            log.warning("Length argument is ignored by aPLib.decompress")
         try:
             # Trim header
             if not headerless and buf.startswith(b"AP32"):
