@@ -159,11 +159,13 @@ class ExtractManager(object):
         :type filepath: str
         :param base: Memory dump base address
         :type base: int
+        :return: Family name if ripped successfully and provided better configuration than previous files.
+                 Returns None otherwise.
         """
         from ..procmem import ProcessMemory
         log.debug("Started extraction of file {}:{:x}".format(filepath, base))
         with ProcessMemory.from_file(filepath, base=base) as p:
-            self.push_procmem(p, rip_binaries=True)
+            return self.push_procmem(p, rip_binaries=True)
 
     def push_config(self, family, config):
         config["family"] = family
@@ -174,6 +176,7 @@ class ExtractManager(object):
             if is_config_better(base_config, config):
                 log.debug("Config looks better")
                 self.configs[family] = config
+                return family
             else:
                 log.debug("Config doesn't look better - ignoring.")
 
@@ -186,6 +189,8 @@ class ExtractManager(object):
         :param rip_binaries: Look for binaries (PE, ELF) in provided ProcessMemory and try to perform extraction using
         specialized variants (ProcessMemoryPE, ProcessMemoryELF)
         :type rip_binaries: bool (default: False)
+        :return: Family name if ripped successfully and provided better configuration than previous procmems.
+                 Returns None otherwise.
         """
         from ..procmem import ProcessMemoryPE, ProcessMemoryELF
         from ..procmem.binmem import ProcessMemoryBinary
@@ -206,15 +211,23 @@ class ExtractManager(object):
             extractor.push_procmem(procmem, _matches=matches)
             if extractor.family:
                 log.debug("{} - found {}!".format(fmt_procmem(procmem), extractor.family))
-                self.push_config(extractor.family, extractor.config)
+                return self.push_config(extractor.family, extractor.config)
             else:
                 log.debug("{} - No luck.".format(fmt_procmem(procmem)))
 
         log.debug("Matched rules: {}".format(matches.keys()))
+
+        ripped_family = None
+
         for binary in binaries:
-            extract_config(binary)
+            found_family = extract_config(binary)
+            if found_family is not None:
+                ripped_family = found_family
             if isinstance(binary, ProcessMemoryBinary) and binary.image is not None:
-                extract_config(binary.image)
+                found_family = extract_config(binary.image)
+                if found_family is not None:
+                    ripped_family = found_family
+        return ripped_family
 
     @property
     def config(self):
