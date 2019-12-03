@@ -1,7 +1,6 @@
-import logging
 import json
+import logging
 import os
-import warnings
 
 from .extractor import Extractor
 from .loaders import load_modules
@@ -88,7 +87,7 @@ class ExtractorModules(object):
         :param module_name: Name of module which throwed exception
         :type module_name: str
         """
-        warnings.warn("{} not loaded: {}".format(module_name, exc))
+        log.warning("{} not loaded: {}".format(module_name, exc))
 
 
 class ExtractManager(object):

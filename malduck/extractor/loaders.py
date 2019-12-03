@@ -1,8 +1,10 @@
 
+import logging
 import pkgutil
-import warnings
 
 from ..py2compat import import_module
+
+log = logging.getLogger(__name__)
 
 
 def load_modules(search_path, onerror=None):
@@ -23,7 +25,7 @@ def load_modules(search_path, onerror=None):
         if not is_pkg:
             continue
         if module_name in modules:
-            warnings.warn("Module collision - {} overridden".format(module_name))
+            log.warning("Module collision - {} overridden".format(module_name))
         try:
             modules[module_name] = import_module(importer, module_name)
         except Exception as exc:
