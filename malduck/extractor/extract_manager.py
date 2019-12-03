@@ -170,6 +170,7 @@ class ExtractManager(object):
         config["family"] = family
         if family not in self.configs:
             self.configs[family] = config
+            return family
         else:
             base_config = self.configs[family]
             if is_config_better(base_config, config):
