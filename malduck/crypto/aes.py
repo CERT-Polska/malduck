@@ -57,7 +57,7 @@ BlobTypes = {
 
 class AES(object):
     r"""
-    AES decryption object
+    AES encryption/decryption object
 
     :param key: Encryption key
     :type key: bytes
@@ -82,7 +82,18 @@ class AES(object):
         self.aes = Cipher(
             algorithms.AES(key), self.modes[mode](iv),
             backend=default_backend()
-        ).decryptor()
+        )
+
+    def encrypt(self, data):
+        """
+        Encrypt provided data
+
+        :param data: Buffer with data
+        :type data: bytes
+        :return: Encrypted data
+        """
+        aes_enc = self.aes.encryptor()
+        return aes_enc.update(data) + aes_enc.finalize()        
 
     def decrypt(self, data):
         """
@@ -92,7 +103,8 @@ class AES(object):
         :type data: bytes
         :return: Decrypted data
         """
-        return self.aes.update(data) + self.aes.finalize()
+        aes_dec = self.aes.decryptor()
+        return aes_dec.update(data) + aes_dec.finalize()
 
     @staticmethod
     def import_key(data):

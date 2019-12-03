@@ -24,6 +24,9 @@ class aes(object):
     def __init__(self, mode):
         self.mode = mode
 
+    def encrypt(self, key=None, iv=None, data=None):
+        return AES(key, iv, self.mode).encrypt(data)
+
     def decrypt(self, key=None, iv=None, data=None):
         return AES(key, iv, self.mode).decrypt(data)
 
@@ -37,8 +40,12 @@ class aes(object):
 
             aes.cbc(key=b'aes128cipher_key',
                     iv=b"iv"*8,
-                    data=pkcs7(b"data_to_be_encrypted", 16))
+                    data=pkcs7(b"data_to_be_decrypted", 16))
         """
+        @staticmethod
+        def encrypt(key=None, iv=None, data=None):
+            return aes("cbc").encrypt(key, iv, data)
+
         @staticmethod
         def decrypt(key=None, iv=None, data=None):
             return aes("cbc").decrypt(key, iv, data)
@@ -56,8 +63,12 @@ class aes(object):
             from malduck import aes, pkcs7
 
             aes.ecb(key=b'aes128cipher_key',
-                    data=pkcs7(b"data_to_be_encrypted", 16))
+                    data=pkcs7(b"data_to_be_decrypted", 16))
         """
+        @staticmethod
+        def encrypt(key=None, data=None):
+            return aes("ecb").encrypt(key, None, data)
+
         @staticmethod
         def decrypt(key=None, data=None):
             return aes("ecb").decrypt(key, None, data)
@@ -76,8 +87,12 @@ class aes(object):
 
             aes.ctr(key=b'aes128cipher_key',
                     nonce=b"iv"*8
-                    data=pkcs7(b"data_to_be_encrypted", 16))
+                    data=pkcs7(b"data_to_be_decrypted", 16))
         """
+        @staticmethod
+        def encrypt(key=None, nonce=None, data=None):
+            return aes("ctr").encrypt(key, nonce, data)
+
         @staticmethod
         def decrypt(key=None, nonce=None, data=None):
             return aes("ctr").decrypt(key, nonce, data)

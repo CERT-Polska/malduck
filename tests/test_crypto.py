@@ -10,6 +10,7 @@ def test_aes():
         b"I\x96Z\xe4\xb5\xffX\xbdT]\x93\x03\x96\xfcw\xd9"
         b"I\x96Z\xe4\xb5\xffX\xbdT]\x93\x03\x96\xfcw\xd9"
     )
+
     assert aes.ecb.decrypt(b"A"*16, data=b"C"*32) == (
         b"I\x96Z\xe4\xb5\xffX\xbdT]\x93\x03\x96\xfcw\xd9"
         b"I\x96Z\xe4\xb5\xffX\xbdT]\x93\x03\x96\xfcw\xd9"
@@ -20,10 +21,24 @@ def test_aes():
         b"\n\xd5\x19\xa7\xf6\xbc\x1b\xfe\x17\x1e\xd0@\xd5\xbf4\x9a"
     )
 
-    assert aes.ctr(
+    assert aes.ctr.decrypt(
         b"hello world12345", b"A"*16,
         b"\x803\xe3J#\xf4;\x13\x11+h\xf5\xba-\x9b\x05"
     ) == b"B"*16
+
+    assert aes.ecb.encrypt(b"A"*16, b"C"*32) == (
+        b"\xbf\x1ej>.\xc2\xdb_\x9a1&\x17\xee\xfc\x95S"
+        b"\xbf\x1ej>.\xc2\xdb_\x9a1&\x17\xee\xfc\x95S"
+    )
+
+    assert aes.cbc.encrypt(b"A"*16, b"B"*16, b"C"*32) == (
+        b"\xaa\x1a\x18\xffUa_a\"\xf2\x87He\xc8\x1b\xfc"
+        b"\xf9\xcb@\xed\xf6N\xd0-\x9d1rB\xd1\xf2Z\x00"
+    )
+
+    assert aes.ctr.encrypt(b"hello world12345", b"A"*16, b"B"*16) == (
+        b'\x803\xe3J#\xf4;\x13\x11+h\xf5\xba-\x9b\x05'
+    )
 
     assert aes.import_key(
         b"\x08\x02\x00\x00\x0ef\x00\x00\x10\x00\x00\x00" + b"A"*16
