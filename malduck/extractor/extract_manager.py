@@ -195,11 +195,15 @@ class ExtractManager(object):
         from ..procmem import ProcessMemoryPE, ProcessMemoryELF
         from ..procmem.binmem import ProcessMemoryBinary
 
+        matches = p.yarav(self.rules)
+        if not matches:
+            log.debug("No Yara matches.")
+            return
+
         binaries = [p]
         if rip_binaries:
             binaries += list(ProcessMemoryPE.load_binaries_from_memory(p)) + \
                         list(ProcessMemoryELF.load_binaries_from_memory(p))
-        matches = p.yarav(self.rules)
 
         fmt_procmem = lambda p: "{}:{}:{:x}".format(p.__class__.__name__,
                                                     "IMG" if getattr(p, "is_image", False) else "DMP", p.imgbase)
