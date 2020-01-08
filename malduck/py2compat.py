@@ -26,18 +26,23 @@ def iterbytes(b):
 
 def ensure_bytes(v):
     """
-    Py2: str -> str, unicode -> str
-    Py3: str -> bytes
+    Py2: str -> str; unicode -> str
+    Py3: bytes -> bytes; str -> bytes
     """
     return v.encode("utf8") if not isinstance(v, binary_type) else v
 
 
 def ensure_string(v):
     """
-    Py2: str -> str
-    Py3: bytes -> str
+    Py2: str -> str; unicode -> unicode
+    Py3: bytes -> str; str -> str
     """
-    return v.decode("utf8") if PY3 and isinstance(v, binary_type) else v
+    if PY3 and isinstance(v, binary_type):
+        return v.decode("utf8")
+    elif isinstance(v, string_types):
+        return v
+    else:
+        raise TypeError('v should be str/unicode/bytes instead of ' + str(type(v)))
 
 
 def import_module(importer, module_name):
