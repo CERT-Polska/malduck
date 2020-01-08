@@ -60,7 +60,7 @@ def extract(ctx, paths, base, analysis, modules):
                     else "[+] Ripped '{family}' configuration:"
                 ) .format(family=config["family"], file_path=file_path)
                 click.echo(message, err=True)
-                click.echo(json.dumps(config, indent=4))
+                click.echo(json.dumps(config, indent=4, sort_keys=True))
 
     if base is None:
         base = 0
@@ -82,9 +82,8 @@ def extract(ctx, paths, base, analysis, modules):
         else:
             files = []
             click.echo("[!] Symbolic links are not supported, {} ignored.".format(path), err=True)
-        files.sort()
 
-        for file_path in files:
+        for file_path in sorted(files):
             extract_manager.push_file(file_path, base=base)
             if not analysis:
                 echo_config(extract_manager, file_path)

@@ -4,6 +4,7 @@ import os
 
 from .extractor import Extractor
 from .loaders import load_modules
+from ..py2compat import binary_type
 from ..yara import Yara
 
 log = logging.getLogger(__name__)
@@ -17,6 +18,17 @@ def is_config_better(base_config, new_config):
     base = [(k, v) for k, v in base_config.items() if v]
     new = [(k, v) for k, v in new_config.items() if v]
     return len(new) > len(base)
+
+
+def encode_for_json(data):
+    if isinstance(data, binary_type):
+        return data.decode('utf-8')
+    elif isinstance(data, list):
+        return [encode_for_json(item) for item in data]
+    elif isinstance(data, dict):
+        return {key: encode_for_json(value) for key, value in data.items()}
+    else:
+        return data
 
 
 def sanitize_config(config):
@@ -219,7 +231,7 @@ class ExtractManager(object):
             else:
                 log.debug("{} - No luck.".format(fmt_procmem(procmem)))
 
-        log.debug("Matched rules: {}".format(matches.keys()))
+        log.debug("Matched rules: {}".format(list(matches.keys())))  # 'list()' for prettier logs
 
         ripped_family = None
 
@@ -298,9 +310,11 @@ class ProcmemExtractManager(object):
         :param extractor: Extractor object reference
         :type extractor: :class:`malduck.extractor.Extractor`
         """
+        config = encode_for_json(config)
         try:
             json.dumps(config)
-        except (TypeError, OverflowError):
+        except (TypeError, OverflowError) as e:
+            log.debug("Config is not JSON-encodable ({}): {}".format(str(e), repr(config)))
             raise RuntimeError("Config must be JSON-encodable")
 
         config = sanitize_config(config)

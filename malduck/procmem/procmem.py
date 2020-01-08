@@ -6,7 +6,7 @@ from .region import Region, PAGE_EXECUTE_READWRITE
 from ..disasm import disasm
 from ..string.bin import uint8, uint16, uint32, uint64, int8, int16, int32, int64
 from ..string.ops import utf16z
-from ..py2compat import ensure_bytes, ensure_string, binary_type
+from ..py2compat import is_binary, ensure_string, binary_type
 
 
 class ProcessMemory(object):
@@ -572,7 +572,10 @@ class ProcessMemory(object):
         :rtype: Iterator[int]
         """
         chunk = self.readp(offset, length)
-        query = ensure_bytes(query)
+        if not is_binary(query):
+            # Can't just encode the string.
+            # E.g. '\xf7'.encode('utf-8') would be encoded to b'\xc3\xb7' instead of b'\xf7'.
+            raise TypeError("Query argument must be binary type (bytes)")
         for entry in re.finditer(query, chunk, re.DOTALL):
             yield offset + entry.start()
 
@@ -593,7 +596,10 @@ class ProcessMemory(object):
 
            Method doesn't match bytes overlapping the border between regions
         """
-        query = ensure_bytes(query)
+        if not is_binary(query):
+            # Can't just encode the string.
+            # E.g. '\xf7'.encode('utf-8') would be encoded to b'\xc3\xb7' instead of b'\xf7'.
+            raise TypeError("Query argument must be binary type (bytes)")
         for chunk_addr, chunk in self.readv_regions(addr, length, contiguous=False):
             for entry in re.finditer(query, chunk, re.DOTALL):
                 yield chunk_addr + entry.start()
