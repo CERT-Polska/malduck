@@ -2972,7 +2972,7 @@ assert __testdat == Serpent(__testkey).decrypt(b'\xde&\x9f\xf83\xe42\xb8[.\x88\x
 
 # CBC Encrypt - Jason Reaves
 def serpent_cbc_encrypt(key, data, iv=b'\x00' * 16):
-    out = ""
+    out = b""
     last = iv
     for i in range(len(data) // 16):
         temp = data[i * 16:(i + 1) * 16]
