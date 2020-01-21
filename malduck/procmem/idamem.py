@@ -5,6 +5,7 @@ from .region import Region
 try:
     import idautils
     import idc
+    import ida_bytes
     IDAPYTHON = 1
 except ImportError:
     IDAPYTHON = 0
@@ -32,14 +33,14 @@ class IDAVM(object):
         for ea_start, ea_end in self._get_ea_range(item):
             for ea in range(ea_start, ea_end):
                 try:
-                    idc.PatchByte(ea, next(value_bytes))
+                    ida_bytes.patch_byte(ea, next(value_bytes))
                 except StopIteration:
                     return
 
     def __getitem__(self, item):
         data = []
         for ea_start, ea_end in self._get_ea_range(item):
-            data.append(idc.GetManyBytes(ea_start, ea_end - ea_start))
+            data.append(idc.get_bytes(ea_start, ea_end - ea_start))
         return b''.join(data)
 
     def __len__(self):
@@ -56,7 +57,6 @@ class IDAProcessMemory(ProcessMemory):
         regions = []
         for seg in idautils.Segments():
             off = 0 if not regions else regions[-1].end_offset
-            region = Region(seg, idc.SegEnd(seg) - seg, 0, 0, 0, off)
+            region = Region(seg, idc.get_segm_end(seg) - seg, 0, 0, 0, off)
             regions.append(region)
         super(IDAProcessMemory, self).__init__(IDAVM(self), regions=regions)
-
