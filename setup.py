@@ -5,7 +5,7 @@ except ImportError:
 
 setup(
     name="malduck",
-    version="3.1.1",
+    version="3.1.2",
     description="Malduck is your ducky companion in malware analysis journeys",
     author="CERT Polska",
     author_email="info@cert.pl",
