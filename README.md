@@ -26,3 +26,5 @@ pip install malduck
 ```
 
 Usage documentation can be found here: [https://malduck.readthedocs.io/en/latest/](https://malduck.readthedocs.io/en/latest/)
+
+![Co-financed by the Connecting Europe Facility by of the European Union](https://www.cert.pl/wp-content/uploads/2019/02/en_horizontal_cef_logo-1.png)
