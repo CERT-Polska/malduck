@@ -11,6 +11,7 @@ from .procmem import ProcessMemoryPE
               help="Set logging level for commands: critical, error, warning (default), info, debug")
 @click.option("--verbose/--quiet", "-v/-q", default=None,
               help="Verbose mode (shortcut for '--log-level debug') / quiet mode ('--log-level error')")
+@click.version_option()
 def main(log_level, verbose):
     if log_level is None:
         if verbose is None:
