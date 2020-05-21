@@ -1,8 +1,7 @@
-
 import logging
 import pkgutil
 
-from ..py2compat import import_module
+from ..py2compat import import_module_by_finder
 
 log = logging.getLogger(__name__)
 
@@ -21,13 +20,13 @@ def load_modules(search_path, onerror=None):
     :return: dict {name: module}
     """
     modules = {}
-    for importer, module_name, is_pkg in pkgutil.iter_modules([search_path], "malduck.extractor.modules."):
+    for finder, module_name, is_pkg in pkgutil.iter_modules([search_path], "malduck.extractor.modules."):
         if not is_pkg:
             continue
         if module_name in modules:
             log.warning("Module collision - {} overridden".format(module_name))
         try:
-            modules[module_name] = import_module(importer, module_name)
+            modules[module_name] = import_module_by_finder(finder, module_name)
         except Exception as exc:
             if onerror:
                 onerror(exc, module_name)
