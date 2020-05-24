@@ -23,7 +23,7 @@ def is_config_better(base_config, new_config):
 def encode_for_json(data):
     if isinstance(data, binary_type):
         return data.decode('utf-8')
-    elif isinstance(data, list):
+    elif isinstance(data, list) or isinstance(data, tuple):
         return [encode_for_json(item) for item in data]
     elif isinstance(data, dict):
         return {key: encode_for_json(value) for key, value in data.items()}
