@@ -143,7 +143,7 @@ class Instruction(object):
 
         def move_command_new(self, p, hit, *args):
             for c in p.disasmv(hit, 0x1000):
-                if c.mnem == 'mov' and c.op1.value == 0x14:
+                if c.mnem == 'mov' and c.op2.value == 0x14:
                     return c.op2.value
 
     .. seealso::
