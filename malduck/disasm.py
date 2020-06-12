@@ -141,10 +141,11 @@ class Instruction(object):
 
     .. code-block:: python
 
-        def move_command_new(self, p, hit, *args):
-            for c in p.disasmv(hit, 0x1000):
-                if c.mnem == 'mov' and c.op2.value == 0x14:
-                    return c.op2.value
+        def get_move_value(self, p, hit, *args):
+            # find move value of `mov eax, x`
+            for ins in p.disasmv(hit, 0x100):
+                if ins.mnem == 'mov' and ins.op1.value == 'eax':
+                    return ins.op2.value
 
     .. seealso::
 
