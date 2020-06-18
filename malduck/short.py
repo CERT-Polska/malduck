@@ -5,7 +5,7 @@
 from .compression.aplib import aPLib
 from .compression.gzip import Gzip
 from .compression.lznt1 import Lznt1
-from .crypto.aes import AES
+from .crypto.aes import AES, Aes as aes
 from .crypto.blowfish import Blowfish
 from .crypto.des3 import DES3
 from .crypto.serpent import Serpent
@@ -17,93 +17,6 @@ from .pe import PE
 from .procmem import ProcessMemory, ProcessMemoryPE, ProcessMemoryELF, CuckooProcessMemory, IDAProcessMemory
 from .string.ops import Padding, Unpadding, Base64
 from .verify import Verify
-
-
-class aes(object):
-
-    def __init__(self, mode):
-        self.mode = mode
-
-    def encrypt(self, key=None, iv=None, data=None):
-        return AES(key, iv, self.mode).encrypt(data)
-
-    def decrypt(self, key=None, iv=None, data=None):
-        return AES(key, iv, self.mode).decrypt(data)
-
-    class _cbc_(object):
-        """
-        AES decryption using CBC mode
-
-        .. code-block:: python
-
-            from malduck import aes, pkcs7
-
-            aes.cbc(key=b'aes128cipher_key',
-                    iv=b"iv"*8,
-                    data=pkcs7(b"data_to_be_decrypted", 16))
-        """
-        @staticmethod
-        def encrypt(key=None, iv=None, data=None):
-            return aes("cbc").encrypt(key, iv, data)
-
-        @staticmethod
-        def decrypt(key=None, iv=None, data=None):
-            return aes("cbc").decrypt(key, iv, data)
-
-        __call__ = decrypt
-
-    cbc = _cbc_()
-
-    class _ecb_(object):
-        """
-        AES decryption using ECB mode
-
-        .. code-block:: python
-
-            from malduck import aes, pkcs7
-
-            aes.ecb(key=b'aes128cipher_key',
-                    data=pkcs7(b"data_to_be_decrypted", 16))
-        """
-        @staticmethod
-        def encrypt(key=None, data=None):
-            return aes("ecb").encrypt(key, None, data)
-
-        @staticmethod
-        def decrypt(key=None, data=None):
-            return aes("ecb").decrypt(key, None, data)
-
-        __call__ = decrypt
-
-    ecb = _ecb_()
-
-    class _ctr_(object):
-        """
-        AES decryption using CTR mode
-
-        .. code-block:: python
-
-            from malduck import aes, pkcs7
-
-            aes.ctr(key=b'aes128cipher_key',
-                    nonce=b"iv"*8
-                    data=pkcs7(b"data_to_be_decrypted", 16))
-        """
-        @staticmethod
-        def encrypt(key=None, nonce=None, data=None):
-            return aes("ctr").encrypt(key, nonce, data)
-
-        @staticmethod
-        def decrypt(key=None, nonce=None, data=None):
-            return aes("ctr").decrypt(key, nonce, data)
-
-        __call__ = decrypt
-
-    ctr = _ctr_()
-
-    @staticmethod
-    def import_key(data):
-        return AES.import_key(data)
 
 
 class des3(object):
