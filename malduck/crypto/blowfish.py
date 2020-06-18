@@ -12,7 +12,12 @@ class Blowfish(object):
         self.blowfish = Cipher(
             algorithms.Blowfish(key), mode=modes.ECB(),
             backend=default_backend()
-        ).decryptor()
+        )
 
     def decrypt(self, data):
-        return self.blowfish.update(data) + self.blowfish.finalize()
+        decryptor = self.blowfish.decryptor()
+        return decryptor.update(data) + decryptor.finalize()
+
+    def encrypt(self, data):
+        encryptor = self.blowfish.encryptor()
+        return encryptor.update(data) + encryptor.finalize()

@@ -113,6 +113,9 @@ class des3(object):
     def decrypt(self, key=None, iv=None, data=None):
         return DES3(key, iv, self.mode).decrypt(data)
 
+    def encrypt(self, key=None, iv=None, data=None):
+        return DES3(key, iv, self.mode).encrypt(data)
+
     class _cbc_(object):
         r"""
         DES3 decryption object (CBC-only)
@@ -135,6 +138,10 @@ class des3(object):
         @staticmethod
         def decrypt(key=None, iv=None, data=None):
             return des3("cbc").decrypt(key, iv, data)
+
+        @staticmethod
+        def encrypt(key=None, iv=None, data=None):
+            return des3("cbc").encrypt(key, iv, data)
 
         __call__ = decrypt
 
@@ -183,6 +190,10 @@ class blowfish_(object):
     def decrypt(key, data):
         return Blowfish(key).decrypt(data)
 
+    @staticmethod
+    def encrypt(key, data):
+        return Blowfish(key).encrypt(data)
+
     __call__ = decrypt
 
 
@@ -205,7 +216,7 @@ class rabbit_(object):
     __call__ = rabbit
 
 
-def serpent(key, data, iv=None):
+class serpent(object):
     r"""
      Serpent decryption
 
@@ -226,7 +237,16 @@ def serpent(key, data, iv=None):
      :param iv: Initialization vector (default: :code:`b"\x00" * 16`)
      :type iv: bytes
      """
-    return Serpent(key, iv).decrypt(data)
+
+    @staticmethod
+    def decrypt(key, data, iv=None):
+        return Serpent(key, iv).decrypt(data)
+
+    @staticmethod
+    def encrypt(key, data, iv=None):
+        return Serpent(key, iv).encrypt(data)
+
+    __call__ = decrypt
 
 
 blowfish = blowfish_()

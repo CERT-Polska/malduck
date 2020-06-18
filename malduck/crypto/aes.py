@@ -93,7 +93,7 @@ class AES(object):
         :return: Encrypted data
         """
         aes_enc = self.aes.encryptor()
-        return aes_enc.update(data) + aes_enc.finalize()        
+        return aes_enc.update(data) + aes_enc.finalize()
 
     def decrypt(self, data):
         """
