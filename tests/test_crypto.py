@@ -46,15 +46,23 @@ def test_aes():
 
 
 def test_blowfish():
-    assert blowfish(
+    assert blowfish.decrypt(
         b"blowfish", b"\x91;\x92\xa9\x85\x83\xb36\xbb\xac\xa8r0\xf1$\x19"
     ) == b"_hello world01!?"
+
+    assert blowfish.encrypt(
+        b"blowfish", b"_hello world01!?"
+    ) == b"\x91;\x92\xa9\x85\x83\xb36\xbb\xac\xa8r0\xf1$\x19"
 
 
 def test_des():
     assert des3.cbc.decrypt(
         b"A"*8, b"B"*8, b"\x1d\xed\xc37pV\x89S\xac\xaeT\xaf\xa1\xcfW\xa3"
     ) == b"C"*16
+
+    assert des3.cbc.encrypt(
+        b"A"*8, b"B"*8, b"C"*16
+    ) == b"\x1d\xed\xc37pV\x89S\xac\xaeT\xaf\xa1\xcfW\xa3"
 
 
 def test_rc4():
@@ -237,4 +245,6 @@ def test_rabbit():
 def test_serpent():
     payload = unhex("8a516cb035540b5854a18eeccc40299d")
     key = b"0123456789ABCDEF"
-    assert serpent(key, payload) == b'\xf4\xee\xd1\xec\x04\x01\x00\x00\x00\x04\x00\x00\xc3\xdc\x07\xd4'
+    assert serpent.decrypt(key, payload) == b'\xf4\xee\xd1\xec\x04\x01\x00\x00\x00\x04\x00\x00\xc3\xdc\x07\xd4'
+
+    assert serpent.encrypt(key, b'\xf4\xee\xd1\xec\x04\x01\x00\x00\x00\x04\x00\x00\xc3\xdc\x07\xd4') == payload

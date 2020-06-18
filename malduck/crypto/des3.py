@@ -15,7 +15,12 @@ class DES3(object):
         self.des3 = Cipher(
             algorithms.TripleDES(key), self.modes[mode](iv),
             backend=default_backend()
-        ).decryptor()
+        )
 
     def decrypt(self, data):
-        return self.des3.update(data) + self.des3.finalize()
+        decryptor = self.des3.decryptor()
+        return decryptor.update(data) + decryptor.finalize()
+
+    def encrypt(self, data):
+        encryptor = self.des3.encryptor()
+        return encryptor.update(data) + encryptor.finalize()
