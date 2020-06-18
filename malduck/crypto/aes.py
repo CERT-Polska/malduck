@@ -239,3 +239,11 @@ class AES(object):
         :return: Tuple (`algorithm`, `key`). `Algorithm` is one of: "AES-128", "AES-192", "AES-256"
         """
         return Aes.import_key(data)
+
+
+aes = Aes()
+
+__all__ = [
+    "PlaintextKeyBlob",
+    "AES", "aes"
+]

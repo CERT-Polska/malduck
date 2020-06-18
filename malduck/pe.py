@@ -309,3 +309,10 @@ def pe2cuckoo(data):
     """Translate a PE file into a cuckoo-procmem file."""
     m = ProcessMemoryPE(data, image=True)
     return CuckooProcessMemory.from_memory(m).store()
+
+
+pe = PE
+
+__all__ = [
+    "pe", "PE", "MemoryPEData", "FastPE", "pe2cuckoo"
+]

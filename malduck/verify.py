@@ -40,3 +40,10 @@ class Verify(object):
     @staticmethod
     def url(s):
         return bool(re.match(URL_REGEX, s, re.DOTALL))
+
+
+verify = Verify
+
+__all__ = [
+    "Verify", "verify"
+]

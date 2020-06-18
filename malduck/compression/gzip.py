@@ -4,7 +4,7 @@
 
 from __future__ import absolute_import
 
-import gzip
+from gzip import GzipFile
 import io
 import zlib
 
@@ -27,7 +27,12 @@ class Gzip(object):
     """
     def decompress(self, buf):
         if buf.startswith(b"\x1f\x8b\x08"):
-            return gzip.GzipFile(fileobj=io.BytesIO(buf)).read()
+            return GzipFile(fileobj=io.BytesIO(buf)).read()
         return zlib.decompress(buf)
 
     __call__ = decompress
+
+
+gzip = Gzip()
+
+__all__ = ["gzip", "Gzip"]

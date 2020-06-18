@@ -262,3 +262,9 @@ class Disassemble(object):
 
 
 disasm = Disassemble()
+insn = Instruction
+
+__all__ = [
+    "disasm", "insn",
+    "Disassemble", "Instruction", "Operand", "Memory"
+]

@@ -145,3 +145,11 @@ class RSA(object):
         tup = tuple(takewhile(lambda x: x is not None, tup))
         return RSA_.construct(tup, consistency_check=False).export_key()
 
+
+rsa = RSA
+
+
+__all__ = [
+    "PublicKeyBlob", "PrivateKeyBlob",
+    "RSA", "rsa"
+]

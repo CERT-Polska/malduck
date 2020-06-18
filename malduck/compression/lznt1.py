@@ -18,3 +18,8 @@ class Lznt1(object):
         return decompress_data(buf)
 
     __call__ = decompress
+
+
+lznt1 = Lznt1()
+
+__all__ = ["Lznt1", "lznt1"]

@@ -2,22 +2,61 @@
 # This file is part of Roach - https://github.com/jbremer/roach.
 # See the file 'docs/LICENSE.txt' for copying permission.
 
+import warnings
 
-from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+from Cryptodome.Cipher import Blowfish as BlowfishCipher
+
+
+class BlowfishEcb(object):
+    def encrypt(self, key, data):
+        cipher = BlowfishCipher.new(key, BlowfishCipher.MODE_ECB)
+        return cipher.encrypt(data)
+
+    def decrypt(self, key, data):
+        cipher = BlowfishCipher.new(key, BlowfishCipher.MODE_ECB)
+        return cipher.decrypt(data)
+
+
+class _Blowfish(object):
+    ecb = BlowfishEcb()
+
+    def encrypt(self, key, data):
+        warnings.warn(
+            "malduck.blowfish.encrypt is deprecated, please use malduck.blowfish.ecb.encrypt",
+            DeprecationWarning
+        )
+        return self.ecb.encrypt(key, data)
+
+    def decrypt(self, key, data):
+        warnings.warn(
+            "malduck.blowfish.decrypt is deprecated, please use malduck.blowfish.ecb.decrypt",
+            DeprecationWarning
+        )
+        return self.ecb.decrypt(key, data)
+
+    def __call__(self, key, data):
+        warnings.warn(
+            "malduck.blowfish() is deprecated, please use malduck.blowfish.ecb.decrypt",
+            DeprecationWarning
+        )
+        return self.ecb.decrypt(key, data)
 
 
 class Blowfish(object):
     def __init__(self, key):
-        self.blowfish = Cipher(
-            algorithms.Blowfish(key), mode=modes.ECB(),
-            backend=default_backend()
+        warnings.warn(
+            "malduck.crypto.Blowfish is deprecated, please use malduck.blowfish.<mode> variants",
+            DeprecationWarning
         )
+        self.key = key
 
     def decrypt(self, data):
-        decryptor = self.blowfish.decryptor()
-        return decryptor.update(data) + decryptor.finalize()
+        return _Blowfish.ecb.decrypt(self.key, data)
 
     def encrypt(self, data):
-        encryptor = self.blowfish.encryptor()
-        return encryptor.update(data) + encryptor.finalize()
+        return _Blowfish.ecb.encrypt(self.key, data)
+
+
+blowfish = _Blowfish()
+
+__all__ = ["Blowfish", "blowfish"]

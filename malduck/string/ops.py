@@ -2,7 +2,7 @@
 # This file is part of Roach - https://github.com/jbremer/roach.
 # See the file 'docs/LICENSE.txt' for copying permission.
 
-import base64
+from base64 import b64decode, b64encode
 import binascii
 
 from ..py2compat import indexbytes, int2byte
@@ -72,10 +72,10 @@ def uleb128(s):
 class Base64(object):
     """Base64 encoder/decoder"""
     def encode(self, s):
-        return base64.b64encode(s)
+        return b64encode(s)
 
     def decode(self, s):
-        return base64.b64decode(s)
+        return b64decode(s)
 
     __call__ = decode
 
@@ -120,3 +120,18 @@ class Unpadding(object):
         return s
 
     __call__ = pkcs7 = unpad
+
+
+base64 = Base64()
+pad = Padding("pkcs7")
+pkcs7 = Padding("pkcs7")
+unpad = Unpadding("pkcs7")
+unpkcs7 = Unpadding("pkcs7")
+
+__all__ = [
+    "asciiz", "chunks_iter", "chunks", "utf16z",
+    "enhex", "unhex",
+    "uleb128",
+    "Base64", "Padding", "Unpadding",
+    "base64", "pad", "pkcs7", "unpad", "unpkcs7"
+]

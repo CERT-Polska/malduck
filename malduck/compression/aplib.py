@@ -43,3 +43,8 @@ class aPLib(object):
             return None
 
     __call__ = decompress
+
+
+aplib = aPLib()
+
+__all__ = ["aPLib", "aplib"]
