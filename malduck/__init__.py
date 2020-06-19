@@ -13,8 +13,7 @@ from .crypto import (
 from .disasm import disasm, insn
 
 from .hash import (
-    crc32,
-    md5, sha1, sha224, sha256, sha384, sha512
+    crc32, md5, sha1, sha224, sha256, sha384, sha512
 )
 
 from .ints import (
@@ -68,8 +67,7 @@ __all__ = [
     # disasm
     "disasm", "insn",
     # hash
-    "crc32",
-    "md5", "sha1", "sha224", "sha256", "sha384", "sha512",
+    "crc32", "md5", "sha1", "sha224", "sha256", "sha384", "sha512",
     # ints
     "QWORD", "DWORD", "WORD", "BYTE", "CHAR",
     "UInt64", "UInt32", "UInt16", "UInt8",
