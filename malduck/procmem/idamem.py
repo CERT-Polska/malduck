@@ -10,6 +10,8 @@ try:
 except ImportError:
     IDAPYTHON = 0
 
+__all__ = ["IDAProcessMemory", "idamem"]
+
 
 class IDAVM(object):
     def __init__(self, idamem):
@@ -60,3 +62,6 @@ class IDAProcessMemory(ProcessMemory):
             region = Region(seg, idc.get_segm_end(seg) - seg, 0, 0, 0, off)
             regions.append(region)
         super(IDAProcessMemory, self).__init__(IDAVM(self), regions=regions)
+
+
+idamem = IDAProcessMemory

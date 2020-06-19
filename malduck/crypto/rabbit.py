@@ -8,6 +8,8 @@ import warnings
 from ..bits import rol
 from .xor import xor
 
+__all__ = ["Rabbit", "rabbit"]
+
 
 class State(object):
     def __init__(self):
@@ -141,7 +143,7 @@ class RabbitCipher(object):
 class Rabbit(RabbitCipher):
     def __init__(self, key, iv):
         warnings.warn(
-            "malduck.crypto.Rabbit() is deprecated, please use malduck.rabbit()",
+            "malduck.crypto.Rabbit() is deprecated, please use malduck.rabbit.decrypt()",
             DeprecationWarning
         )
         super(Rabbit, self).__init__(key, iv)
@@ -154,12 +156,10 @@ class _Rabbit(object):
 
     def rabbit(self, key, iv, data):
         warnings.warn(
-            "malduck.rabbit.rabbit() is deprecated, please use malduck.rabbit()",
+            "malduck.rabbit.rabbit() is deprecated, please use malduck.rabbit.decrypt()",
             DeprecationWarning
         )
         return self(key, iv, data)
 
 
 rabbit = _Rabbit()
-
-__all__ = ["Rabbit", "rabbit"]

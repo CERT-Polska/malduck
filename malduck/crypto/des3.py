@@ -6,6 +6,8 @@ import warnings
 
 from Cryptodome.Cipher import DES, DES3 as DES3Cipher
 
+__all__ = ["DES3", "des3"]
+
 
 class Des3Cbc(object):
     def _get_cipher(self, key, iv):
@@ -76,5 +78,3 @@ class DES3(object):
 
 
 des3 = Des3()
-
-__all__ = ["DES3", "des3"]

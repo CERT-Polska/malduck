@@ -6,6 +6,8 @@ import warnings
 
 from Cryptodome.Cipher import ARC4
 
+__all__ = ["rc4", "RC4"]
+
 ARC4.key_size = range(3, 256+1)
 
 
@@ -16,7 +18,7 @@ class RC4Cipher(object):
 
     def rc4(self, key, data):
         warnings.warn(
-            "malduck.rc4.rc4() is deprecated, please use malduck.rc4()",
+            "malduck.rc4.rc4() is deprecated, please use malduck.rc4() or malduck.rc4.decrypt()",
             DeprecationWarning
         )
         return self.decrypt(key, data)
@@ -40,5 +42,3 @@ class RC4(object):
 
 
 rc4 = RC4Cipher()
-
-__all__ = ["rc4", "RC4"]

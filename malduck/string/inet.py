@@ -8,6 +8,8 @@ import socket
 from ..py2compat import is_integer, is_binary, ensure_string
 from ..string.bin import p32
 
+__all__ = ["ipv4"]
+
 ipv4_regex = re.compile(
     b"^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}"
     b"([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$"

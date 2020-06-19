@@ -4,28 +4,23 @@
 
 from .bits import rol, ror, align, align_down
 
-from .compression.aplib import aplib
-from .compression.gzip import gzip
-from .compression.lznt1 import lznt1
+from .compression import aplib, gzip, lznt1
 
-from .crypto.aes import aes
-from .crypto.blowfish import blowfish
-from .crypto.des3 import des3
-from .crypto.rabbit import rabbit
-from .crypto.rc import rc4
-from .crypto.rsa import rsa
-from .crypto.serpent import serpent
-from .crypto.xor import xor
+from .crypto import (
+    aes, blowfish, des3, rabbit, rc4, rsa, serpent, xor
+)
 
 from .disasm import disasm, insn
 
-from .hash.crc import crc32
-from .hash.sha import md5, sha1, sha224, sha384, sha256, sha512
+from .hash import (
+    crc32,
+    md5, sha1, sha224, sha256, sha384, sha512
+)
 
 from .ints import (
     QWORD, DWORD, WORD, BYTE, CHAR,
     UInt64, UInt32, UInt16, UInt8,
-    Int64, Int32, Int16, Int8
+    Int64, Int32, Int16, Int8,
 )
 
 from .pe import pe, pe2cuckoo
@@ -36,16 +31,23 @@ from .procmem import (
     PAGE_EXECUTE_READ, PAGE_EXECUTE_READWRITE, PAGE_EXECUTE_WRITECOPY
 )
 
-from .string.bin import (
-    uint8, uint16, uint32, uint64,
-    u8, u16, u32, u64,
-    p8, p16, p32, p64,
-    bigint, pack, unpack
-)
-from .string.inet import ipv4
-from .string.ops import (
-    asciiz, utf16z, chunks, chunks_iter, enhex, unhex, uleb128, base64,
-    pad, unpad, pkcs7, unpkcs7
+from .string import (
+    uint64, uint32, uint16, uint8,
+    uint64be, uint32be, uint16be, uint8be,
+    u64, u32, u16, u8,
+    u64be, u32be, u16be, u8be,
+    int64, int32, int16, int8,
+    int64be, int32be, int16be, int8be,
+    i64, i32, i16, i8,
+    i64be, i32be, i16be, i8be,
+    p64, p32, p16, p8,
+    p64be, p32be, p16be, p8be,
+    bigint, unpack, pack,
+    ipv4,
+    asciiz, chunks_iter, chunks, utf16z,
+    enhex, unhex,
+    uleb128,
+    base64, pad, pkcs7, unpad, unpkcs7
 )
 
 from .structure import Structure

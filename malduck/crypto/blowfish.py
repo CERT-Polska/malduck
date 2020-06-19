@@ -6,6 +6,8 @@ import warnings
 
 from Cryptodome.Cipher import Blowfish as BlowfishCipher
 
+__all__ = ["Blowfish", "blowfish"]
+
 
 class BlowfishEcb(object):
     def encrypt(self, key, data):
@@ -58,5 +60,3 @@ class Blowfish(object):
 
 
 blowfish = _Blowfish()
-
-__all__ = ["Blowfish", "blowfish"]

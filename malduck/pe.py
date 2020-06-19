@@ -5,6 +5,10 @@
 import pefile
 from .py2compat import binary_type, text_type, ensure_bytes, ensure_string, PY3
 
+__all__ = [
+    "pe", "PE", "MemoryPEData", "FastPE", "pe2cuckoo"
+]
+
 
 if not PY3:
     """
@@ -312,7 +316,3 @@ def pe2cuckoo(data):
 
 
 pe = PE
-
-__all__ = [
-    "pe", "PE", "MemoryPEData", "FastPE", "pe2cuckoo"
-]

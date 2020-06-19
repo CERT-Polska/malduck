@@ -4,6 +4,8 @@ from ..py2compat import binary_type
 import logging
 import struct
 
+__all__ = ["aPLib", "aplib"]
+
 log = logging.getLogger(__name__)
 
 
@@ -39,12 +41,10 @@ class aPLib(object):
                 buf = buf[hdr_length:]
             # Decompress aPLib
             return binary_type(ap_depack(buf))
-        except Exception as e:
+        except Exception:
             return None
 
     __call__ = decompress
 
 
 aplib = aPLib()
-
-__all__ = ["aPLib", "aplib"]

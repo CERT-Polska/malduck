@@ -5,6 +5,11 @@
 import collections
 from .py2compat import is_string
 
+__all__ = [
+    "disasm", "insn",
+    "Disassemble", "Instruction", "Operand", "Memory"
+]
+
 Memory = collections.namedtuple(
     "Memory", ("size", "base", "scale", "index", "disp")
 )
@@ -263,8 +268,3 @@ class Disassemble(object):
 
 disasm = Disassemble()
 insn = Instruction
-
-__all__ = [
-    "disasm", "insn",
-    "Disassemble", "Instruction", "Operand", "Memory"
-]

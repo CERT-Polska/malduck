@@ -4,10 +4,15 @@ import os
 
 from .extractor import Extractor
 from .loaders import load_modules
+
 from ..py2compat import binary_type
 from ..yara import Yara
 
 log = logging.getLogger(__name__)
+
+__all__ = [
+    "ExtractManager", "ExtractorModules"
+]
 
 
 def is_config_better(base_config, new_config):
@@ -217,8 +222,9 @@ class ExtractManager(object):
             binaries += list(ProcessMemoryPE.load_binaries_from_memory(p)) + \
                         list(ProcessMemoryELF.load_binaries_from_memory(p))
 
-        fmt_procmem = lambda p: "{}:{}:{:x}".format(p.__class__.__name__,
-                                                    "IMG" if getattr(p, "is_image", False) else "DMP", p.imgbase)
+        def fmt_procmem(p):
+            return "{}:{}:{:x}".format(p.__class__.__name__,
+                                       "IMG" if getattr(p, "is_image", False) else "DMP", p.imgbase)
 
         def extract_config(procmem):
             log.debug("{} - ripping...".format(fmt_procmem(procmem)))

@@ -2,6 +2,10 @@ import warnings
 
 from .components.pyserpent import serpent_cbc_encrypt, serpent_cbc_decrypt
 
+__all__ = [
+    "Serpent", "serpent"
+]
+
 
 class SerpentCbc(object):
     def encrypt(self, key, data, iv=None):
@@ -53,7 +57,3 @@ class Serpent(object):
 
 
 serpent = _Serpent()
-
-__all__ = [
-    "Serpent", "serpent"
-]

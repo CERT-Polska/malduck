@@ -11,6 +11,11 @@ from .winhdr import BLOBHEADER, BaseBlob
 from ..string.bin import uint32, bigint
 from ..py2compat import long
 
+__all__ = [
+    "PublicKeyBlob", "PrivateKeyBlob",
+    "RSA", "rsa"
+]
+
 
 class PublicKeyBlob(BaseBlob):
     magic = b"RSA1"
@@ -147,9 +152,3 @@ class RSA(object):
 
 
 rsa = RSA
-
-
-__all__ = [
-    "PublicKeyBlob", "PrivateKeyBlob",
-    "RSA", "rsa"
-]

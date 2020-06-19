@@ -4,6 +4,8 @@
 
 import hashlib
 
+__all__ = ["md5", "sha1", "sha224", "sha256", "sha384", "sha512"]
+
 
 def md5(s):
     return hashlib.md5(s).digest()

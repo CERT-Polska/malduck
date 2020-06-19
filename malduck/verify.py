@@ -4,6 +4,8 @@
 
 import re
 
+__all__ = ["Verify", "verify"]
+
 # https://stackoverflow.com/a/52082649
 DOMAIN_REGEX = (
     b"^(?=.{1,255}$)(?!-)[A-Za-z0-9\\-]{1,63}(\\.[A-Za-z0-9\\-]{1,63})*\\.?(?<!-)$"
@@ -43,7 +45,3 @@ class Verify(object):
 
 
 verify = Verify
-
-__all__ = [
-    "Verify", "verify"
-]

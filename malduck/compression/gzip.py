@@ -1,8 +1,9 @@
 # Copyright (C) 2018 Jurriaan Bremer.
 # This file is part of Roach - https://github.com/jbremer/roach.
 # See the file 'docs/LICENSE.txt' for copying permission.
-
 from __future__ import absolute_import
+
+__all__ = ["gzip", "Gzip"]
 
 from gzip import GzipFile
 import io
@@ -34,5 +35,3 @@ class Gzip(object):
 
 
 gzip = Gzip()
-
-__all__ = ["gzip", "Gzip"]

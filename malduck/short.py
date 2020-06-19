@@ -15,10 +15,11 @@ from .crypto.rc import RC4, rc4
 from .crypto.rsa import RSA, rsa
 from .disasm import Instruction, insn
 from .pe import PE, pe
-from .procmem import (
-    ProcessMemory, ProcessMemoryPE, ProcessMemoryELF, CuckooProcessMemory, IDAProcessMemory,
-    procmem, procmempe, procmemelf, cuckoomem, idamem
-)
+from .procmem.procmem import ProcessMemory, procmem
+from .procmem.procmempe import ProcessMemoryPE, procmempe
+from .procmem.procmemelf import ProcessMemoryELF, procmemelf
+from .procmem.cuckoomem import CuckooProcessMemory, cuckoomem
+from .procmem.idamem import IDAProcessMemory, idamem
 from .string.ops import (
     Padding, Unpadding, Base64,
     base64, pad, unpad, pkcs7, unpkcs7

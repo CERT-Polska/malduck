@@ -2,6 +2,8 @@ from itertools import cycle
 
 from ..py2compat import is_integer, int2byte, iterbytes_ord
 
+__all__ = ["xor"]
+
 
 def xor(key, data):
     """

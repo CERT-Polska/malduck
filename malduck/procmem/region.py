@@ -1,6 +1,16 @@
 # Copyright (C) 2018 Jurriaan Bremer.
 # This file is part of Roach - https://github.com/jbremer/roach.
 # See the file 'docs/LICENSE.txt' for copying permission.
+__all__ = [
+    "Region",
+    "PAGE_READONLY",
+    "PAGE_READWRITE",
+    "PAGE_WRITECOPY",
+    "PAGE_EXECUTE",
+    "PAGE_EXECUTE_READ",
+    "PAGE_EXECUTE_READWRITE",
+    "PAGE_EXECUTE_WRITECOPY"
+]
 
 PAGE_READONLY = 0x00000002
 PAGE_READWRITE = 0x00000004

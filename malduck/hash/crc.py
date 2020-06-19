@@ -4,6 +4,8 @@
 
 import zlib
 
+__all__ = ["crc32"]
+
 
 def crc32(val):
     """

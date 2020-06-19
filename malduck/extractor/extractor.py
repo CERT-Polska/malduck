@@ -7,6 +7,8 @@ from ..py2compat import add_metaclass
 
 log = logging.getLogger(__name__)
 
+__all__ = ["Extractor"]
+
 
 class MetaExtractor(type):
     """

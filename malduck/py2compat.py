@@ -1,3 +1,4 @@
+# Python 2/3 compatibility module
 import sys
 from six import add_metaclass, integer_types, string_types, binary_type, PY3, int2byte, indexbytes, text_type
 from six import iterbytes as iterbytes_ord
@@ -6,6 +7,14 @@ if PY3:
     from builtins import int as long
 else:
     from __builtin__ import long
+
+__all__ = [
+    "add_metaclass", "integer_types", "string_types", "binary_type",
+    "int2byte", "indexbytes", "text_type", "iterbytes_ord",
+    "long", "PY3",
+    "is_integer", "is_string", "is_binary", "iterbytes", "ensure_bytes",
+    "ensure_string", "import_module_by_finder"
+]
 
 
 def is_integer(v):

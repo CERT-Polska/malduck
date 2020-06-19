@@ -4,6 +4,8 @@ from .binmem import ProcessMemoryBinary
 from ..bits import align
 from ..pe import PE
 
+__all__ = ["ProcessMemoryPE", "procmempe"]
+
 
 class ProcessMemoryPE(ProcessMemoryBinary):
     """
@@ -140,3 +142,6 @@ class ProcessMemoryPE(ProcessMemoryBinary):
 
         # Return PE file data
         return data
+
+
+procmempe = ProcessMemoryPE

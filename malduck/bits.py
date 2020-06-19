@@ -2,6 +2,10 @@
 # This file is part of Roach - https://github.com/jbremer/roach.
 # See the file 'docs/LICENSE.txt' for copying permission.
 
+__all__ = [
+    "rol", "ror", "align", "align_down"
+]
+
 
 def rol(value, count, bits=32):
     """
