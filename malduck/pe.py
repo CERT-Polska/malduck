@@ -5,6 +5,10 @@
 import pefile
 from .py2compat import binary_type, text_type, ensure_bytes, ensure_string, PY3
 
+__all__ = [
+    "pe", "PE", "MemoryPEData", "FastPE", "pe2cuckoo"
+]
+
 
 if not PY3:
     """
@@ -309,3 +313,6 @@ def pe2cuckoo(data):
     """Translate a PE file into a cuckoo-procmem file."""
     m = ProcessMemoryPE(data, image=True)
     return CuckooProcessMemory.from_memory(m).store()
+
+
+pe = PE

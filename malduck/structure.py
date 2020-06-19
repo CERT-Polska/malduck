@@ -9,6 +9,8 @@ from .ints import (
 )
 from .py2compat import is_integer
 
+__all__ = ["Structure"]
+
 mapping = {
     Int8: ctypes.c_byte,
     UInt8: ctypes.c_ubyte,

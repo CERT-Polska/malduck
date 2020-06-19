@@ -3,9 +3,12 @@
 # See the file 'docs/LICENSE.txt' for copying permission.
 
 import struct
+import warnings
 
 from ..bits import rol
 from .xor import xor
+
+__all__ = ["Rabbit", "rabbit"]
 
 
 class State(object):
@@ -21,19 +24,19 @@ class Context(object):
         self.w = State()
 
 
-class Rabbit(object):
+class RabbitCipher(object):
     def __init__(self, key, iv):
         self.ctx = Context()
         self.set_key(key)
         iv and self.set_iv(iv)
 
-    def g_func(self,x):
+    def g_func(self, x):
         x = x & 0xffffffff
         x = (x * x) & 0xffffffffffffffff
         result = (x >> 32) ^ (x & 0xffffffff)
         return result
 
-    def set_key(self,key):
+    def set_key(self, key):
         # Four subkeys.
         key0, key1, key2, key3 = struct.unpack("IIII", key[:16])
 
@@ -135,3 +138,29 @@ class Rabbit(object):
         return b"".join(ret)
 
     decrypt = encrypt
+
+
+class Rabbit(RabbitCipher):
+    def __init__(self, key, iv):
+        warnings.warn(
+            "malduck.crypto.Rabbit() is deprecated, please use malduck.rabbit()",
+            DeprecationWarning
+        )
+        super(Rabbit, self).__init__(key, iv)
+
+
+class _Rabbit(object):
+    def __call__(self, key, iv, data):
+        return RabbitCipher(key, iv).decrypt(data)
+
+    def rabbit(self, key, iv, data):
+        warnings.warn(
+            "malduck.rabbit.rabbit() is deprecated, please use malduck.rabbit()",
+            DeprecationWarning
+        )
+        return self(key, iv, data)
+
+    encrypt = decrypt = __call__
+
+
+rabbit = _Rabbit()

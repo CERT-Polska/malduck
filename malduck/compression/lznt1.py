@@ -1,5 +1,7 @@
 from .components.lznt1 import decompress_data
 
+__all__ = ["Lznt1", "lznt1"]
+
 
 class Lznt1(object):
     """
@@ -18,3 +20,6 @@ class Lznt1(object):
         return decompress_data(buf)
 
     __call__ = decompress
+
+
+lznt1 = Lznt1()

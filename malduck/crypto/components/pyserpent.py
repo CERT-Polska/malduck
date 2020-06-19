@@ -11,20 +11,20 @@
 # (gladman@seven77.demon.co.uk) which is subject to the following license.
 # This Python implementation is not subject to any other license.
 #
-#/* This is an independent implementation of the encryption algorithm:
-# *
-# * Serpent by Ross Anderson, Eli Biham and Lars Knudsen
-# *
-# * which is a candidate algorithm in the Advanced Encryption Standard
-# * programme of the US National Institute of Standards and Technology
-# *
-# * Copyright in this implementation is held by Dr B R Gladman but I
-# * hereby give permission for its free direct or derivative use subject
-# * to acknowledgment of its origin and compliance with any conditions
-# * that the originators of the algorithm place on its exploitation.
-# *
-# * Dr Brian Gladman (gladman@seven77.demon.co.uk) 14th January 1999
-# */
+# This is an independent implementation of the encryption algorithm:
+#
+# Serpent by Ross Anderson, Eli Biham and Lars Knudsen
+#
+# which is a candidate algorithm in the Advanced Encryption Standard
+# programme of the US National Institute of Standards and Technology
+#
+# Copyright in this implementation is held by Dr B R Gladman but I
+# hereby give permission for its free direct or derivative use subject
+# to acknowledgment of its origin and compliance with any conditions
+# that the originators of the algorithm place on its exploitation.
+#
+# Dr Brian Gladman (gladman@seven77.demon.co.uk) 14th January 1999
+#
 #
 # The above copyright notice must not be removed.
 #
@@ -34,6 +34,8 @@
 # Anyone thinking of using this code should reconsider. It's slow.
 # Try python-mcrypt instead. In case a faster library is not installed
 # on the target system, this code can be used as a portable fallback.
+import struct
+import sys
 
 block_size = 16
 key_size = 32
@@ -123,9 +125,6 @@ class Serpent:
 #
 # Private.
 #
-
-import struct
-import sys
 
 WORD_BIGENDIAN = 0
 if sys.byteorder == 'big':

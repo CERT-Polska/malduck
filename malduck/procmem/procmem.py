@@ -1,4 +1,3 @@
-import operator
 import mmap
 import re
 
@@ -7,6 +6,8 @@ from ..disasm import disasm
 from ..string.bin import uint8, uint16, uint32, uint64, int8, int16, int32, int64
 from ..string.ops import utf16z
 from ..py2compat import is_binary, ensure_string, binary_type
+
+__all__ = ["ProcessMemory", "procmem"]
 
 
 class ProcessMemory(object):
@@ -135,7 +136,7 @@ class ProcessMemory(object):
             else:
                 raise RuntimeError("mmap is not supported on your OS")
             memory = cls(m, **kwargs)
-        except RuntimeError as e:
+        except RuntimeError:
             # Fallback to f.read()
             memory = cls(f.read(), **kwargs)
             f.close()
@@ -748,3 +749,6 @@ class ProcessMemory(object):
             if buf == b"MZ":
                 return addr
             addr -= 0x1000
+
+
+procmem = ProcessMemory

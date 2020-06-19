@@ -6,6 +6,8 @@ import os
 import re
 import yara
 
+__all__ = ["Yara", "YaraString"]
+
 log = logging.getLogger(__name__)
 
 _YARA_RULE_FORMAT = """
@@ -270,4 +272,3 @@ class YaraMatch(object):
             return self[item]
         except IndexError:
             raise AttributeError()
-

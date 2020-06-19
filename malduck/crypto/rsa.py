@@ -11,6 +11,11 @@ from .winhdr import BLOBHEADER, BaseBlob
 from ..string.bin import uint32, bigint
 from ..py2compat import long
 
+__all__ = [
+    "PublicKeyBlob", "PrivateKeyBlob",
+    "RSA", "rsa"
+]
+
 
 class PublicKeyBlob(BaseBlob):
     magic = b"RSA1"
@@ -145,3 +150,5 @@ class RSA(object):
         tup = tuple(takewhile(lambda x: x is not None, tup))
         return RSA_.construct(tup, consistency_check=False).export_key()
 
+
+rsa = RSA

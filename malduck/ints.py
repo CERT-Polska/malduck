@@ -3,6 +3,12 @@ from struct import pack, unpack_from, error
 from .bits import rol
 from .py2compat import long, add_metaclass
 
+__all__ = [
+    "QWORD", "DWORD", "WORD", "BYTE", "CHAR",
+    "UInt64", "UInt32", "UInt16", "UInt8",
+    "Int64", "Int32", "Int16", "Int8",
+]
+
 
 class IntTypeBase(object):
     """
@@ -262,4 +268,3 @@ Int64 = type("Int64", (IntType,), dict(bits=64, signed=True, fmt="q"))
 Int32 = type("Int32", (IntType,), dict(bits=32, signed=True, fmt="i"))
 Int16 = type("Int16", (IntType,), dict(bits=16, signed=True, fmt="h"))
 Int8 = type("Int8", (IntType,), dict(bits=8, signed=True, fmt="b"))
-

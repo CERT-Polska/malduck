@@ -3,6 +3,8 @@ import struct
 from .procmem import ProcessMemory
 from .region import Region
 
+__all__ = ["CuckooProcessMemory", "cuckoomem"]
+
 
 class CuckooProcessMemory(ProcessMemory):
     """Wrapper object to operate on process memory dumps in Cuckoo 2.x format."""
@@ -28,3 +30,6 @@ class CuckooProcessMemory(ProcessMemory):
                 self.imgbase = self.regions[0].addr
             else:
                 self.imgbase = 0
+
+
+cuckoomem = CuckooProcessMemory

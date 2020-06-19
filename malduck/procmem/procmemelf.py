@@ -5,6 +5,8 @@ import elftools
 import elftools.elf.elffile
 import io
 
+__all__ = ["ProcessMemoryELF", "procmemelf"]
+
 
 class ProcessMemoryELF(ProcessMemoryBinary):
     """
@@ -81,3 +83,6 @@ class ProcessMemoryELF(ProcessMemoryBinary):
         """Address where ELF image ends"""
         lastSegment = self.elf.get_segment(self.elf.num_segment()-1)
         return lastSegment.header['p_vaddr'] + lastSegment.header['p_memsz']
+
+
+procmemelf = ProcessMemoryELF
