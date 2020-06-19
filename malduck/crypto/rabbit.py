@@ -143,23 +143,24 @@ class RabbitCipher(object):
 class Rabbit(RabbitCipher):
     def __init__(self, key, iv):
         warnings.warn(
-            "malduck.crypto.Rabbit() is deprecated, please use malduck.rabbit.decrypt()",
+            "malduck.crypto.Rabbit() is deprecated, please use malduck.rabbit()",
             DeprecationWarning
         )
         super(Rabbit, self).__init__(key, iv)
 
 
 class _Rabbit(object):
-    # todo: transform it to single rabbit function
     def __call__(self, key, iv, data):
         return RabbitCipher(key, iv).decrypt(data)
 
     def rabbit(self, key, iv, data):
         warnings.warn(
-            "malduck.rabbit.rabbit() is deprecated, please use malduck.rabbit.decrypt()",
+            "malduck.rabbit.rabbit() is deprecated, please use malduck.rabbit()",
             DeprecationWarning
         )
         return self(key, iv, data)
+
+    encrypt = decrypt = __call__
 
 
 rabbit = _Rabbit()
