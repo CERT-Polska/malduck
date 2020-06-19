@@ -30,13 +30,13 @@ class RabbitCipher(object):
         self.set_key(key)
         iv and self.set_iv(iv)
 
-    def g_func(self,x):
+    def g_func(self, x):
         x = x & 0xffffffff
         x = (x * x) & 0xffffffffffffffff
         result = (x >> 32) ^ (x & 0xffffffff)
         return result
 
-    def set_key(self,key):
+    def set_key(self, key):
         # Four subkeys.
         key0, key1, key2, key3 = struct.unpack("IIII", key[:16])
 

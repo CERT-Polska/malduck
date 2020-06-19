@@ -23,5 +23,3 @@ class Lznt1(object):
 
 
 lznt1 = Lznt1()
-
-
