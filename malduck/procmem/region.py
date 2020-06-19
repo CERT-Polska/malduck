@@ -9,7 +9,7 @@ __all__ = [
     "PAGE_EXECUTE",
     "PAGE_EXECUTE_READ",
     "PAGE_EXECUTE_READWRITE",
-    "PAGE_EXECUTE_WRITECOPY"
+    "PAGE_EXECUTE_WRITECOPY",
 ]
 
 PAGE_READONLY = 0x00000002
@@ -130,14 +130,24 @@ class Region(object):
         if new_end <= new_addr:
             return None
         new_offset = self.v2p(new_addr)
-        return Region(new_addr, new_end - new_addr, self.state, self.type_, self.protect, new_offset)
+        return Region(
+            new_addr,
+            new_end - new_addr,
+            self.state,
+            self.type_,
+            self.protect,
+            new_offset,
+        )
 
     def __eq__(self, other):
         if not isinstance(other, Region):
             raise ValueError("Not a region object!")
 
         return (
-            self.addr == other.addr and self.size == other.size and
-            self.state == other.state and self.type_ == other.type_ and
-            self.protect == other.protect and self.offset == other.offset
+            self.addr == other.addr
+            and self.size == other.size
+            and self.state == other.state
+            and self.type_ == other.type_
+            and self.protect == other.protect
+            and self.offset == other.offset
         )

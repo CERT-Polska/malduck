@@ -18,7 +18,7 @@ class IDAVM(object):
         self.idamem = idamem
 
     def _get_ea_range(self, item):
-        if type(item) is slice:
+        if isinstance(item, slice):
             offset = item.start or 0
             length = (item.stop or len(self)) - offset
         else:
@@ -26,8 +26,10 @@ class IDAVM(object):
             length = 1
         for region in self.idamem.regions:
             if region.offset < offset + length and offset < region.end_offset:
-                ea_start = min(max(region.p2v(offset), region.addr), region.end)
-                ea_end = min(max(region.p2v(offset + length), region.addr), region.end)
+                ea_start = min(
+                    max(region.p2v(offset), region.addr), region.end)
+                ea_end = min(max(region.p2v(offset + length),
+                                 region.addr), region.end)
                 yield (ea_start, ea_end)
 
     def __setitem__(self, item, value):
@@ -53,9 +55,11 @@ class IDAProcessMemory(ProcessMemory):
     """
     ProcessMemory representation operating in IDAPython context [BETA]
     """
+
     def __init__(self):
         if not IDAPYTHON:
-            raise RuntimeError("This class is intended to work only in IDAPython context")
+            raise RuntimeError(
+                "This class is intended to work only in IDAPython context")
         regions = []
         for seg in idautils.Segments():
             off = 0 if not regions else regions[-1].end_offset

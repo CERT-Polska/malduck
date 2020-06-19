@@ -24,7 +24,8 @@ class MetaExtractor(type):
         klass.final_methods = list(getattr(klass, "final_methods", []))
 
         if type(getattr(klass, "yara_rules")) not in (list, tuple):
-            raise TypeError("'yara_rules' field must be 'list' or 'tuple' in {}".format(str(name)))
+            raise TypeError(
+                "'yara_rules' field must be 'list' or 'tuple' in {}".format(str(name)))
 
         for name, method in attrs.items():
             if isinstance(method, ExtractorMethod):
@@ -43,6 +44,7 @@ class ExtractorMethod(object):
     """
     Represents registered extractor method
     """
+
     def __init__(self, method):
         self.method = method
         self.weak = False
@@ -128,7 +130,9 @@ class ExtractorBase(object):
         :return: :class:`logging.Logger`
         """
         return logging.getLogger("{}.{}".format(
-            self.__class__.__module__,  # should be malduck.extractor.modules (see malduck.extractor.loaders)
+            # should be malduck.extractor.modules (see
+            # malduck.extractor.loaders)
+            self.__class__.__module__,
             self.__class__.__name__))
 
 
@@ -259,7 +263,8 @@ class Extractor(ExtractorBase):
             method = getattr(self, method_name)
             for va in match[identifier]:
                 try:
-                    if method.needs_exec and not isinstance(p, method.needs_exec):
+                    if method.needs_exec and not isinstance(
+                            p, method.needs_exec):
                         log.debug("Omitting %s.%s for %s@%x - %s is not %s",
                                   self.__class__.__name__,
                                   method_name,
@@ -318,7 +323,8 @@ class Extractor(ExtractorBase):
     @staticmethod
     def extractor(string_or_method=None, final=False):
         if final and string_or_method:
-            raise ValueError("String identifier is unnecessary for final methods")
+            raise ValueError(
+                "String identifier is unnecessary for final methods")
 
         def extractor_wrapper(method):
             extractor_method = Extractor._extractor_method(method)

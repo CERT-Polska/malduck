@@ -16,6 +16,7 @@ class Lznt1(object):
     :param buf: Buffer to decompress
     :type buf: bytes
     """
+
     def decompress(self, buf):
         return decompress_data(buf)
 

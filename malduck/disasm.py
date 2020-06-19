@@ -156,7 +156,9 @@ class Instruction(object):
 
        :py:meth:`malduck.procmem.ProcessMemory.disasmv`
     """
-    def __init__(self, mnem=None, op1=None, op2=None, op3=None, addr=None, x64=False):
+
+    def __init__(self, mnem=None, op1=None, op2=None,
+                 op3=None, addr=None, x64=False):
         self.insn = None
         self.mnem = mnem
         self.operands = op1, op2, op3

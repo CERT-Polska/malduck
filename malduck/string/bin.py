@@ -27,7 +27,8 @@ def bigint(s, bitsize):
         return Padding.null(unhex("%x" % s)[::-1], bitsize // 8)
 
     if len(s) < bitsize // 8:
-        raise ValueError("Buffer is trimmed: {} < {}".format(len(s)*8, bitsize))
+        raise ValueError(
+            "Buffer is trimmed: {} < {}".format(len(s) * 8, bitsize))
 
     return int(enhex(s[:bitsize // 8][::-1]), 16)
 
@@ -55,15 +56,37 @@ int8be = i8be = Int8.unpack_be
 
 
 # Shortcuts for mostly used pack methods
-p64 = lambda v: UInt64(v).pack()
-p32 = lambda v: UInt32(v).pack()
-p16 = lambda v: UInt16(v).pack()
-p8 = lambda v: UInt8(v).pack()
+def p64(v):
+    return UInt64(v).pack()
 
-p64be = lambda v: UInt64(v).pack_be()
-p32be = lambda v: UInt32(v).pack_be()
-p16be = lambda v: UInt16(v).pack_be()
-p8be = lambda v: UInt8(v).pack_be()
+
+def p32(v):
+    return UInt32(v).pack()
+
+
+def p16(v):
+    return UInt16(v).pack()
+
+
+def p8(v):
+    return UInt8(v).pack()
+
+
+def p64be(v):
+    return UInt64(v).pack_be()
+
+
+def p32be(v):
+    return UInt32(v).pack_be()
+
+
+def p16be(v):
+    return UInt16(v).pack_be()
+
+
+def p8be(v):
+    return UInt8(v).pack_be()
+
 
 unpack = struct.unpack
 pack = struct.pack

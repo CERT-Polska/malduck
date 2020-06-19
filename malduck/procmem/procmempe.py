@@ -18,9 +18,11 @@ class ProcessMemoryPE(ProcessMemoryBinary):
     """
     __magic__ = b"MZ"
 
-    def __init__(self, buf, base=0, regions=None, image=False, detect_image=False):
+    def __init__(self, buf, base=0, regions=None,
+                 image=False, detect_image=False):
         self._pe = None
-        super(ProcessMemoryPE, self).__init__(buf, base=base, regions=regions, image=image, detect_image=detect_image)
+        super(ProcessMemoryPE, self).__init__(buf, base=base,
+                                              regions=regions, image=image, detect_image=detect_image)
 
     def _pe_direct_load(self, fast_load=True):
         offset = self.v2p(self.imgbase)
@@ -113,14 +115,16 @@ class ProcessMemoryPE(ProcessMemoryBinary):
 
         for idx, section in enumerate(pe.sections):
             # Find corresponding region
-            section_region = self.addr_region(self.imgbase + section.VirtualAddress)
+            section_region = self.addr_region(
+                self.imgbase + section.VirtualAddress)
             # No corresponding region? BSS.
             if not section_region:
                 continue
             # Get possible section size
             section_size = max(section.Misc_VirtualSize, section.SizeOfRawData)
             # Align to section alignment (usually 0x1000)
-            section_alignment = max(0x1000, pe.optional_header.SectionAlignment)
+            section_alignment = max(
+                0x1000, pe.optional_header.SectionAlignment)
             section_size = align(section_size, section_alignment)
             # Sometimes real region size is less than virtual size (image=True)
             section_size = min(section_region.size, section_size)
@@ -128,7 +132,8 @@ class ProcessMemoryPE(ProcessMemoryBinary):
             file_alignment = max(0x200, pe.optional_header.FileAlignment)
             section_size = align(section_size, file_alignment)
             # Read section data including appropriate padding
-            section_data = self.readv(self.imgbase + section.VirtualAddress, section_size)
+            section_data = self.readv(
+                self.imgbase + section.VirtualAddress, section_size)
             section_data += (section_size - len(section_data)) * b'\x00'
             data.append(section_data)
             # Fix section values

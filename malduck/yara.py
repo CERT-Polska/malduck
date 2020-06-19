@@ -67,7 +67,9 @@ class Yara(object):
     :param condition: Yara rule condition (default: "any of them")
     :type condition: str
     """
-    def __init__(self, rule_paths=None, name="r", strings=None, condition="any of them"):
+
+    def __init__(self, rule_paths=None, name="r",
+                 strings=None, condition="any of them"):
         if rule_paths:
             self.rules = yara.compile(filepaths=rule_paths)
             return
@@ -113,8 +115,8 @@ class Yara(object):
                 ruleset_path = os.path.join(root, fname)
                 if ruleset_name in rule_paths:
                     log.warning("Yara file name collision - {} overridden by {}".format(
-                                  rule_paths[ruleset_name],
-                                  ruleset_path))
+                        rule_paths[ruleset_name],
+                        ruleset_path))
                 rule_paths[ruleset_name] = ruleset_path
             if not recursive:
                 break
@@ -133,7 +135,8 @@ class Yara(object):
         :type offset_mapper: function
         :rtype: :class:`YaraMatches`
         """
-        return YaraMatches(self.rules.match(**kwargs), offset_mapper=offset_mapper)
+        return YaraMatches(self.rules.match(**kwargs),
+                           offset_mapper=offset_mapper)
 
 
 class YaraString(object):
@@ -165,7 +168,8 @@ class YaraString(object):
             str_value = '/{}/'.format('\\/'.join(self.value.split("/")))
         else:
             raise ValueError("Unknown YaraString type: {}".format(self.type))
-        return str_value + "".join([" " + modifier for modifier in self.modifiers])
+        return str_value + \
+            "".join([" " + modifier for modifier in self.modifiers])
 
 
 class YaraMatches(object):
@@ -174,6 +178,7 @@ class YaraMatches(object):
 
     Rules can be referenced by both attribute and index.
     """
+
     def __init__(self, match_results, offset_mapper=None):
         self.match_results = match_results
         self.matched_rules = {}
@@ -215,6 +220,7 @@ class YaraMatch(object):
 
     Strings can be referenced by both attribute and index.
     """
+
     def __init__(self, match, offset_mapper=None):
         self.rule = self.name = match.rule
 

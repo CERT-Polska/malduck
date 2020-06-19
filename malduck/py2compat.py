@@ -31,7 +31,7 @@ def is_binary(v):
 
 def iterbytes(b):
     """Returns single bytes rather than sequence of ints"""
-    return [b[i:i+1] for i in range(len(b))]
+    return [b[i:i + 1] for i in range(len(b))]
 
 
 def ensure_bytes(v):
@@ -52,7 +52,8 @@ def ensure_string(v):
     elif isinstance(v, string_types):
         return v
     else:
-        raise TypeError('v should be str/unicode/bytes instead of ' + str(type(v)))
+        raise TypeError(
+            'v should be str/unicode/bytes instead of ' + str(type(v)))
 
 
 def import_module_by_finder(finder, module_name):
@@ -69,7 +70,7 @@ def import_module_by_finder(finder, module_name):
         sys.modules[module_name] = module
         try:
             module = module_spec.loader.exec_module(module)
-        except:
+        except BaseException:
             del sys.modules[module_name]
             raise
     else:

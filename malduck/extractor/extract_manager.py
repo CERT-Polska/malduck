@@ -82,6 +82,7 @@ class ExtractorModules(object):
     :param modules_path: Path with module files (Extractor classes and Yara files, default '~/.malduck')
     :type modules_path: str
     """
+
     def __init__(self, modules_path=None):
         if modules_path is None:
             modules_path = os.path.join(os.path.expanduser("~"), ".malduck")
@@ -114,6 +115,7 @@ class ExtractManager(object):
     :param modules: Object with loaded extractor modules
     :type modules: :class:`ExtractorModules`
     """
+
     def __init__(self, modules):
         self.modules = modules
         self.configs = {}
@@ -163,9 +165,9 @@ class ExtractManager(object):
         """
         import traceback
         log.warning("{}.{} throwed exception: {}".format(
-                      extractor.__class__.__name__,
-                      method_name,
-                      traceback.format_exc()))
+            extractor.__class__.__name__,
+            method_name,
+            traceback.format_exc()))
 
     def push_file(self, filepath, base=0):
         """
@@ -220,7 +222,7 @@ class ExtractManager(object):
         binaries = [p]
         if rip_binaries:
             binaries += list(ProcessMemoryPE.load_binaries_from_memory(p)) + \
-                        list(ProcessMemoryELF.load_binaries_from_memory(p))
+                list(ProcessMemoryELF.load_binaries_from_memory(p))
 
         def fmt_procmem(p):
             return "{}:{}:{:x}".format(p.__class__.__name__,
@@ -232,12 +234,14 @@ class ExtractManager(object):
             matches.remap(procmem.p2v)
             extractor.push_procmem(procmem, _matches=matches)
             if extractor.family:
-                log.debug("{} - found {}!".format(fmt_procmem(procmem), extractor.family))
+                log.debug(
+                    "{} - found {}!".format(fmt_procmem(procmem), extractor.family))
                 return self.push_config(extractor.family, extractor.config)
             else:
                 log.debug("{} - No luck.".format(fmt_procmem(procmem)))
 
-        log.debug("Matched rules: {}".format(list(matches.keys())))  # 'list()' for prettier logs
+        # 'list()' for prettier logs
+        log.debug("Matched rules: {}".format(list(matches.keys())))
 
         ripped_family = None
 
@@ -245,7 +249,8 @@ class ExtractManager(object):
             found_family = extract_config(binary)
             if found_family is not None:
                 ripped_family = found_family
-            if isinstance(binary, ProcessMemoryBinary) and binary.image is not None:
+            if isinstance(
+                    binary, ProcessMemoryBinary) and binary.image is not None:
                 found_family = extract_config(binary.image)
                 if found_family is not None:
                     ripped_family = found_family
@@ -263,8 +268,10 @@ class ProcmemExtractManager(object):
     """
     Single-dump extraction context (single family)
     """
+
     def __init__(self, parent):
-        self.collected_config = {}  #: Collected configuration so far (especially useful for "final" extractors)
+        #: Collected configuration so far (especially useful for "final" extractors)
+        self.collected_config = {}
         self.globals = {}
         self.parent = parent        #: Bound ExtractManager instance
         self.family = None          #: Matched family
@@ -320,7 +327,8 @@ class ProcmemExtractManager(object):
         try:
             json.dumps(config)
         except (TypeError, OverflowError) as e:
-            log.debug("Config is not JSON-encodable ({}): {}".format(str(e), repr(config)))
+            log.debug(
+                "Config is not JSON-encodable ({}): {}".format(str(e), repr(config)))
             raise RuntimeError("Config must be JSON-encodable")
 
         config = sanitize_config(config)
@@ -328,14 +336,16 @@ class ProcmemExtractManager(object):
         if not config:
             return
 
-        log.debug("%s found the following config parts: %s", extractor.__class__.__name__, sorted(config.keys()))
+        log.debug("%s found the following config parts: %s",
+                  extractor.__class__.__name__, sorted(config.keys()))
 
         self.collected_config = merge_configs(self.collected_config, config)
 
         if "family" in config and (
                 not self.family or (self.family != extractor.family and self.family in extractor.overrides)):
             self.family = config["family"]
-            log.debug("%s tells it's %s", extractor.__class__.__name__, self.family)
+            log.debug("%s tells it's %s",
+                      extractor.__class__.__name__, self.family)
 
     @property
     def config(self):

@@ -8,7 +8,7 @@ from Cryptodome.Cipher import ARC4
 
 __all__ = ["rc4", "RC4"]
 
-ARC4.key_size = range(3, 256+1)
+ARC4.key_size = range(3, 256 + 1)
 
 
 class RC4Cipher(object):

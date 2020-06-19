@@ -48,7 +48,8 @@ def utf16z(s):
     """
     chunked = chunks(s, 2)
     if b'\x00\x00' in chunked:
-        return s[:chunked.index(b'\x00\x00')*2].decode("utf-16").rstrip("\x00").encode("ascii")
+        return s[:chunked.index(
+            b'\x00\x00') * 2].decode("utf-16").rstrip("\x00").encode("ascii")
     return s
 
 
@@ -69,7 +70,7 @@ def uleb128(s):
     """Unsigned Little-Endian Base 128"""
     ret = 0
     for idx in range(len(s)):
-        ret += (indexbytes(s, idx) & 0x7f) << (idx*7)
+        ret += (indexbytes(s, idx) & 0x7f) << (idx * 7)
         if indexbytes(s, idx) < 0x80:
             break
     else:
@@ -79,6 +80,7 @@ def uleb128(s):
 
 class Base64(object):
     """Base64 encoder/decoder"""
+
     def encode(self, s):
         return b64encode(s)
 
@@ -92,6 +94,7 @@ class Padding(object):
     """
     Padding PKCS7/NULL
     """
+
     def __init__(self, style):
         self.style = style
 
@@ -118,12 +121,14 @@ class Unpadding(object):
     """
     Unpadding PKCS7/NULL
     """
+
     def __init__(self, style):
         self.style = style
 
     def unpad(self, s):
         count = indexbytes(s, -1) if s else 0
-        if self.style == "pkcs7" and s[-count:] == int2byte(indexbytes(s, -1)) * count:
+        if self.style == "pkcs7" and s[-count:] == int2byte(
+                indexbytes(s, -1)) * count:
             return s[:-count]
         return s
 

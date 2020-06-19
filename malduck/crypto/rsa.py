@@ -144,7 +144,8 @@ class RSA(object):
         :return: RSA key in PEM format
         :rtype: bytes
         """
-        wrap = lambda x: None if x is None else long(x)
+        def wrap(x):
+            return None if x is None else long(x)
         tup = wrap(n), wrap(e), wrap(d), wrap(p), wrap(q), wrap(crt)
         # PyCryptodome accepts only variable-length tuples
         tup = tuple(takewhile(lambda x: x is not None, tup))

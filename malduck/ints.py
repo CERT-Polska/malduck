@@ -257,10 +257,14 @@ class IntType(long, IntTypeBase):
 
 # Unsigned types
 
-QWORD = UInt64 = type("UInt64", (IntType,), dict(bits=64, signed=False, fmt="Q"))
-DWORD = UInt32 = type("UInt32", (IntType,), dict(bits=32, signed=False, fmt="I"))
-WORD = UInt16 = type("UInt16", (IntType,), dict(bits=16, signed=False, fmt="H"))
-CHAR = BYTE = UInt8 = type("UInt8", (IntType,), dict(bits=8, signed=False, fmt="B"))
+QWORD = UInt64 = type("UInt64", (IntType,), dict(
+    bits=64, signed=False, fmt="Q"))
+DWORD = UInt32 = type("UInt32", (IntType,), dict(
+    bits=32, signed=False, fmt="I"))
+WORD = UInt16 = type("UInt16", (IntType,), dict(
+    bits=16, signed=False, fmt="H"))
+CHAR = BYTE = UInt8 = type(
+    "UInt8", (IntType,), dict(bits=8, signed=False, fmt="B"))
 
 # Signed types
 

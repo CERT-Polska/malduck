@@ -13,8 +13,8 @@ __all__ = ["Rabbit", "rabbit"]
 
 class State(object):
     def __init__(self):
-        self.x = [0]*8
-        self.c = [0]*8
+        self.x = [0] * 8
+        self.c = [0] * 8
         self.carry = 0
 
 
@@ -82,7 +82,7 @@ class RabbitCipher(object):
 
     def set_iv(self, iv):
         # Generate four subvectors.
-        v = [0]*4
+        v = [0] * 4
         v[0], v[2] = struct.unpack("II", iv[:8])
         v[1] = (v[0] >> 16) | (v[2] & 0xffff0000)
         v[3] = ((v[2] << 16) | (v[0] & 0x0000ffff)) & 0xffffffff
@@ -99,7 +99,7 @@ class RabbitCipher(object):
             self.next_state(self.ctx.w)
 
     def next_state(self, state):
-        g = [0]*8
+        g = [0] * 8
         x = [0x4D34D34D, 0xD34D34D3, 0x34D34D34]
 
         # Calculate new counter values.
@@ -125,7 +125,7 @@ class RabbitCipher(object):
             j = (j + 1) & 7
 
     def encrypt(self, msg):
-        x, ret = [0]*4, []
+        x, ret = [0] * 4, []
         for off in range(0, len(msg) + 15, 16):
             self.next_state(self.ctx.w)
             x[0], x[1] = self.ctx.w.x[0], self.ctx.w.x[2]
@@ -134,7 +134,7 @@ class RabbitCipher(object):
             x[1] ^= (self.ctx.w.x[7] >> 16) ^ (self.ctx.w.x[5] << 16) % 2**32
             x[2] ^= (self.ctx.w.x[1] >> 16) ^ (self.ctx.w.x[7] << 16) % 2**32
             x[3] ^= (self.ctx.w.x[3] >> 16) ^ (self.ctx.w.x[1] << 16) % 2**32
-            ret.append(xor(struct.pack("IIII", *x), msg[off:off+16]))
+            ret.append(xor(struct.pack("IIII", *x), msg[off:off + 16]))
         return b"".join(ret)
 
     decrypt = encrypt
