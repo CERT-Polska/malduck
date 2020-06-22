@@ -36,19 +36,20 @@
 # on the target system, this code can be used as a portable fallback.
 import struct
 import sys
+from typing import List, Optional
 
 block_size = 16
 key_size = 32
 
 
 class Serpent:
-    def __init__(self, key=None):
+    def __init__(self, key: Optional[bytes]=None) -> None:
         """Serpent."""
 
         if key:
             self.set_key(key)
 
-    def set_key(self, key):
+    def set_key(self, key: bytes) -> None:
         """Init."""
 
         key_len = len(key)
@@ -71,7 +72,7 @@ class Serpent:
         set_key(self.key_context, key_word32, key_len)
         # print(map(hex,self.key_context))
 
-    def decrypt(self, block):
+    def decrypt(self, block: bytes) -> bytes:
         """Decrypt blocks."""
 
         if len(block) % 16:
@@ -88,7 +89,7 @@ class Serpent:
 
         return plaintext
 
-    def encrypt(self, block):
+    def encrypt(self, block: bytes) -> bytes:
         """Encrypt blocks."""
 
         if len(block) % 16:
@@ -130,11 +131,11 @@ if sys.byteorder == "big":
     WORD_BIGENDIAN = 1
 
 
-def rotr32(x, n):
+def rotr32(x: int, n: int) -> int:
     return (x >> n) | ((x << (32 - n)) & 0xFFFFFFFF)
 
 
-def rotl32(x, n):
+def rotl32(x: int, n: int) -> int:
     return ((x << n) & 0xFFFFFFFF) | (x >> (32 - n))
 
 
@@ -147,7 +148,7 @@ def byteswap32(x):
     )
 
 
-def set_key(l_key, key, key_len):
+def set_key(l_key: List[int], key: List[int], key_len: int) -> None:
     key_len *= 8
     if key_len > 256:
         return False
@@ -976,7 +977,7 @@ def set_key(l_key, key, key_len):
     key[4 * 32 + 11] = h
 
 
-def encrypt(key, in_blk):
+def encrypt(key: List[int], in_blk: List[int]) -> None:
     # serpent_generate.py
     a = in_blk[0]
     b = in_blk[1]
@@ -1960,7 +1961,7 @@ def encrypt(key, in_blk):
     in_blk[3] = d
 
 
-def decrypt(key, in_blk):
+def decrypt(key: List[int], in_blk: List[int]) -> None:
     # serpent_generate.py
     a = in_blk[0]
     b = in_blk[1]
@@ -2979,7 +2980,7 @@ assert __testdat == Serpent(__testkey).decrypt(
 
 
 # CBC Encrypt - Jason Reaves
-def serpent_cbc_encrypt(key, data, iv=b"\x00" * 16):
+def serpent_cbc_encrypt(key: bytes, data: bytes, iv: bytes=b"\x00" * 16) -> bytes:
     out = b""
     last = iv
     for i in range(len(data) // 16):
@@ -2996,7 +2997,7 @@ def serpent_cbc_encrypt(key, data, iv=b"\x00" * 16):
 
 
 # CBC Decrypt - Jason Reaves
-def serpent_cbc_decrypt(key, data, iv=b"\x00" * 16):
+def serpent_cbc_decrypt(key: bytes, data: bytes, iv: bytes=b"\x00" * 16) -> bytes:
     out2 = b""
     last = iv
     for i in range(len(data) // 16):

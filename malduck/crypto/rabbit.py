@@ -13,31 +13,31 @@ __all__ = ["rabbit"]
 
 
 class State:
-    def __init__(self):
+    def __init__(self) -> None:
         self.x = [0] * 8
         self.c = [0] * 8
         self.carry = 0
 
 
 class Context:
-    def __init__(self):
+    def __init__(self) -> None:
         self.m = State()
         self.w = State()
 
 
 class Rabbit:
-    def __init__(self, key: bytes, iv: Optional[bytes]):
+    def __init__(self, key: bytes, iv: Optional[bytes]) -> None:
         self.ctx = Context()
         self.set_key(key)
         iv and self.set_iv(iv)
 
-    def g_func(self, x):
+    def g_func(self, x: int) -> int:
         x = x & 0xFFFFFFFF
         x = (x * x) & 0xFFFFFFFFFFFFFFFF
         result = (x >> 32) ^ (x & 0xFFFFFFFF)
         return result
 
-    def set_key(self, key):
+    def set_key(self, key: bytes) -> None:
         # Four subkeys.
         key0, key1, key2, key3 = struct.unpack("IIII", key[:16])
 
@@ -74,7 +74,7 @@ class Rabbit:
         # Copy master instance to work instance.
         self.ctx.w = self.copy_state(self.ctx.m)
 
-    def copy_state(self, state):
+    def copy_state(self, state: State) -> State:
         s = State()
         s.carry = state.carry
         s.x = state.x[:]

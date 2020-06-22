@@ -10,6 +10,7 @@ from Cryptodome.Cipher import AES as AESCipher
 
 from .winhdr import BLOBHEADER, BaseBlob
 from ..string.bin import uint32
+from io import BytesIO
 
 __all__ = ["PlaintextKeyBlob", "aes"]
 
@@ -26,7 +27,7 @@ class PlaintextKeyBlob(BaseBlob):
         32: "AES-256",
     }
 
-    def __init__(self):
+    def __init__(self) -> None:
         BaseBlob.__init__(self)
         self.key = None
 

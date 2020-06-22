@@ -5,7 +5,7 @@
 __all__ = ["rol", "ror", "align", "align_down"]
 
 
-def rol(value, count, bits=32):
+def rol(value: int, count: int, bits: int=32) -> int:
     """
     Bitwise rotate left
 
@@ -23,7 +23,7 @@ def rol(value, count, bits=32):
     return value % 2 ** bits
 
 
-def ror(value, count, bits=32):
+def ror(value: int, count: int, bits: int=32) -> int:
     """
     Bitwise rotate right
 
@@ -39,14 +39,14 @@ def ror(value, count, bits=32):
     return rol(value, bits - count, bits)
 
 
-def align(value, round_to):
+def align(value: int, round_to: int) -> int:
     """
     Rounds value up to provided alignment
     """
     return ((value - 1) // round_to + 1) * round_to
 
 
-def align_down(value, round_to):
+def align_down(value: int, round_to: int) -> int:
     """
     Rounds value down to provided alignment
     """
