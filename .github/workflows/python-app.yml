@@ -25,10 +25,10 @@ jobs:
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     - name: Lint with flake8
       run: |
-        flake8 . --count --max-line-length=88 --show-source --statistics
+        flake8 malduck --count --max-line-length=88 --show-source --statistics
     - name: Check black format
       run: |
-        black . --target-version py36 --check --diff
+        black malduck --target-version py36 --check --diff
     - name: Install
       run: |
         python setup.py install
