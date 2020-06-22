@@ -11,7 +11,7 @@ jobs:
     - uses: actions/checkout@v2
     - name: Build package
       run: |
-        pip3 install wheel
+        pip3 install setuptools wheel
         python3 setup.py bdist_wheel --universal
     - name: Publish to PyPi
       uses: pypa/gh-action-pypi-publish@v1.3.0
