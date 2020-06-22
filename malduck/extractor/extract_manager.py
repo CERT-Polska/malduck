@@ -5,7 +5,6 @@ import os
 from .extractor import Extractor
 from .loaders import load_modules
 
-from ..py2compat import binary_type
 from ..yara import Yara
 
 log = logging.getLogger(__name__)
@@ -24,8 +23,8 @@ def is_config_better(base_config, new_config):
 
 
 def encode_for_json(data):
-    if isinstance(data, binary_type):
-        return data.decode("utf-8")
+    if isinstance(data, bytes):
+        return data.decode()
     elif isinstance(data, list) or isinstance(data, tuple):
         return [encode_for_json(item) for item in data]
     elif isinstance(data, dict):

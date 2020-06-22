@@ -1,5 +1,4 @@
 from .components.aplib import ap_depack
-from ..py2compat import binary_type
 
 import logging
 import struct
@@ -41,7 +40,7 @@ class aPLib(object):
                 hdr_length = struct.unpack_from("<I", buf, 4)[0]
                 buf = buf[hdr_length:]
             # Decompress aPLib
-            return binary_type(ap_depack(buf))
+            return bytes(ap_depack(buf))
         except Exception:
             return None
 

@@ -1,7 +1,6 @@
 from struct import pack, unpack_from, error
 
 from .bits import rol
-from .py2compat import long, add_metaclass
 
 __all__ = [
     "QWORD",
@@ -81,10 +80,9 @@ class MetaIntType(type):
         return MultipliedIntTypeClass
 
 
-@add_metaclass(MetaIntType)
-class IntType(long, IntTypeBase):
+class IntType(int, IntTypeBase, metaclass=MetaIntType):
     """
-    Fixed-size variant of long type with C-style operators and casting
+    Fixed-size variant of int type with C-style operators and casting
 
     Supports ctypes-like multiplication for unpacking tuple of values
 
@@ -94,7 +92,7 @@ class IntType(long, IntTypeBase):
     * Signed types:
           :class:`Int64`, :class:`Int32`, :class:`Int16`, :class:`Int8`
 
-    IntTypes are derived from :class:`long` type, so they are fully compatible with other numeric types
+    IntTypes are derived from :class:`int` type, so they are fully compatible with other numeric types
 
     .. code-block:: python
 
@@ -142,74 +140,70 @@ class IntType(long, IntTypeBase):
     fmt = "Q"
 
     def __new__(cls, value):
-        value = long(value) & cls.mask
+        value = int(value) & cls.mask
         if cls.signed:
             value |= -(value & cls.invert_mask)
-        return long.__new__(cls, value)
+        return int.__new__(cls, value)
 
     def __add__(self, other):
-        res = super(IntType, self).__add__(other)
+        res = super().__add__(other)
         return self.__class__(res)
 
     def __sub__(self, other):
-        res = super(IntType, self).__sub__(other)
+        res = super().__sub__(other)
         return self.__class__(res)
 
     def __mul__(self, other):
-        res = super(IntType, self).__mul__(other)
-        return self.__class__(res)
-
-    def __div__(self, other):
-        res = super(IntType, self).__div__(other)
+        res = super().__mul__(other)
         return self.__class__(res)
 
     def __truediv__(self, other):
-        res = super(IntType, self).__truediv__(other)
+        res = super().__truediv__(other)
         return self.__class__(res)
 
     def __floordiv__(self, other):
-        res = super(IntType, self).__floordiv__(other)
+        res = super().__floordiv__(other)
         return self.__class__(res)
 
     def __and__(self, other):
-        res = super(IntType, self).__and__(other)
+        res = super().__and__(other)
         return self.__class__(res)
 
     def __xor__(self, other):
-        res = super(IntType, self).__xor__(other)
+        res = super().__xor__(other)
         return self.__class__(res)
 
     def __or__(self, other):
-        res = super(IntType, self).__or__(other)
+        res = super().__or__(other)
         return self.__class__(res)
 
     def __lshift__(self, other):
-        res = super(IntType, self).__lshift__(other)
+        res = super().__lshift__(other)
         return self.__class__(res)
 
     def __pos__(self):
-        res = super(IntType, self).__pos__()
+        res = super().__pos__()
         return self.__class__(res)
 
     def __abs__(self):
-        res = super(IntType, self).__abs__()
+        res = super().__abs__()
         return self.__class__(res)
 
     def __rshift__(self, other):
-        res = long.__rshift__(long(self) & self.__class__.mask, other)
+        res = int.__rshift__(int(self) & self.__class__.mask, other)
         return self.__class__(res)
 
     def __neg__(self):
-        res = (long(self) ^ self.__class__.mask) + 1
+        res = (int(self) ^ self.__class__.mask) + 1
         return self.__class__(res)
 
     def __invert__(self):
-        res = long(self) ^ self.__class__.mask
+        res = int(self) ^ self.__class__.mask
         return self.__class__(res)
 
     def rol(self, other):
         """Bitwise rotate left"""
-        return self.__class__(rol(long(self), other, bits=self.bits))
+        return self.__class__(rol(int(self), other, bits=self.bits))
 
     def ror(self, other):
         """Bitwise rotate right"""
@@ -217,11 +211,11 @@ class IntType(long, IntTypeBase):
 
     def pack(self):
         """Pack value into bytes with little-endian order"""
-        return pack("<" + self.fmt, long(self))
+        return pack("<" + self.fmt, int(self))
 
     def pack_be(self):
         """Pack value into bytes with big-endian order"""
-        return pack(">" + self.fmt, long(self))
+        return pack(">" + self.fmt, int(self))
 
     @classmethod
     def unpack(cls, other, offset=0, fixed=True):

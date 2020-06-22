@@ -5,8 +5,6 @@
 from base64 import b64decode, b64encode
 import binascii
 
-from ..py2compat import indexbytes, int2byte
-
 __all__ = [
     "asciiz",
     "chunks_iter",
@@ -84,8 +82,8 @@ def uleb128(s):
     """Unsigned Little-Endian Base 128"""
     ret = 0
     for idx in range(len(s)):
-        ret += (indexbytes(s, idx) & 0x7F) << (idx * 7)
-        if indexbytes(s, idx) < 0x80:
+        ret += (s[idx] & 0x7F) << (idx * 7)
+        if s[idx] < 0x80:
             break
     else:
         return None
@@ -121,7 +119,7 @@ class Padding(object):
         if length == block_size:
             padding = b""
         elif self.style == "pkcs7":
-            padding = int2byte(length) * length
+            padding = bytes([length]) * length
         elif self.style == "null":
             padding = b"\x00" * length
         else:
@@ -140,8 +138,8 @@ class Unpadding(object):
         self.style = style
 
     def unpad(self, s):
-        count = indexbytes(s, -1) if s else 0
-        if self.style == "pkcs7" and s[-count:] == int2byte(indexbytes(s, -1)) * count:
+        count = s[-1] if s else 0
+        if self.style == "pkcs7" and s[-count:] == bytes([s[-1]]) * count:
             return s[:-count]
         return s
 

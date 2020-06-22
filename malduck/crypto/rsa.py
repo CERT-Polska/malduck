@@ -9,7 +9,6 @@ from itertools import takewhile
 
 from .winhdr import BLOBHEADER, BaseBlob
 from ..string.bin import uint32, bigint
-from ..py2compat import long
 
 __all__ = ["PublicKeyBlob", "PrivateKeyBlob", "RSA", "rsa"]
 
@@ -141,7 +140,7 @@ class RSA(object):
         """
 
         def wrap(x):
-            return None if x is None else long(x)
+            return None if x is None else int(x)
 
         tup = wrap(n), wrap(e), wrap(d), wrap(p), wrap(q), wrap(crt)
         # PyCryptodome accepts only variable-length tuples

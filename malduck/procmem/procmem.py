@@ -5,7 +5,6 @@ from .region import Region, PAGE_EXECUTE_READWRITE
 from ..disasm import disasm
 from ..string.bin import uint8, uint16, uint32, uint64, int8, int16, int32, int64
 from ..string.ops import utf16z
-from ..py2compat import ensure_string, binary_type
 
 __all__ = ["ProcessMemory", "procmem"]
 
@@ -75,7 +74,7 @@ class ProcessMemory(object):
     def __init__(self, buf, base=0, regions=None):
         self.f = None
 
-        if isinstance(buf, binary_type):
+        if isinstance(buf, bytes):
             self.m = bytearray(buf)
         else:
             self.m = buf
@@ -345,9 +344,9 @@ class ProcessMemory(object):
         :rtype: bytes
         """
         if length is None:
-            return binary_type(self.m[offset:])
+            return bytes(self.m[offset:])
         else:
-            return binary_type(self.m[offset : offset + length])
+            return bytes(self.m[offset : offset + length])
 
     def readv_regions(self, addr=None, length=None, contiguous=True):
         """
@@ -701,7 +700,9 @@ class ProcessMemory(object):
     def _findbytes(self, yara_fn, query, addr, length):
         from ..yara import Yara, YaraString
 
-        query = ensure_string(query)
+        if isinstance(query, bytes):
+            query = query.decode()
+
         rule = Yara(strings=YaraString(query, type=YaraString.HEX))
         match = yara_fn(rule, addr, length)
         if match:

@@ -9,7 +9,6 @@ import pytest
 
 from malduck import procmem, procmempe, cuckoomem, pad, pe, insn, PAGE_READWRITE, enhex
 from malduck.procmem import Region
-from malduck.py2compat import binary_type
 
 
 def test_readv():
@@ -29,7 +28,7 @@ def test_readv():
     p = procmem(payload, regions=regions)
     assert p.readv(0x3fffff, 16) == b""
     assert p.readv(0x400000, 16) == b"a" * 16
-    assert isinstance(p.readv(0x400000, 16), binary_type)
+    assert isinstance(p.readv(0x400000, 16), bytes)
     assert p.readv(0x400fff, 16) == b"a" + b"b" * 15
     assert p.readv(0x400ffe, 0x1100) == b"aa" + (b"b" * 0x1000) + (b"c" * 0xfe)
     assert p.readv(0x402ffe, 0x1000) == b"cc"
@@ -74,7 +73,7 @@ def test_cuckoomem_dummy_dmp():
 
         assert len(p.regions) == 3
         assert p.readv(0x41410f00, 0x200) == b"A"*0xf4 + b"X"*4 + b"A"*8 + b"B"*0x100
-        assert isinstance(p.readv(0x41410f00, 0x200), binary_type)
+        assert isinstance(p.readv(0x41410f00, 0x200), bytes)
         assert p.uint8p(p.v2p(0x41410fff)) == 0x41
         assert p.uint8v(0x41410fff) == 0x41
         assert p.uint16p(p.v2p(0x4141100f)) == 0x4242

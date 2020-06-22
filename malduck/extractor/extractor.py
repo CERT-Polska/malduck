@@ -3,8 +3,6 @@ import logging
 
 from ..procmem import ProcessMemoryPE, ProcessMemoryELF
 
-from ..py2compat import add_metaclass
-
 log = logging.getLogger(__name__)
 
 __all__ = ["Extractor"]
@@ -143,8 +141,7 @@ class ExtractorBase(object):
         )
 
 
-@add_metaclass(MetaExtractor)
-class Extractor(ExtractorBase):
+class Extractor(ExtractorBase, metaclass=MetaExtractor):
     """
     Base class for extractor modules
 

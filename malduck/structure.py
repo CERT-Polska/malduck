@@ -16,7 +16,6 @@ from .ints import (
     Int64,
     UInt64,
 )
-from .py2compat import is_integer
 
 __all__ = ["Structure"]
 

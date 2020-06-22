@@ -1,9 +1,28 @@
+import importlib.util
 import logging
 import pkgutil
-
-from ..py2compat import import_module_by_finder
+import sys
 
 log = logging.getLogger(__name__)
+
+
+def import_module_by_finder(finder, module_name):
+    """
+    Imports module from arbitrary path using importer returned by pkgutil.iter_modules
+    """
+    if module_name in sys.modules:
+        return sys.modules[module_name]
+
+    # https://docs.python.org/3/library/importlib.html#importing-a-source-file-directly
+    module_spec = finder.find_spec(module_name)
+    module = importlib.util.module_from_spec(module_spec)
+    sys.modules[module_name] = module
+    try:
+        module = module_spec.loader.exec_module(module)
+    except BaseException:
+        del sys.modules[module_name]
+        raise
+    return module
 
 
 def load_modules(search_path, onerror=None):

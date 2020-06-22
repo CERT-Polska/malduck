@@ -3,19 +3,8 @@
 # See the file 'docs/LICENSE.txt' for copying permission.
 
 import pefile
-from .py2compat import binary_type, text_type, ensure_bytes, ensure_string, PY3
 
 __all__ = ["pe", "PE", "MemoryPEData", "FastPE", "pe2cuckoo"]
-
-
-if not PY3:
-    """
-    Workaround for https://github.com/erocarrera/pefile/issues/267
-    """
-    from pefile import bytes
-
-    pefile.allowed_function_name = bytes(pefile.allowed_function_name)
-    pefile.allowed_filename = bytes(pefile.allowed_filename)
 
 
 class FastPE(pefile.PE):
@@ -166,8 +155,11 @@ class PE(object):
         :param name: Section name
         :type name: str or bytes
         """
+        if isinstance(name, str):
+            name = name.encode()
+
         for section in self.pe.sections:
-            if section.Name.rstrip(b"\x00") == ensure_bytes(name):
+            if section.Name.rstrip(b"\x00") == name:
                 return section
 
     def directory(self, name):
@@ -306,13 +298,13 @@ class PE(object):
         def type_int(e1, e2, e3):
             return e1.id == type_id
 
-        if isinstance(name, text_type):
-            name = ensure_bytes(name)
+        if isinstance(name, str):
+            name = name.encode()
 
-        if isinstance(name, binary_type):
+        if isinstance(name, bytes):
             if name.startswith(b"RT_"):
                 compare = type_int
-                type_id = pefile.RESOURCE_TYPE[ensure_string(name)]
+                type_id = pefile.RESOURCE_TYPE[name.decode()]
             else:
                 compare = name_str
         else:

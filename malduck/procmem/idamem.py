@@ -1,4 +1,3 @@
-from ..py2compat import iterbytes_ord
 from .procmem import ProcessMemory
 from .region import Region
 
@@ -32,7 +31,7 @@ class IDAVM(object):
                 yield (ea_start, ea_end)
 
     def __setitem__(self, item, value):
-        value_bytes = iterbytes_ord(value)
+        value_bytes = iter(value)
         for ea_start, ea_end in self._get_ea_range(item):
             for ea in range(ea_start, ea_end):
                 try:
