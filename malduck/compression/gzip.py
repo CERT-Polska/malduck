@@ -25,6 +25,7 @@ class Gzip(object):
 
     :param buf: Buffer to decompress
     :type buf: bytes
+    :rtype: bytes
     """
 
     def decompress(self, buf):
