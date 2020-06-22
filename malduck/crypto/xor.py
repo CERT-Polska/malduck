@@ -6,17 +6,17 @@ __all__ = ["xor"]
 
 
 class XOR(object):
-    def __call__(self, key, data):
-        """
-        XOR encryption/decryption
+    """
+    XOR encryption/decryption
 
-        :param key: Encryption key
-        :type key: int (single byte) or bytes
-        :param data: Buffer containing data to decrypt
-        :type data: bytes
-        :return: Encrypted/decrypted data
-        :rtype: bytes
-        """
+    :param key: Encryption key
+    :type key: int (single byte) or bytes
+    :param data: Buffer containing data to decrypt
+    :type data: bytes
+    :return: Encrypted/decrypted data
+    :rtype: bytes
+    """
+    def __call__(self, key, data):
         if is_integer(key):
             key = int2byte(key)
         return b"".join(

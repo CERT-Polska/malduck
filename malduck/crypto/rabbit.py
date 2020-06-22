@@ -146,19 +146,19 @@ class Rabbit(RabbitCipher):
 
 
 class _Rabbit(object):
-    def __call__(self, key, iv, data):
-        """
-        Encrypts/decrypts buffer using Rabbit algorithm
+    """
+    Encrypts/decrypts buffer using Rabbit algorithm
 
-        :param key: Cryptographic key (16 bytes)
-        :type key: bytes
-        :param iv: Initialization vector (8 bytes)
-        :type iv: bytes
-        :param data: Buffer to be encrypted/decrypted
-        :type data: bytes
-        :return: Encrypted/decrypted data
-        :rtype: bytes
-        """
+    :param key: Cryptographic key (16 bytes)
+    :type key: bytes
+    :param iv: Initialization vector (8 bytes)
+    :type iv: bytes
+    :param data: Buffer to be encrypted/decrypted
+    :type data: bytes
+    :return: Encrypted/decrypted data
+    :rtype: bytes
+    """
+    def __call__(self, key, iv, data):
         return RabbitCipher(key, iv).decrypt(data)
 
     def rabbit(self, key, iv, data):

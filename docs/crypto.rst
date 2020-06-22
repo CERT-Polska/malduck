@@ -3,6 +3,8 @@ Cryptography
 
 .. automodule:: malduck.crypto
 
+Common cryptography algorithms used in malware.
+
 AES
 --------------
 

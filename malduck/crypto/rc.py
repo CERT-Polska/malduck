@@ -12,18 +12,18 @@ ARC4.key_size = range(3, 256 + 1)
 
 
 class RC4Cipher(object):
+    """
+    Encrypts/decrypts buffer using RC4 algorithm
+
+    :param key: Cryptographic key (from 3 to 256 bytes)
+    :type key: bytes
+    :param data: Buffer to be encrypted/decrypted
+    :type data: bytes
+    :return: Encrypted/decrypted data
+    :rtype: bytes
+    """
     # todo: transform it to single rc4 function
     def __call__(self, key, data):
-        """
-        Encrypts/decrypts buffer using RC4 algorithm
-
-        :param key: Cryptographic key (from 3 to 256 bytes)
-        :type key: bytes
-        :param data: Buffer to be encrypted/decrypted
-        :type data: bytes
-        :return: Encrypted/decrypted data
-        :rtype: bytes
-        """
         return ARC4.new(key).decrypt(data)
 
     def rc4(self, key, data):
