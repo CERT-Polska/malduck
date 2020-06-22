@@ -59,10 +59,34 @@ BlobTypes = {
 
 class AesCbc(object):
     def encrypt(self, key, iv, data):
+        """
+        Encrypts buffer using AES algorithm in CBC mode.
+
+        :param key: Cryptographic key (128, 192 or 256 bits)
+        :type key: bytes
+        :param iv: Initialization vector
+        :type iv: bytes
+        :param data: Buffer to be encrypted
+        :type data: bytes
+        :return: Encrypted data
+        :rtype: bytes
+        """
         cipher = AESCipher.new(key, AESCipher.MODE_CBC, iv=iv)
         return cipher.encrypt(data)
 
     def decrypt(self, key, iv, data):
+        """
+        Decrypts buffer using AES algorithm in CBC mode.
+
+        :param key: Cryptographic key (128, 192 or 256 bits)
+        :type key: bytes
+        :param iv: Initialization vector
+        :type iv: bytes
+        :param data: Buffer to be decrypted
+        :type data: bytes
+        :return: Decrypted data
+        :rtype: bytes
+        """
         cipher = AESCipher.new(key, AESCipher.MODE_CBC, iv=iv)
         return cipher.decrypt(data)
 
@@ -76,10 +100,30 @@ class AesCbc(object):
 
 class AesEcb(object):
     def encrypt(self, key, data):
+        """
+        Encrypts buffer using AES algorithm in ECB mode.
+
+        :param key: Cryptographic key (128, 192 or 256 bits)
+        :type key: bytes
+        :param data: Buffer to be encrypted
+        :type data: bytes
+        :return: Encrypted data
+        :rtype: bytes
+        """
         cipher = AESCipher.new(key, AESCipher.MODE_ECB)
         return cipher.encrypt(data)
 
     def decrypt(self, key, data):
+        """
+        Decrypts buffer using AES algorithm in ECB mode.
+
+        :param key: Cryptographic key (128, 192 or 256 bits)
+        :type key: bytes
+        :param data: Buffer to be decrypted
+        :type data: bytes
+        :return: Decrypted data
+        :rtype: bytes
+        """
         cipher = AESCipher.new(key, AESCipher.MODE_ECB)
         return cipher.decrypt(data)
 
@@ -93,10 +137,34 @@ class AesEcb(object):
 
 class AesCtr(object):
     def encrypt(self, key, nonce, data):
+        """
+        Encrypts buffer using AES algorithm in CTR mode.
+
+        :param key: Cryptographic key (128, 192 or 256 bits)
+        :type key: bytes
+        :param nonce: Initial counter value, big-endian encoded
+        :type nonce: bytes
+        :param data: Buffer to be encrypted
+        :type data: bytes
+        :return: Encrypted data
+        :rtype: bytes
+        """
         cipher = AESCipher.new(key, AESCipher.MODE_CTR, nonce=b"", initial_value=nonce)
         return cipher.encrypt(data)
 
     def decrypt(self, key, nonce, data):
+        """
+        Decrypts buffer using AES algorithm in CTR mode.
+
+        :param key: Cryptographic key (128, 192 or 256 bits)
+        :type key: bytes
+        :param nonce: Initial counter value, big-endian encoded
+        :type nonce: bytes
+        :param data: Buffer to be decrypted
+        :type data: bytes
+        :return: Decrypted data
+        :rtype: bytes
+        """
         cipher = AESCipher.new(key, AESCipher.MODE_CTR, nonce=b"", initial_value=nonce)
         return cipher.decrypt(data)
 

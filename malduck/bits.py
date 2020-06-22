@@ -8,6 +8,7 @@ __all__ = ["rol", "ror", "align", "align_down"]
 def rol(value, count, bits=32):
     """
     Bitwise rotate left
+
     :param value: Value to rotate
     :param count: Number of bits to rotate
     :param bits: Bit-length of rotated value (default: 32-bit, DWORD)
@@ -25,6 +26,7 @@ def rol(value, count, bits=32):
 def ror(value, count, bits=32):
     """
     Bitwise rotate right
+
     :param value: Value to rotate
     :param count: Number of bits to rotate
     :param bits: Bit-length of rotated value (default: 32-bit, DWORD)
