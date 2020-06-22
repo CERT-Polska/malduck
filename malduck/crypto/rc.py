@@ -2,8 +2,6 @@
 # This file is part of Roach - https://github.com/jbremer/roach.
 # See the file 'docs/LICENSE.txt' for copying permission.
 
-import warnings
-
 from Cryptodome.Cipher import ARC4
 
 __all__ = ["rc4"]
