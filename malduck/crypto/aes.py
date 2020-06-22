@@ -3,14 +3,15 @@
 # See the file 'docs/LICENSE.txt' for copying permission.
 
 import io
-import warnings
+
+from typing import Optional, Tuple
 
 from Cryptodome.Cipher import AES as AESCipher
 
 from .winhdr import BLOBHEADER, BaseBlob
 from ..string.bin import uint32
 
-__all__ = ["PlaintextKeyBlob", "AES", "aes"]
+__all__ = ["PlaintextKeyBlob", "aes"]
 
 
 class PlaintextKeyBlob(BaseBlob):
@@ -29,7 +30,7 @@ class PlaintextKeyBlob(BaseBlob):
         BaseBlob.__init__(self)
         self.key = None
 
-    def parse(self, buf):
+    def parse(self, buf: io.BytesIO) -> None:
         """
         Parse structure from buffer
 
@@ -42,7 +43,7 @@ class PlaintextKeyBlob(BaseBlob):
             return
         self.key = value
 
-    def export_key(self):
+    def export_key(self) -> Tuple[str, bytes]:
         """
         Exports key from structure
 
@@ -57,8 +58,8 @@ BlobTypes = {
 }
 
 
-class AesCbc(object):
-    def encrypt(self, key, iv, data):
+class AesCbc:
+    def encrypt(self, key: bytes, iv: bytes, data: bytes) -> bytes:
         """
         Encrypts buffer using AES algorithm in CBC mode.
 
@@ -74,7 +75,7 @@ class AesCbc(object):
         cipher = AESCipher.new(key, AESCipher.MODE_CBC, iv=iv)
         return cipher.encrypt(data)
 
-    def decrypt(self, key, iv, data):
+    def decrypt(self, key: bytes, iv: bytes, data: bytes) -> bytes:
         """
         Decrypts buffer using AES algorithm in CBC mode.
 
@@ -90,16 +91,9 @@ class AesCbc(object):
         cipher = AESCipher.new(key, AESCipher.MODE_CBC, iv=iv)
         return cipher.decrypt(data)
 
-    def __call__(self, key, iv, data):
-        warnings.warn(
-            "malduck.aes.cbc() is deprecated, please use malduck.aes.cbc.decrypt()",
-            DeprecationWarning,
-        )
-        return self.decrypt(key, iv, data)
 
-
-class AesEcb(object):
-    def encrypt(self, key, data):
+class AesEcb:
+    def encrypt(self, key: bytes, data: bytes) -> bytes:
         """
         Encrypts buffer using AES algorithm in ECB mode.
 
@@ -113,7 +107,7 @@ class AesEcb(object):
         cipher = AESCipher.new(key, AESCipher.MODE_ECB)
         return cipher.encrypt(data)
 
-    def decrypt(self, key, data):
+    def decrypt(self, key: bytes, data: bytes) -> bytes:
         """
         Decrypts buffer using AES algorithm in ECB mode.
 
@@ -127,16 +121,9 @@ class AesEcb(object):
         cipher = AESCipher.new(key, AESCipher.MODE_ECB)
         return cipher.decrypt(data)
 
-    def __call__(self, key, iv, data):
-        warnings.warn(
-            "malduck.aes.ecb() is deprecated, please use malduck.aes.ecb.decrypt()",
-            DeprecationWarning,
-        )
-        return self.decrypt(key, data)
 
-
-class AesCtr(object):
-    def encrypt(self, key, nonce, data):
+class AesCtr:
+    def encrypt(self, key: bytes, nonce: bytes, data: bytes) -> bytes:
         """
         Encrypts buffer using AES algorithm in CTR mode.
 
@@ -152,7 +139,7 @@ class AesCtr(object):
         cipher = AESCipher.new(key, AESCipher.MODE_CTR, nonce=b"", initial_value=nonce)
         return cipher.encrypt(data)
 
-    def decrypt(self, key, nonce, data):
+    def decrypt(self, key: bytes, nonce: bytes, data: bytes) -> bytes:
         """
         Decrypts buffer using AES algorithm in CTR mode.
 
@@ -168,42 +155,14 @@ class AesCtr(object):
         cipher = AESCipher.new(key, AESCipher.MODE_CTR, nonce=b"", initial_value=nonce)
         return cipher.decrypt(data)
 
-    def __call__(self, key, nonce, data):
-        warnings.warn(
-            "malduck.aes.ctr() is deprecated, please use malduck.aes.ctr.decrypt()",
-            DeprecationWarning,
-        )
-        return self.decrypt(key, nonce, data)
 
-
-class Aes(object):
+class Aes:
     cbc = AesCbc()
     ecb = AesEcb()
     ctr = AesCtr()
 
-    def encrypt(self, key, iv, data):
-        warnings.warn(
-            "malduck.aes.encrypt is deprecated, please use malduck.aes.cbc.encrypt",
-            DeprecationWarning,
-        )
-        return self.cbc.encrypt(key, iv, data)
-
-    def decrypt(self, key, iv, data):
-        warnings.warn(
-            "malduck.aes.decrypt is deprecated, please use malduck.aes.cbc.decrypt",
-            DeprecationWarning,
-        )
-        return self.cbc.decrypt(key, iv, data)
-
-    def __call__(self, mode):
-        warnings.warn(
-            "malduck.aes('<mode>') is deprecated, please use malduck.aes.<mode>",
-            DeprecationWarning,
-        )
-        return getattr(self, mode)
-
     @staticmethod
-    def import_key(data):
+    def import_key(data: bytes) -> Optional[Tuple[str, bytes]]:
         """
         Extracts key from buffer containing :class:`PlaintextKeyBlob` data
 
@@ -232,79 +191,6 @@ class Aes(object):
         obj = BlobTypes[header.bType]()
         obj.parse(buf)
         return obj.export_key()
-
-
-class AES(object):
-    r"""
-    AES encryption/decryption object
-
-    Deprecated, use `malduck.aes`
-
-    :param key: Encryption key
-    :type key: bytes
-    :param iv: Initialization vector (IV for CBC mode, nonce for CTR)
-    :type iv: bytes, optional
-    :param mode: Block cipher mode (default: "cbc")
-    :type mode: str ("cbc", "ecb", "ctr")
-    """
-    algorithms = (
-        0x0000660E,  # AES 128
-        0x0000660F,  # AES 192
-        0x00006610,  # AES 256
-    )
-
-    modes = {
-        "cbc": Aes.cbc,
-        "ecb": Aes.ecb,
-        "ctr": Aes.ctr,
-    }
-
-    def __init__(self, key, iv=None, mode="cbc"):
-        warnings.warn(
-            "malduck.crypto.AES is deprecated, please use malduck.aes.<mode> variants",
-            DeprecationWarning,
-        )
-        self.key = key
-        self.iv = iv
-        self.mode = mode
-        self.aes = self.modes[mode]
-
-    def encrypt(self, data):
-        """
-        Encrypt provided data
-
-        :param data: Buffer with data
-        :type data: bytes
-        :return: Encrypted data
-        """
-        if self.mode == "ecb":
-            return self.aes.encrypt(self.key, data)
-        else:
-            return self.aes.encrypt(self.key, self.iv, data)
-
-    def decrypt(self, data):
-        """
-        Decrypt provided data
-
-        :param data: Buffer with encrypted data
-        :type data: bytes
-        :return: Decrypted data
-        """
-        if self.mode == "ecb":
-            return self.aes.decrypt(self.key, data)
-        else:
-            return self.aes.decrypt(self.key, self.iv, data)
-
-    @staticmethod
-    def import_key(data):
-        """
-        Extracts key from buffer containing :class:`PlaintextKeyBlob` data
-
-        :param data: Buffer with `BLOB` structure data
-        :type data: bytes
-        :return: Tuple (`algorithm`, `key`). `Algorithm` is one of: "AES-128", "AES-192", "AES-256"
-        """
-        return Aes.import_key(data)
 
 
 aes = Aes()

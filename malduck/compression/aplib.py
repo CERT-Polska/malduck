@@ -1,3 +1,5 @@
+from typing import Optional
+
 from .components.aplib import ap_depack
 
 import logging
@@ -28,7 +30,7 @@ class aPLib(object):
     :rtype: bytes
     """
 
-    def decompress(self, buf, headerless=False):
+    def decompress(self, buf: bytes, headerless: bool = False) -> Optional[bytes]:
         try:
             # Trim header
             if not headerless and buf.startswith(b"AP32"):

@@ -18,7 +18,7 @@ class Lznt1(object):
     :rtype: bytes
     """
 
-    def decompress(self, buf):
+    def decompress(self, buf: bytes) -> bytes:
         return decompress_data(buf)
 
     __call__ = decompress

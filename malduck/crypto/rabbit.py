@@ -3,29 +3,30 @@
 # See the file 'docs/LICENSE.txt' for copying permission.
 
 import struct
-import warnings
+
+from typing import Optional
 
 from ..bits import rol
 from .xor import xor
 
-__all__ = ["Rabbit", "rabbit"]
+__all__ = ["rabbit"]
 
 
-class State(object):
+class State:
     def __init__(self):
         self.x = [0] * 8
         self.c = [0] * 8
         self.carry = 0
 
 
-class Context(object):
+class Context:
     def __init__(self):
         self.m = State()
         self.w = State()
 
 
-class RabbitCipher(object):
-    def __init__(self, key, iv):
+class Rabbit:
+    def __init__(self, key: bytes, iv: Optional[bytes]):
         self.ctx = Context()
         self.set_key(key)
         iv and self.set_iv(iv)
@@ -120,7 +121,7 @@ class RabbitCipher(object):
             state.x[i + 1] = (g[i + 1] + rol(g[j], 8) + g[j - 1]) & 0xFFFFFFFF
             j = (j + 1) & 7
 
-    def encrypt(self, msg):
+    def encrypt(self, msg: bytes) -> bytes:
         x, ret = [0] * 4, []
         for off in range(0, len(msg) + 15, 16):
             self.next_state(self.ctx.w)
@@ -136,16 +137,7 @@ class RabbitCipher(object):
     decrypt = encrypt
 
 
-class Rabbit(RabbitCipher):
-    def __init__(self, key, iv):
-        warnings.warn(
-            "malduck.crypto.Rabbit() is deprecated, please use malduck.rabbit()",
-            DeprecationWarning,
-        )
-        super(Rabbit, self).__init__(key, iv)
-
-
-class _Rabbit(object):
+def rabbit(key: bytes, iv: bytes, data: bytes) -> bytes:
     """
     Encrypts/decrypts buffer using Rabbit algorithm
 
@@ -158,18 +150,4 @@ class _Rabbit(object):
     :return: Encrypted/decrypted data
     :rtype: bytes
     """
-
-    def __call__(self, key, iv, data):
-        return RabbitCipher(key, iv).decrypt(data)
-
-    def rabbit(self, key, iv, data):
-        warnings.warn(
-            "malduck.rabbit.rabbit() is deprecated, please use malduck.rabbit()",
-            DeprecationWarning,
-        )
-        return self(key, iv, data)
-
-    encrypt = decrypt = __call__
-
-
-rabbit = _Rabbit()
+    return Rabbit(key, iv).decrypt(data)

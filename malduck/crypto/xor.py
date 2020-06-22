@@ -3,7 +3,7 @@ from itertools import cycle
 __all__ = ["xor"]
 
 
-def xor(key, data):
+def xor(key: bytes, data: bytes) -> bytes:
     """
     XOR encryption/decryption
 
