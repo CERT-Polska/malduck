@@ -16,6 +16,7 @@ class XOR(object):
     :return: Encrypted/decrypted data
     :rtype: bytes
     """
+
     def __call__(self, key, data):
         if is_integer(key):
             key = int2byte(key)

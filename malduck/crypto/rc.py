@@ -22,6 +22,7 @@ class RC4Cipher(object):
     :return: Encrypted/decrypted data
     :rtype: bytes
     """
+
     # todo: transform it to single rc4 function
     def __call__(self, key, data):
         return ARC4.new(key).decrypt(data)

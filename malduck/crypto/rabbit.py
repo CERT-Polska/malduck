@@ -158,6 +158,7 @@ class _Rabbit(object):
     :return: Encrypted/decrypted data
     :rtype: bytes
     """
+
     def __call__(self, key, iv, data):
         return RabbitCipher(key, iv).decrypt(data)
 
