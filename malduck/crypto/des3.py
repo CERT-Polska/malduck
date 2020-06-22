@@ -18,9 +18,33 @@ class Des3Cbc(object):
         return DES3Cipher.new(key, DES3Cipher.MODE_CBC, iv=iv)
 
     def encrypt(self, key, iv, data):
+        """
+        Encrypts buffer using DES/DES3 algorithm in CBC mode.
+
+        :param key: Cryptographic key (8 bytes for single DES, 16 or 24 bytes)
+        :type key: bytes
+        :param iv: Initialization vector
+        :type iv: bytes
+        :param data: Buffer to be encrypted
+        :type data: bytes
+        :return: Encrypted data
+        :rtype: bytes
+        """
         return self._get_cipher(key, iv).encrypt(data)
 
     def decrypt(self, key, iv, data):
+        """
+        Decrypts buffer using DES/DES3 algorithm in CBC mode.
+
+        :param key: Cryptographic key (8 bytes for single DES, 16 or 24 bytes)
+        :type key: bytes
+        :param iv: Initialization vector
+        :type iv: bytes
+        :param data: Buffer to be decrypted
+        :type data: bytes
+        :return: Decrypted data
+        :rtype: bytes
+        """
         return self._get_cipher(key, iv).decrypt(data)
 
     def __call__(self, key, iv, data):

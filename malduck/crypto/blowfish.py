@@ -11,10 +11,30 @@ __all__ = ["Blowfish", "blowfish"]
 
 class BlowfishEcb(object):
     def encrypt(self, key, data):
+        """
+        Encrypts buffer using Blowfish algorithm in ECB mode.
+
+        :param key: Cryptographic key (4 to 56 bytes)
+        :type key: bytes
+        :param data: Buffer to be encrypted
+        :type data: bytes
+        :return: Encrypted data
+        :rtype: bytes
+        """
         cipher = BlowfishCipher.new(key, BlowfishCipher.MODE_ECB)
         return cipher.encrypt(data)
 
     def decrypt(self, key, data):
+        """
+        Decrypts buffer using Blowfish algorithm in ECB mode.
+
+        :param key: Cryptographic key (4 to 56 bytes)
+        :type key: bytes
+        :param data: Buffer to be decrypted
+        :type data: bytes
+        :return: Decrypted data
+        :rtype: bytes
+        """
         cipher = BlowfishCipher.new(key, BlowfishCipher.MODE_ECB)
         return cipher.decrypt(data)
 

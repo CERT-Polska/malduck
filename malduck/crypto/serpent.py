@@ -7,9 +7,33 @@ __all__ = ["Serpent", "serpent"]
 
 class SerpentCbc(object):
     def encrypt(self, key, data, iv=None):
+        """
+        Encrypts buffer using Serpent algorithm in CBC mode.
+
+        :param key: Cryptographic key (4-32 bytes, must be multiple of four)
+        :type key: bytes
+        :param data: Buffer to be encrypted
+        :type data: bytes
+        :param iv: Initialization vector (defaults to `b"\x00" * 16`)
+        :type iv: bytes, optional
+        :return: Encrypted data
+        :rtype: bytes
+        """
         return serpent_cbc_encrypt(key, data, iv=iv or b"\x00" * 16)
 
     def decrypt(self, key, data, iv=None):
+        """
+        Decrypts buffer using Serpent algorithm in CBC mode.
+
+        :param key: Cryptographic key (4-32 bytes, must be multiple of four)
+        :type key: bytes
+        :param data: Buffer to be decrypted
+        :type data: bytes
+        :param iv: Initialization vector (defaults to `b"\x00" * 16`)
+        :type iv: bytes, optional
+        :return: Decrypted data
+        :rtype: bytes
+        """
         return serpent_cbc_decrypt(key, data, iv=iv or b"\x00" * 16)
 
 
