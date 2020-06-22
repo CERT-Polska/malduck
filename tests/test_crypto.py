@@ -66,9 +66,9 @@ def test_des():
 
 
 def test_rc4():
-    assert rc4.encrypt(b"Key", b"Plaintext") == unhex("bbf316e8d940af0ad3")
-    assert rc4.decrypt(b"Wiki", b"pedia") == unhex("1021bf0420")
-    assert rc4.decrypt(b"Secret", b"Attack at dawn") == (
+    assert rc4(b"Key", b"Plaintext") == unhex("bbf316e8d940af0ad3")
+    assert rc4(b"Wiki", b"pedia") == unhex("1021bf0420")
+    assert rc4(b"Secret", b"Attack at dawn") == (
         unhex("45a01f645fc35b383552544b9bf5")
     )
     assert rc4(b"hello", b"world") == unhex("783ecd96cf")
