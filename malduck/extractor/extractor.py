@@ -23,9 +23,7 @@ class MetaExtractor(type):
         klass.final_methods = list(getattr(klass, "final_methods", []))
 
         if type(getattr(klass, "yara_rules")) not in (list, tuple):
-            raise TypeError(
-                "'yara_rules' field must be 'list' or 'tuple' in {}".format(str(name))
-            )
+            raise TypeError(f"'yara_rules' field must be 'list' or 'tuple' in {name}")
 
         for name, method in attrs.items():
             if isinstance(method, ExtractorMethod):
@@ -35,7 +33,7 @@ class MetaExtractor(type):
                     if method.yara_string in klass.extractor_methods:
                         raise TypeError(
                             "There can be only one extractor method "
-                            'for "{}" string'.format(method.yara_string)
+                            f'for "{method.yara_string}" string'
                         )
                     klass.extractor_methods[method.yara_string] = name
 
@@ -132,12 +130,7 @@ class ExtractorBase(object):
         :return: :class:`logging.Logger`
         """
         return logging.getLogger(
-            "{}.{}".format(
-                # should be malduck.extractor.modules (see
-                # malduck.extractor.loaders)
-                self.__class__.__module__,
-                self.__class__.__name__,
-            )
+            f"{self.__class__.__module__}.{self.__class__.__name__}"
         )
 
 

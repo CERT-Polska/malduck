@@ -3,5 +3,4 @@ pefile==2019.4.18
 pyelftools
 pycryptodomex>=3.8.2
 capstone>=4.0.1
-six
 yara-python

@@ -66,10 +66,8 @@ def merge_configs(base_config, new_config):
                     config[k] = config[k] + [el]
         else:
             raise RuntimeError(
-                "Extractor tries to override '{old_value}' "
-                "value of '{key}' with '{new_value}'".format(
-                    key=k, old_value=config[k], new_value=v
-                )
+                f"Extractor tries to override '{config[k]}' "
+                f"value of '{k}' with '{v}'"
             )
     return config
 
@@ -104,7 +102,7 @@ class ExtractorModules(object):
         :param module_name: Name of module which throwed exception
         :type module_name: str
         """
-        log.warning("{} not loaded: {}".format(module_name, exc))
+        log.warning("%s not loaded: %s", module_name, exc)
 
 
 class ExtractManager(object):
@@ -165,9 +163,10 @@ class ExtractManager(object):
         import traceback
 
         log.warning(
-            "{}.{} throwed exception: {}".format(
-                extractor.__class__.__name__, method_name, traceback.format_exc()
-            )
+            "%s.%s throwed exception: %s",
+            extractor.__class__.__name__,
+            method_name,
+            traceback.format_exc(),
         )
 
     def push_file(self, filepath, base=0):
@@ -183,7 +182,7 @@ class ExtractManager(object):
         """
         from ..procmem import ProcessMemory
 
-        log.debug("Started extraction of file {}:{:x}".format(filepath, base))
+        log.debug("Started extraction of file %s:%x", filepath, base)
         with ProcessMemory.from_file(filepath, base=base) as p:
             return self.push_procmem(p, rip_binaries=True)
 
@@ -228,27 +227,22 @@ class ExtractManager(object):
             )
 
         def fmt_procmem(p):
-            return "{}:{}:{:x}".format(
-                p.__class__.__name__,
-                "IMG" if getattr(p, "is_image", False) else "DMP",
-                p.imgbase,
-            )
+            procmem_type = "IMG" if getattr(p, "is_image", False) else "DMP"
+            return f"{p.__class__.__name__}:{procmem_type}:{p.imgbase:x}"
 
         def extract_config(procmem):
-            log.debug("{} - ripping...".format(fmt_procmem(procmem)))
+            log.debug("%s - ripping...", fmt_procmem(procmem))
             extractor = ProcmemExtractManager(self)
             matches.remap(procmem.p2v)
             extractor.push_procmem(procmem, _matches=matches)
             if extractor.family:
-                log.debug(
-                    "{} - found {}!".format(fmt_procmem(procmem), extractor.family)
-                )
+                log.debug("%s - found %s!", fmt_procmem(procmem), extractor.family)
                 return self.push_config(extractor.family, extractor.config)
             else:
-                log.debug("{} - No luck.".format(fmt_procmem(procmem)))
+                log.debug("%s - No luck.", fmt_procmem(procmem))
 
         # 'list()' for prettier logs
-        log.debug("Matched rules: {}".format(list(matches.keys())))
+        log.debug("Matched rules: %s", list(matches.keys()))
 
         ripped_family = None
 
@@ -333,9 +327,7 @@ class ProcmemExtractManager(object):
         try:
             json.dumps(config)
         except (TypeError, OverflowError) as e:
-            log.debug(
-                "Config is not JSON-encodable ({}): {}".format(str(e), repr(config))
-            )
+            log.debug("Config is not JSON-encodable (%s): %s", str(e), repr(config))
             raise RuntimeError("Config must be JSON-encodable")
 
         config = sanitize_config(config)

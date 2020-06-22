@@ -123,7 +123,7 @@ class Padding(object):
         elif self.style == "null":
             padding = b"\x00" * length
         else:
-            raise ValueError("Unknown padding {}".format(self.style))
+            raise ValueError(f"Unknown padding {self.style}")
         return s + padding
 
     __call__ = pkcs7 = pad

@@ -58,7 +58,7 @@ def bigint(s, bitsize):
         return Padding.null(unhex("%x" % s)[::-1], bitsize // 8)
 
     if len(s) < bitsize // 8:
-        raise ValueError("Buffer is trimmed: {} < {}".format(len(s) * 8, bitsize))
+        raise ValueError(f"Buffer is trimmed: {len(s) * 8} < {bitsize}")
 
     return int(enhex(s[: bitsize // 8][::-1]), 16)
 

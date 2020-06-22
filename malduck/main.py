@@ -51,10 +51,10 @@ def fixpe(mempath, outpath, force):
             return 1
         outpath = outpath or mempath + ".exe"
         if not force and os.path.isfile(outpath):
-            click.confirm("{} exists. Overwrite?".format(outpath), abort=True)
+            click.confirm(f"{outpath} exists. Overwrite?", abort=True)
         with open(outpath, "wb") as f:
             f.write(p.store())
-        click.echo("Fixed {} => {}".format(mempath, outpath))
+        click.echo(f"Fixed {mempath} => {outpath}")
 
 
 @main.command("extract")
@@ -86,11 +86,12 @@ def extract(ctx, paths, base, analysis, modules):
     def echo_config(extract_manager, file_path=None):
         if extract_manager.config:
             for config in extract_manager.config:
+                family = config["family"]
                 message = (
-                    "[+] Ripped '{family}' from {file_path}:"
+                    f"[+] Ripped '{family}' from {file_path}:"
                     if file_path is not None
-                    else "[+] Ripped '{family}' configuration:"
-                ).format(family=config["family"], file_path=file_path)
+                    else f"[+] Ripped '{family}' configuration:"
+                )
                 click.echo(message, err=True)
                 click.echo(json.dumps(config, indent=4, sort_keys=True))
 
@@ -104,7 +105,7 @@ def extract(ctx, paths, base, analysis, modules):
 
     if not extract_manager.extractors:
         click.echo(
-            "[!] No extractor modules found under '{}'!".format(modules), err=True
+            f"[!] No extractor modules found under '{modules}'!", err=True
         )
         ctx.abort()
 
@@ -118,7 +119,7 @@ def extract(ctx, paths, base, analysis, modules):
         else:
             files = []
             click.echo(
-                "[!] Symbolic links are not supported, {} ignored.".format(path),
+                f"[!] Symbolic links are not supported, {path} ignored.",
                 err=True,
             )
 
