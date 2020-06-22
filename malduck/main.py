@@ -104,9 +104,7 @@ def extract(ctx, paths, base, analysis, modules):
     extract_manager = ExtractManager(extractor_modules)
 
     if not extract_manager.extractors:
-        click.echo(
-            f"[!] No extractor modules found under '{modules}'!", err=True
-        )
+        click.echo(f"[!] No extractor modules found under '{modules}'!", err=True)
         ctx.abort()
 
     for path in paths:
@@ -119,8 +117,7 @@ def extract(ctx, paths, base, analysis, modules):
         else:
             files = []
             click.echo(
-                f"[!] Symbolic links are not supported, {path} ignored.",
-                err=True,
+                f"[!] Symbolic links are not supported, {path} ignored.", err=True,
             )
 
         for file_path in sorted(files):

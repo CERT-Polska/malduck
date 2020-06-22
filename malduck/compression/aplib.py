@@ -12,9 +12,6 @@ class aPLib(object):
     r"""
     aPLib decompression
 
-    .. versionchanged:: 2.0
-        `length` argument is deprecated
-
     .. code-block:: python
 
         from malduck import aplib

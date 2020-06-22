@@ -81,14 +81,16 @@ class Yara(object):
                 for key, value in strings.items()
             ]
         )
-        yara_source = textwrap.dedent(f"""
+        yara_source = textwrap.dedent(
+            f"""
             rule {name} {{
                 strings:
                     {yara_strings}
                 condition:
                     {condition}
             }}
-        """)
+        """
+        )
 
         self.rules = yara.compile(source=yara_source)
 
