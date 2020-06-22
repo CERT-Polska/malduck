@@ -33,7 +33,7 @@ page_access = {
 }
 
 
-class Region(object):
+class Region:
     """Represents single mapped region in :class:`ProcessMemory`"""
 
     def __init__(self, addr: int, size: int, state: int, type_: int, protect: int, offset: int):

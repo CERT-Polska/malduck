@@ -16,8 +16,10 @@ from ..yara import Yara, YaraString, YaraMatches
 
 __all__ = ["ProcessMemory", "procmem"]
 
+ProcessMemoryBuffer = Union[bytes, bytearray, mmap.mmap]
 
-class ProcessMemory(object):
+
+class ProcessMemory:
     """
     Basic virtual memory representation
 
@@ -80,7 +82,7 @@ class ProcessMemory(object):
     """
 
     def __init__(
-        self, buf: Union[bytes, bytearray, mmap.mmap], base: int = 0, regions: Optional[List[Region]] = None, **_
+        self, buf: ProcessMemoryBuffer, base: int = 0, regions: Optional[List[Region]] = None, **_
     ) -> None:
         self.f: Optional[BinaryIO] = None
         self.mapped_memory: Optional[mmap.mmap] = None
