@@ -31,9 +31,7 @@ class aPLib(object):
     :rtype: bytes
     """
 
-    def decompress(self, buf, length=None, headerless=False):
-        if length is not None:
-            log.warning("Length argument is ignored by aPLib.decompress")
+    def decompress(self, buf, headerless=False):
         try:
             # Trim header
             if not headerless and buf.startswith(b"AP32"):
