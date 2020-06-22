@@ -158,7 +158,15 @@ class Instruction(object):
        :py:meth:`malduck.procmem.ProcessMemory.disasmv`
     """
 
-    def __init__(self, mnem: Optional[str]=None, op1: Optional[int]=None, op2: None=None, op3: None=None, addr: Optional[int]=None, x64: bool=False) -> None:
+    def __init__(
+        self,
+        mnem: Optional[str] = None,
+        op1: Optional[int] = None,
+        op2: None = None,
+        op3: None = None,
+        addr: Optional[int] = None,
+        x64: bool = False,
+    ) -> None:
         self.insn = None
         self.mnem = mnem
         self.operands = op1, op2, op3
@@ -175,7 +183,7 @@ class Instruction(object):
         self.operands = operands[0], operands[1], operands[2]
 
     @staticmethod
-    def from_capstone(insn: CsInsn, x64: bool=False) -> Instruction:
+    def from_capstone(insn: CsInsn, x64: bool = False) -> "Instruction":
         ret = Instruction()
         ret.x64 = x64
         ret.parse(insn)
@@ -201,7 +209,7 @@ class Instruction(object):
         """Instruction address"""
         return self._addr or self.insn.address
 
-    def __eq__(self, other: Instruction) -> bool:
+    def __eq__(self, other: "Instruction") -> bool:
         if not isinstance(other, Instruction):
             return False
         if self.mnem != other.mnem or self.addr != other.addr:
@@ -224,7 +232,9 @@ class Instruction(object):
 
 
 class Disassemble(object):
-    def disassemble(self, data: bytes, addr: int, x64: bool=False) -> List[Instruction]:
+    def disassemble(
+        self, data: bytes, addr: int, x64: bool = False
+    ) -> List[Instruction]:
         """
         Disassembles data from specific address
 

@@ -43,7 +43,7 @@ key_size = 32
 
 
 class Serpent:
-    def __init__(self, key: Optional[bytes]=None) -> None:
+    def __init__(self, key: Optional[bytes] = None) -> None:
         """Serpent."""
 
         if key:
@@ -2980,7 +2980,7 @@ assert __testdat == Serpent(__testkey).decrypt(
 
 
 # CBC Encrypt - Jason Reaves
-def serpent_cbc_encrypt(key: bytes, data: bytes, iv: bytes=b"\x00" * 16) -> bytes:
+def serpent_cbc_encrypt(key: bytes, data: bytes, iv: bytes = b"\x00" * 16) -> bytes:
     out = b""
     last = iv
     for i in range(len(data) // 16):
@@ -2997,7 +2997,7 @@ def serpent_cbc_encrypt(key: bytes, data: bytes, iv: bytes=b"\x00" * 16) -> byte
 
 
 # CBC Decrypt - Jason Reaves
-def serpent_cbc_decrypt(key: bytes, data: bytes, iv: bytes=b"\x00" * 16) -> bytes:
+def serpent_cbc_decrypt(key: bytes, data: bytes, iv: bytes = b"\x00" * 16) -> bytes:
     out2 = b""
     last = iv
     for i in range(len(data) // 16):

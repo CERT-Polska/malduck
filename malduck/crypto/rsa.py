@@ -127,7 +127,14 @@ class RSA(object):
         return obj.export_key()
 
     @staticmethod
-    def export_key(n: int, e: int, d: Optional[int]=None, p: None=None, q: None=None, crt: None=None) -> bytes:
+    def export_key(
+        n: int,
+        e: int,
+        d: Optional[int] = None,
+        p: None = None,
+        q: None = None,
+        crt: None = None,
+    ) -> bytes:
         r"""
         Constructs key from tuple of RSA components
 
