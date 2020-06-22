@@ -7,6 +7,4 @@ from .rsa import rsa
 from .serpent import serpent
 from .xor import xor
 
-__all__ = [
-    "aes", "blowfish", "des3", "rabbit", "rc4", "rsa", "serpent", "xor"
-]
+__all__ = ["aes", "blowfish", "des3", "rabbit", "rc4", "rsa", "serpent", "xor"]

@@ -15,16 +15,14 @@ class CuckooProcessMemory(ProcessMemory):
         self.regions = []
 
         while ptr < self.length:
-            hdr = self.m[ptr:ptr + 24]
+            hdr = self.m[ptr : ptr + 24]
             if not hdr:
                 break
 
             addr, size, state, typ, protect = struct.unpack("QIIII", hdr)
             ptr += 24
 
-            self.regions.append(
-                Region(addr, size, state, typ, protect, ptr)
-            )
+            self.regions.append(Region(addr, size, state, typ, protect, ptr))
             ptr += size
         if base is None:
             if self.regions:

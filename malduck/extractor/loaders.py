@@ -21,7 +21,8 @@ def load_modules(search_path, onerror=None):
     """
     modules = {}
     for finder, module_name, is_pkg in pkgutil.iter_modules(
-            [search_path], "malduck.extractor.modules."):
+        [search_path], "malduck.extractor.modules."
+    ):
         if not is_pkg:
             continue
         if module_name in modules:

@@ -16,13 +16,14 @@ class ProcessMemoryPE(ProcessMemoryBinary):
     PE files can be read directly using inherited :py:meth:`ProcessMemory.from_file` with `image` argument set
     (look at :py:meth:`from_memory` method).
     """
+
     __magic__ = b"MZ"
 
-    def __init__(self, buf, base=0, regions=None,
-                 image=False, detect_image=False):
+    def __init__(self, buf, base=0, regions=None, image=False, detect_image=False):
         self._pe = None
-        super(ProcessMemoryPE, self).__init__(buf, base=base,
-                                              regions=regions, image=image, detect_image=detect_image)
+        super(ProcessMemoryPE, self).__init__(
+            buf, base=base, regions=regions, image=image, detect_image=detect_image
+        )
 
     def _pe_direct_load(self, fast_load=True):
         offset = self.v2p(self.imgbase)
@@ -38,18 +39,20 @@ class ProcessMemoryPE(ProcessMemoryBinary):
         self.m = pe.data
         self.imgbase = pe.optional_header.ImageBase
 
-        self.regions = [
-            Region(self.imgbase, pe.headers_size, 0, 0, 0, 0)
-        ]
+        self.regions = [Region(self.imgbase, pe.headers_size, 0, 0, 0, 0)]
         # Load image sections
         for section in pe.sections:
             if section.SizeOfRawData > 0:
-                self.regions.append(Region(
-                    self.imgbase + section.VirtualAddress,
-                    section.SizeOfRawData,
-                    0, 0, 0,
-                    section.PointerToRawData
-                ))
+                self.regions.append(
+                    Region(
+                        self.imgbase + section.VirtualAddress,
+                        section.SizeOfRawData,
+                        0,
+                        0,
+                        0,
+                        section.PointerToRawData,
+                    )
+                )
 
     def is_valid(self):
         if self.readv(self.imgbase, 2) != self.__magic__:
@@ -115,16 +118,14 @@ class ProcessMemoryPE(ProcessMemoryBinary):
 
         for idx, section in enumerate(pe.sections):
             # Find corresponding region
-            section_region = self.addr_region(
-                self.imgbase + section.VirtualAddress)
+            section_region = self.addr_region(self.imgbase + section.VirtualAddress)
             # No corresponding region? BSS.
             if not section_region:
                 continue
             # Get possible section size
             section_size = max(section.Misc_VirtualSize, section.SizeOfRawData)
             # Align to section alignment (usually 0x1000)
-            section_alignment = max(
-                0x1000, pe.optional_header.SectionAlignment)
+            section_alignment = max(0x1000, pe.optional_header.SectionAlignment)
             section_size = align(section_size, section_alignment)
             # Sometimes real region size is less than virtual size (image=True)
             section_size = min(section_region.size, section_size)
@@ -133,8 +134,9 @@ class ProcessMemoryPE(ProcessMemoryBinary):
             section_size = align(section_size, file_alignment)
             # Read section data including appropriate padding
             section_data = self.readv(
-                self.imgbase + section.VirtualAddress, section_size)
-            section_data += (section_size - len(section_data)) * b'\x00'
+                self.imgbase + section.VirtualAddress, section_size
+            )
+            section_data += (section_size - len(section_data)) * b"\x00"
             data.append(section_data)
             # Fix section values
             section.PointerToRawData, section.SizeOfRawData = current_offs, section_size
@@ -143,7 +145,7 @@ class ProcessMemoryPE(ProcessMemoryBinary):
         pe.optional_header.ImageBase = self.imgbase
 
         # Generate header data
-        data = b''.join([bytes(pe.pe.write())] + data)
+        data = b"".join([bytes(pe.pe.write())] + data)
 
         # Return PE file data
         return data

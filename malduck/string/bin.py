@@ -8,17 +8,49 @@ from ..string.ops import Padding, enhex, unhex
 from ..ints import UInt8, UInt16, UInt32, UInt64, Int8, Int16, Int32, Int64
 
 __all__ = [
-    "uint64", "uint32", "uint16", "uint8",
-    "uint64be", "uint32be", "uint16be", "uint8be",
-    "u64", "u32", "u16", "u8",
-    "u64be", "u32be", "u16be", "u8be",
-    "int64", "int32", "int16", "int8",
-    "int64be", "int32be", "int16be", "int8be",
-    "i64", "i32", "i16", "i8",
-    "i64be", "i32be", "i16be", "i8be",
-    "p64", "p32", "p16", "p8",
-    "p64be", "p32be", "p16be", "p8be",
-    "bigint", "unpack", "pack"
+    "uint64",
+    "uint32",
+    "uint16",
+    "uint8",
+    "uint64be",
+    "uint32be",
+    "uint16be",
+    "uint8be",
+    "u64",
+    "u32",
+    "u16",
+    "u8",
+    "u64be",
+    "u32be",
+    "u16be",
+    "u8be",
+    "int64",
+    "int32",
+    "int16",
+    "int8",
+    "int64be",
+    "int32be",
+    "int16be",
+    "int8be",
+    "i64",
+    "i32",
+    "i16",
+    "i8",
+    "i64be",
+    "i32be",
+    "i16be",
+    "i8be",
+    "p64",
+    "p32",
+    "p16",
+    "p8",
+    "p64be",
+    "p32be",
+    "p16be",
+    "p8be",
+    "bigint",
+    "unpack",
+    "pack",
 ]
 
 
@@ -27,10 +59,9 @@ def bigint(s, bitsize):
         return Padding.null(unhex("%x" % s)[::-1], bitsize // 8)
 
     if len(s) < bitsize // 8:
-        raise ValueError(
-            "Buffer is trimmed: {} < {}".format(len(s) * 8, bitsize))
+        raise ValueError("Buffer is trimmed: {} < {}".format(len(s) * 8, bitsize))
 
-    return int(enhex(s[:bitsize // 8][::-1]), 16)
+    return int(enhex(s[: bitsize // 8][::-1]), 16)
 
 
 # Shortcuts for mostly used unpack methods

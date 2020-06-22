@@ -4,9 +4,19 @@ from .bits import rol
 from .py2compat import long, add_metaclass
 
 __all__ = [
-    "QWORD", "DWORD", "WORD", "BYTE", "CHAR",
-    "UInt64", "UInt32", "UInt16", "UInt8",
-    "Int64", "Int32", "Int16", "Int8",
+    "QWORD",
+    "DWORD",
+    "WORD",
+    "BYTE",
+    "CHAR",
+    "UInt64",
+    "UInt32",
+    "UInt16",
+    "UInt8",
+    "Int64",
+    "Int32",
+    "Int16",
+    "Int8",
 ]
 
 
@@ -14,6 +24,7 @@ class IntTypeBase(object):
     """
     Base class representing all IntType instances
     """
+
     pass
 
 
@@ -21,6 +32,7 @@ class MultipliedIntTypeBase(IntTypeBase):
     """
     Base class representing all MultipliedIntType instances
     """
+
     int_type = None
     mul = 0
 
@@ -30,6 +42,7 @@ class MetaIntType(type):
     Metaclass for IntType classes.
     Provides ctypes-like behavior e.g. (QWORD*8).unpack(...) returns tuple of 8 QWORDs
     """
+
     @property
     def mask(cls):
         """
@@ -257,14 +270,10 @@ class IntType(long, IntTypeBase):
 
 # Unsigned types
 
-QWORD = UInt64 = type("UInt64", (IntType,), dict(
-    bits=64, signed=False, fmt="Q"))
-DWORD = UInt32 = type("UInt32", (IntType,), dict(
-    bits=32, signed=False, fmt="I"))
-WORD = UInt16 = type("UInt16", (IntType,), dict(
-    bits=16, signed=False, fmt="H"))
-CHAR = BYTE = UInt8 = type(
-    "UInt8", (IntType,), dict(bits=8, signed=False, fmt="B"))
+QWORD = UInt64 = type("UInt64", (IntType,), dict(bits=64, signed=False, fmt="Q"))
+DWORD = UInt32 = type("UInt32", (IntType,), dict(bits=32, signed=False, fmt="I"))
+WORD = UInt16 = type("UInt16", (IntType,), dict(bits=16, signed=False, fmt="H"))
+CHAR = BYTE = UInt8 = type("UInt8", (IntType,), dict(bits=8, signed=False, fmt="B"))
 
 # Signed types
 

@@ -18,10 +18,10 @@ class XOR(object):
         """
         if is_integer(key):
             key = int2byte(key)
-        return b"".join(int2byte(a ^ b) for a, b in zip(
-            iterbytes_ord(data),
-            cycle(iterbytes_ord(key))
-        ))
+        return b"".join(
+            int2byte(a ^ b)
+            for a, b in zip(iterbytes_ord(data), cycle(iterbytes_ord(key)))
+        )
 
     __call__ = encrypt = decrypt
 

@@ -5,20 +5,16 @@
 import collections
 from .py2compat import is_string
 
-__all__ = [
-    "disasm", "insn",
-    "Disassemble", "Instruction", "Operand", "Memory"
-]
+__all__ = ["disasm", "insn", "Disassemble", "Instruction", "Operand", "Memory"]
 
-Memory = collections.namedtuple(
-    "Memory", ("size", "base", "scale", "index", "disp")
-)
+Memory = collections.namedtuple("Memory", ("size", "base", "scale", "index", "disp"))
 
 
 class Operand(object):
     """
     Operand object for single :class:`Instruction`
     """
+
     # These are initialized the first time disasm() is called, see also below.
     _x86_op_imm = None
     _x86_op_reg = None
@@ -26,7 +22,10 @@ class Operand(object):
     regs = {}
 
     sizes = {
-        1: "byte", 2: "word", 4: "dword", 8: "qword",
+        1: "byte",
+        2: "word",
+        4: "dword",
+        8: "qword",
     }
 
     def __init__(self, op, x64):
@@ -103,7 +102,7 @@ class Operand(object):
         if self.is_imm:
             return self.value == other
         if is_string(other):
-            other = other,
+            other = (other,)
         if self.is_reg and self.reg in other:
             return True
         if self.is_mem and self.reg in other:
@@ -113,9 +112,9 @@ class Operand(object):
     def __str__(self):
         if self.is_imm:
             if self.x64:
-                return "0x%016x" % (self.value % 2**64)
+                return "0x%016x" % (self.value % 2 ** 64)
             else:
-                return "0x%08x" % (self.value % 2**32)
+                return "0x%08x" % (self.value % 2 ** 32)
         if self.is_reg:
             return self.reg
         if self.is_mem:
@@ -157,8 +156,7 @@ class Instruction(object):
        :py:meth:`malduck.procmem.ProcessMemory.disasmv`
     """
 
-    def __init__(self, mnem=None, op1=None, op2=None,
-                 op3=None, addr=None, x64=False):
+    def __init__(self, mnem=None, op1=None, op2=None, op3=None, addr=None, x64=False):
         self.insn = None
         self.mnem = mnem
         self.operands = op1, op2, op3
@@ -241,8 +239,9 @@ class Disassemble(object):
         """
         import capstone
 
-        cs = capstone.Cs(capstone.CS_ARCH_X86,
-                         capstone.CS_MODE_64 if x64 else capstone.CS_MODE_32)
+        cs = capstone.Cs(
+            capstone.CS_ARCH_X86, capstone.CS_MODE_64 if x64 else capstone.CS_MODE_32
+        )
         cs.detail = True
         ret = []
         for insn in cs.disasm(data, addr):

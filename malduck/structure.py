@@ -5,7 +5,16 @@
 import ctypes
 
 from .ints import (
-    IntTypeBase, MultipliedIntTypeBase, Int8, UInt8, Int16, UInt16, Int32, UInt32, Int64, UInt64
+    IntTypeBase,
+    MultipliedIntTypeBase,
+    Int8,
+    UInt8,
+    Int16,
+    UInt16,
+    Int32,
+    UInt32,
+    Int64,
+    UInt64,
 )
 from .py2compat import is_integer
 

@@ -26,7 +26,7 @@ class Des3Cbc(object):
     def __call__(self, key, iv, data):
         warnings.warn(
             "malduck.des3.cbc() is deprecated, please use malduck.des3.cbc.decrypt()",
-            DeprecationWarning
+            DeprecationWarning,
         )
         return self.decrypt(key, iv, data)
 
@@ -37,21 +37,21 @@ class Des3(object):
     def encrypt(self, key, iv, data):
         warnings.warn(
             "malduck.des3.encrypt is deprecated, please use malduck.des3.cbc.encrypt",
-            DeprecationWarning
+            DeprecationWarning,
         )
         return self.cbc.encrypt(key, iv, data)
 
     def decrypt(self, key, iv, data):
         warnings.warn(
             "malduck.des3.decrypt is deprecated, please use malduck.des3.cbc.decrypt",
-            DeprecationWarning
+            DeprecationWarning,
         )
         return self.cbc.decrypt(key, iv, data)
 
     def __call__(self, mode):
         warnings.warn(
             "malduck.des3('<mode>') is deprecated, please use malduck.des3.<mode>",
-            DeprecationWarning
+            DeprecationWarning,
         )
         return getattr(self, mode)
 
@@ -64,7 +64,7 @@ class DES3(object):
     def __init__(self, key, iv=None, mode="cbc"):
         warnings.warn(
             "malduck.crypto.DES3 is deprecated, please use malduck.des3.<mode> variants",
-            DeprecationWarning
+            DeprecationWarning,
         )
         self.key = key
         self.iv = iv

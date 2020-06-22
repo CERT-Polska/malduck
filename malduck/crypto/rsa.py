@@ -11,10 +11,7 @@ from .winhdr import BLOBHEADER, BaseBlob
 from ..string.bin import uint32, bigint
 from ..py2compat import long
 
-__all__ = [
-    "PublicKeyBlob", "PrivateKeyBlob",
-    "RSA", "rsa"
-]
+__all__ = ["PublicKeyBlob", "PrivateKeyBlob", "RSA", "rsa"]
 
 
 class PublicKeyBlob(BaseBlob):
@@ -96,9 +93,7 @@ BlobTypes = {
 
 
 class RSA(object):
-    algorithms = (
-        0x0000a400,  # RSA
-    )
+    algorithms = (0x0000A400,)  # RSA
 
     @staticmethod
     def import_key(data):
@@ -144,8 +139,10 @@ class RSA(object):
         :return: RSA key in PEM format
         :rtype: bytes
         """
+
         def wrap(x):
             return None if x is None else long(x)
+
         tup = wrap(n), wrap(e), wrap(d), wrap(p), wrap(q), wrap(crt)
         # PyCryptodome accepts only variable-length tuples
         tup = tuple(takewhile(lambda x: x is not None, tup))

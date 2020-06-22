@@ -6,6 +6,7 @@ try:
     import idautils
     import idc
     import ida_bytes
+
     IDAPYTHON = 1
 except ImportError:
     IDAPYTHON = 0
@@ -26,10 +27,8 @@ class IDAVM(object):
             length = 1
         for region in self.idamem.regions:
             if region.offset < offset + length and offset < region.end_offset:
-                ea_start = min(
-                    max(region.p2v(offset), region.addr), region.end)
-                ea_end = min(max(region.p2v(offset + length),
-                                 region.addr), region.end)
+                ea_start = min(max(region.p2v(offset), region.addr), region.end)
+                ea_end = min(max(region.p2v(offset + length), region.addr), region.end)
                 yield (ea_start, ea_end)
 
     def __setitem__(self, item, value):
@@ -45,7 +44,7 @@ class IDAVM(object):
         data = []
         for ea_start, ea_end in self._get_ea_range(item):
             data.append(idc.get_bytes(ea_start, ea_end - ea_start))
-        return b''.join(data)
+        return b"".join(data)
 
     def __len__(self):
         return self.idamem.regions[-1].end_offset
@@ -59,7 +58,8 @@ class IDAProcessMemory(ProcessMemory):
     def __init__(self):
         if not IDAPYTHON:
             raise RuntimeError(
-                "This class is intended to work only in IDAPython context")
+                "This class is intended to work only in IDAPython context"
+            )
         regions = []
         for seg in idautils.Segments():
             off = 0 if not regions else regions[-1].end_offset

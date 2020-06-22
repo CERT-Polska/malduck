@@ -5,12 +5,11 @@ class ProcessMemoryBinary(ProcessMemory):
     """
     Abstract class for memory-mapped executable binary
     """
+
     __magic__ = None
 
-    def __init__(self, buf, base=0, regions=None,
-                 image=False, detect_image=False):
-        super(ProcessMemoryBinary, self).__init__(
-            buf, base=base, regions=regions)
+    def __init__(self, buf, base=0, regions=None, image=False, detect_image=False):
+        super(ProcessMemoryBinary, self).__init__(buf, base=base, regions=regions)
         if detect_image:
             image = self.is_image_loaded_as_memdump()
         self.is_image = image

@@ -19,7 +19,7 @@ class RC4Cipher(object):
     def rc4(self, key, data):
         warnings.warn(
             "malduck.rc4.rc4() is deprecated, please use malduck.rc4() or malduck.rc4.decrypt()",
-            DeprecationWarning
+            DeprecationWarning,
         )
         return self.decrypt(key, data)
 
@@ -30,8 +30,7 @@ class RC4(object):
     # todo: remove whole class
     def __init__(self, key):
         warnings.warn(
-            "malduck.RC4() is deprecated, please use malduck.rc4()",
-            DeprecationWarning
+            "malduck.RC4() is deprecated, please use malduck.rc4()", DeprecationWarning
         )
         self.key = key
 

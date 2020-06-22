@@ -20,34 +20,57 @@ from .procmem.procmempe import ProcessMemoryPE, procmempe
 from .procmem.procmemelf import ProcessMemoryELF, procmemelf
 from .procmem.cuckoomem import CuckooProcessMemory, cuckoomem
 from .procmem.idamem import IDAProcessMemory, idamem
-from .string.ops import (
-    Padding, Unpadding, Base64,
-    base64, pad, unpad, pkcs7, unpkcs7
-)
+from .string.ops import Padding, Unpadding, Base64, base64, pad, unpad, pkcs7, unpkcs7
 from .verify import Verify, verify
 
 warnings.warn(
     "malduck.short module is deprecated, please use shortened variants directly from malduck module",
-    DeprecationWarning
+    DeprecationWarning,
 )
 
 __all__ = [
-    "aPLib", "aplib",
-    "Gzip", "gzip",
-    "Lznt1", "lznt1",
-    "AES", "aes",
-    "Blowfish", "blowfish",
-    "DES3", "des3",
-    "Serpent", "serpent",
-    "Rabbit", "rabbit",
-    "RC4", "rc4",
-    "RSA", "rsa",
-    "Instruction", "insn",
-    "PE", "pe",
-    "ProcessMemory", "ProcessMemoryPE", "ProcessMemoryELF",
-    "CuckooProcessMemory", "IDAProcessMemory",
-    "procmem", "procmempe", "procmemelf", "cuckoomem", "idamem",
-    "Padding", "Unpadding", "Base64",
-    "base64", "pad", "unpad", "pkcs7", "unpkcs7",
-    "Verify", "verify"
+    "aPLib",
+    "aplib",
+    "Gzip",
+    "gzip",
+    "Lznt1",
+    "lznt1",
+    "AES",
+    "aes",
+    "Blowfish",
+    "blowfish",
+    "DES3",
+    "des3",
+    "Serpent",
+    "serpent",
+    "Rabbit",
+    "rabbit",
+    "RC4",
+    "rc4",
+    "RSA",
+    "rsa",
+    "Instruction",
+    "insn",
+    "PE",
+    "pe",
+    "ProcessMemory",
+    "ProcessMemoryPE",
+    "ProcessMemoryELF",
+    "CuckooProcessMemory",
+    "IDAProcessMemory",
+    "procmem",
+    "procmempe",
+    "procmemelf",
+    "cuckoomem",
+    "idamem",
+    "Padding",
+    "Unpadding",
+    "Base64",
+    "base64",
+    "pad",
+    "unpad",
+    "pkcs7",
+    "unpkcs7",
+    "Verify",
+    "verify",
 ]

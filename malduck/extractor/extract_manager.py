@@ -10,9 +10,7 @@ from ..yara import Yara
 
 log = logging.getLogger(__name__)
 
-__all__ = [
-    "ExtractManager", "ExtractorModules"
-]
+__all__ = ["ExtractManager", "ExtractorModules"]
 
 
 def is_config_better(base_config, new_config):
@@ -27,7 +25,7 @@ def is_config_better(base_config, new_config):
 
 def encode_for_json(data):
     if isinstance(data, binary_type):
-        return data.decode('utf-8')
+        return data.decode("utf-8")
     elif isinstance(data, list) or isinstance(data, tuple):
         return [encode_for_json(item) for item in data]
     elif isinstance(data, dict):
@@ -68,10 +66,12 @@ def merge_configs(base_config, new_config):
                 if el not in config[k]:
                     config[k] = config[k] + [el]
         else:
-            raise RuntimeError("Extractor tries to override '{old_value}' "
-                               "value of '{key}' with '{new_value}'".format(key=k,
-                                                                            old_value=config[k],
-                                                                            new_value=v))
+            raise RuntimeError(
+                "Extractor tries to override '{old_value}' "
+                "value of '{key}' with '{new_value}'".format(
+                    key=k, old_value=config[k], new_value=v
+                )
+            )
     return config
 
 
@@ -164,10 +164,12 @@ class ExtractManager(object):
         :type method_name: str
         """
         import traceback
-        log.warning("{}.{} throwed exception: {}".format(
-            extractor.__class__.__name__,
-            method_name,
-            traceback.format_exc()))
+
+        log.warning(
+            "{}.{} throwed exception: {}".format(
+                extractor.__class__.__name__, method_name, traceback.format_exc()
+            )
+        )
 
     def push_file(self, filepath, base=0):
         """
@@ -181,6 +183,7 @@ class ExtractManager(object):
                  Returns None otherwise.
         """
         from ..procmem import ProcessMemory
+
         log.debug("Started extraction of file {}:{:x}".format(filepath, base))
         with ProcessMemory.from_file(filepath, base=base) as p:
             return self.push_procmem(p, rip_binaries=True)
@@ -221,12 +224,16 @@ class ExtractManager(object):
 
         binaries = [p]
         if rip_binaries:
-            binaries += list(ProcessMemoryPE.load_binaries_from_memory(p)) + \
-                list(ProcessMemoryELF.load_binaries_from_memory(p))
+            binaries += list(ProcessMemoryPE.load_binaries_from_memory(p)) + list(
+                ProcessMemoryELF.load_binaries_from_memory(p)
+            )
 
         def fmt_procmem(p):
-            return "{}:{}:{:x}".format(p.__class__.__name__,
-                                       "IMG" if getattr(p, "is_image", False) else "DMP", p.imgbase)
+            return "{}:{}:{:x}".format(
+                p.__class__.__name__,
+                "IMG" if getattr(p, "is_image", False) else "DMP",
+                p.imgbase,
+            )
 
         def extract_config(procmem):
             log.debug("{} - ripping...".format(fmt_procmem(procmem)))
@@ -235,7 +242,8 @@ class ExtractManager(object):
             extractor.push_procmem(procmem, _matches=matches)
             if extractor.family:
                 log.debug(
-                    "{} - found {}!".format(fmt_procmem(procmem), extractor.family))
+                    "{} - found {}!".format(fmt_procmem(procmem), extractor.family)
+                )
                 return self.push_config(extractor.family, extractor.config)
             else:
                 log.debug("{} - No luck.".format(fmt_procmem(procmem)))
@@ -249,8 +257,7 @@ class ExtractManager(object):
             found_family = extract_config(binary)
             if found_family is not None:
                 ripped_family = found_family
-            if isinstance(
-                    binary, ProcessMemoryBinary) and binary.image is not None:
+            if isinstance(binary, ProcessMemoryBinary) and binary.image is not None:
                 found_family = extract_config(binary.image)
                 if found_family is not None:
                     ripped_family = found_family
@@ -273,8 +280,8 @@ class ProcmemExtractManager(object):
         #: Collected configuration so far (especially useful for "final" extractors)
         self.collected_config = {}
         self.globals = {}
-        self.parent = parent        #: Bound ExtractManager instance
-        self.family = None          #: Matched family
+        self.parent = parent  #: Bound ExtractManager instance
+        self.family = None  #: Matched family
 
     def on_extractor_error(self, exc, extractor, method_name):
         """
@@ -328,7 +335,8 @@ class ProcmemExtractManager(object):
             json.dumps(config)
         except (TypeError, OverflowError) as e:
             log.debug(
-                "Config is not JSON-encodable ({}): {}".format(str(e), repr(config)))
+                "Config is not JSON-encodable ({}): {}".format(str(e), repr(config))
+            )
             raise RuntimeError("Config must be JSON-encodable")
 
         config = sanitize_config(config)
@@ -336,16 +344,20 @@ class ProcmemExtractManager(object):
         if not config:
             return
 
-        log.debug("%s found the following config parts: %s",
-                  extractor.__class__.__name__, sorted(config.keys()))
+        log.debug(
+            "%s found the following config parts: %s",
+            extractor.__class__.__name__,
+            sorted(config.keys()),
+        )
 
         self.collected_config = merge_configs(self.collected_config, config)
 
         if "family" in config and (
-                not self.family or (self.family != extractor.family and self.family in extractor.overrides)):
+            not self.family
+            or (self.family != extractor.family and self.family in extractor.overrides)
+        ):
             self.family = config["family"]
-            log.debug("%s tells it's %s",
-                      extractor.__class__.__name__, self.family)
+            log.debug("%s tells it's %s", extractor.__class__.__name__, self.family)
 
     @property
     def config(self):

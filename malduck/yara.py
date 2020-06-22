@@ -68,8 +68,9 @@ class Yara(object):
     :type condition: str
     """
 
-    def __init__(self, rule_paths=None, name="r",
-                 strings=None, condition="any of them"):
+    def __init__(
+        self, rule_paths=None, name="r", strings=None, condition="any of them"
+    ):
         if rule_paths:
             self.rules = yara.compile(filepaths=rule_paths)
             return
@@ -80,15 +81,17 @@ class Yara(object):
         if isinstance(strings, str) or isinstance(strings, YaraString):
             strings = {"string": strings}
 
-        yara_strings = "\n        ".join([
-            "${key} = {value}".format(key=key,
-                                      value=str(YaraString(value) if isinstance(value, str) else value))
-            for key, value in strings.items()
-        ])
+        yara_strings = "\n        ".join(
+            [
+                "${key} = {value}".format(
+                    key=key,
+                    value=str(YaraString(value) if isinstance(value, str) else value),
+                )
+                for key, value in strings.items()
+            ]
+        )
         yara_source = _YARA_RULE_FORMAT.format(
-            name=name,
-            strings=yara_strings,
-            condition=condition
+            name=name, strings=yara_strings, condition=condition
         )
 
         self.rules = yara.compile(source=yara_source)
@@ -114,9 +117,11 @@ class Yara(object):
                 ruleset_name = os.path.splitext(os.path.basename(fname))[0]
                 ruleset_path = os.path.join(root, fname)
                 if ruleset_name in rule_paths:
-                    log.warning("Yara file name collision - {} overridden by {}".format(
-                        rule_paths[ruleset_name],
-                        ruleset_path))
+                    log.warning(
+                        "Yara file name collision - {} overridden by {}".format(
+                            rule_paths[ruleset_name], ruleset_path
+                        )
+                    )
                 rule_paths[ruleset_name] = ruleset_path
             if not recursive:
                 break
@@ -135,8 +140,7 @@ class Yara(object):
         :type offset_mapper: function
         :rtype: :class:`YaraMatches`
         """
-        return YaraMatches(self.rules.match(**kwargs),
-                           offset_mapper=offset_mapper)
+        return YaraMatches(self.rules.match(**kwargs), offset_mapper=offset_mapper)
 
 
 class YaraString(object):
@@ -150,8 +154,8 @@ class YaraString(object):
     :param modifiers: Yara string modifier flags
     """
 
-    TEXT = 0   #: Text string ( `'value' => '"value"'` )
-    HEX = 1    #: Hexadecimal string ( `"aa bb cc dd" => '{ aa bb cc dd }'` )
+    TEXT = 0  #: Text string ( `'value' => '"value"'` )
+    HEX = 1  #: Hexadecimal string ( `"aa bb cc dd" => '{ aa bb cc dd }'` )
     REGEX = 2  #: Regex string ( `'value' => '/value/'` )
 
     def __init__(self, value, type=TEXT, **modifiers):
@@ -163,13 +167,12 @@ class YaraString(object):
         if self.type == YaraString.TEXT:
             str_value = json.dumps(self.value)
         elif self.type == YaraString.HEX:
-            str_value = '{{ {} }}'.format(self.value)
+            str_value = "{{ {} }}".format(self.value)
         elif self.type == YaraString.REGEX:
-            str_value = '/{}/'.format('\\/'.join(self.value.split("/")))
+            str_value = "/{}/".format("\\/".join(self.value.split("/")))
         else:
             raise ValueError("Unknown YaraString type: {}".format(self.type))
-        return str_value + \
-            "".join([" " + modifier for modifier in self.modifiers])
+        return str_value + "".join([" " + modifier for modifier in self.modifiers])
 
 
 class YaraMatches(object):

@@ -8,11 +8,21 @@ import binascii
 from ..py2compat import indexbytes, int2byte
 
 __all__ = [
-    "asciiz", "chunks_iter", "chunks", "utf16z",
-    "enhex", "unhex",
+    "asciiz",
+    "chunks_iter",
+    "chunks",
+    "utf16z",
+    "enhex",
+    "unhex",
     "uleb128",
-    "Base64", "Padding", "Unpadding",
-    "base64", "pad", "pkcs7", "unpad", "unpkcs7"
+    "Base64",
+    "Padding",
+    "Unpadding",
+    "base64",
+    "pad",
+    "pkcs7",
+    "unpad",
+    "unpkcs7",
 ]
 
 
@@ -29,7 +39,7 @@ def asciiz(s):
 def chunks_iter(s, n):
     """Yield successive n-sized chunks from s."""
     for i in range(0, len(s), n):
-        yield s[i:i + n]
+        yield s[i : i + n]
 
 
 def chunks(s, n):
@@ -47,9 +57,13 @@ def utf16z(s):
     :rtype: bytes
     """
     chunked = chunks(s, 2)
-    if b'\x00\x00' in chunked:
-        return s[:chunked.index(
-            b'\x00\x00') * 2].decode("utf-16").rstrip("\x00").encode("ascii")
+    if b"\x00\x00" in chunked:
+        return (
+            s[: chunked.index(b"\x00\x00") * 2]
+            .decode("utf-16")
+            .rstrip("\x00")
+            .encode("ascii")
+        )
     return s
 
 
@@ -70,7 +84,7 @@ def uleb128(s):
     """Unsigned Little-Endian Base 128"""
     ret = 0
     for idx in range(len(s)):
-        ret += (indexbytes(s, idx) & 0x7f) << (idx * 7)
+        ret += (indexbytes(s, idx) & 0x7F) << (idx * 7)
         if indexbytes(s, idx) < 0x80:
             break
     else:
@@ -127,8 +141,7 @@ class Unpadding(object):
 
     def unpad(self, s):
         count = indexbytes(s, -1) if s else 0
-        if self.style == "pkcs7" and s[-count:] == int2byte(
-                indexbytes(s, -1)) * count:
+        if self.style == "pkcs7" and s[-count:] == int2byte(indexbytes(s, -1)) * count:
             return s[:-count]
         return s
 

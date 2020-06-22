@@ -84,8 +84,7 @@ class ProcessMemory(object):
         if regions is not None:
             self.regions = regions
         else:
-            self.regions = [
-                Region(base, self.length, 0, 0, PAGE_EXECUTE_READWRITE, 0)]
+            self.regions = [Region(base, self.length, 0, 0, PAGE_EXECUTE_READWRITE, 0)]
 
     def __enter__(self):
         return self
@@ -158,8 +157,9 @@ class ProcessMemory(object):
         :type base: int
         :rtype: :class:`ProcessMemory`
         """
-        copied = cls(memory.m, base=base or memory.imgbase,
-                     regions=memory.regions, **kwargs)
+        copied = cls(
+            memory.m, base=base or memory.imgbase, regions=memory.regions, **kwargs
+        )
         copied.f = memory.f
         return copied
 
@@ -174,8 +174,9 @@ class ProcessMemory(object):
         else:
             return len(self.m)
 
-    def iter_regions(self, addr=None, offset=None,
-                     length=None, contiguous=False, trim=False):
+    def iter_regions(
+        self, addr=None, offset=None, length=None, contiguous=False, trim=False
+    ):
         """
         Iterates over Region objects starting at provided virtual address or offset
 
@@ -202,10 +203,12 @@ class ProcessMemory(object):
         """
         if addr is not None and offset is not None:
             raise ValueError(
-                "'addr' and 'offset' arguments should be provided exclusively")
+                "'addr' and 'offset' arguments should be provided exclusively"
+            )
         if addr is None and offset is None and contiguous:
             raise ValueError(
-                "Starting point (addr or offset) must be provided for contiguous regions")
+                "Starting point (addr or offset) must be provided for contiguous regions"
+            )
         if length and length < 0:
             raise ValueError("Length can't be less than 0")
         # No length, no problem
@@ -217,14 +220,16 @@ class ProcessMemory(object):
             addr = self.regions[0].addr
         # Skipping regions before starting point
         for region_idx, region in enumerate(self.regions):
-            if (addr is not None and addr < region.end) or \
-               (offset is not None and offset < region.end_offset):
+            if (addr is not None and addr < region.end) or (
+                offset is not None and offset < region.end_offset
+            ):
                 break
         else:
             return
         # If starting region is placed after starting point
-        if (addr is not None and addr < region.addr) or \
-           (offset is not None and offset < region.offset):
+        if (addr is not None and addr < region.addr) or (
+            offset is not None and offset < region.offset
+        ):
             # If expect only contiguous regions: we can't return anything
             if contiguous:
                 return
@@ -236,7 +241,8 @@ class ProcessMemory(object):
             else:
                 if length is not None:
                     raise ValueError(
-                        "Don't know how to retrieve length-limited regions with offset from unmapped area")
+                        "Don't know how to retrieve length-limited regions with offset from unmapped area"
+                    )
                 offset = region.offset
             # If we're out of length after adjustment: time to stop
             if length is not None and length <= 0:
@@ -274,7 +280,8 @@ class ProcessMemory(object):
             return None
         mapping_length = 0
         for region in self.iter_regions(
-                addr=addr, length=length, contiguous=True, trim=True):
+            addr=addr, length=length, contiguous=True, trim=True
+        ):
             if length is None:
                 return region.v2p(addr)
             mapping_length += region.size
@@ -297,7 +304,8 @@ class ProcessMemory(object):
             return None
         mapping_length = 0
         for region in self.iter_regions(
-                offset=off, length=length, contiguous=True, trim=True):
+            offset=off, length=length, contiguous=True, trim=True
+        ):
             if length is None:
                 return region.p2v(off)
             mapping_length += region.size
@@ -339,7 +347,7 @@ class ProcessMemory(object):
         if length is None:
             return binary_type(self.m[offset:])
         else:
-            return binary_type(self.m[offset:offset + length])
+            return binary_type(self.m[offset : offset + length])
 
     def readv_regions(self, addr=None, length=None, contiguous=True):
         """
@@ -361,7 +369,8 @@ class ProcessMemory(object):
         current_strings = []
         prev_region = None
         for region in self.iter_regions(
-                addr=addr, length=length, contiguous=contiguous, trim=True):
+            addr=addr, length=length, contiguous=contiguous, trim=True
+        ):
             if not prev_region or prev_region.end != region.addr:
                 if current_strings:
                     yield current_addr, b"".join(current_strings)
@@ -384,8 +393,8 @@ class ProcessMemory(object):
         :rtype: bytes
         """
         if length is not None and length <= 0:
-            return b''
-        _, chunk = next(self.readv_regions(addr, length), (0, b''))
+            return b""
+        _, chunk = next(self.readv_regions(addr, length), (0, b""))
         return chunk
 
     def readv_until(self, addr, s=None):
@@ -399,7 +408,7 @@ class ProcessMemory(object):
         :rtype: bytes
         """
         # readv_regions is merging contiguous regions now
-        _, chunk = next(self.readv_regions(addr), (0, b''))
+        _, chunk = next(self.readv_regions(addr), (0, b""))
         idx = chunk.find(s)
         return chunk[:idx] if idx >= 0 else chunk
 
@@ -439,9 +448,9 @@ class ProcessMemory(object):
         """
         length = len(buf)
         if hasattr(self.m, "__setitem__"):
-            self.m[offset:offset + length] = buf
+            self.m[offset : offset + length] = buf
         else:
-            self.m = self.m[:offset] + buf + self.m[offset + length:]
+            self.m = self.m[:offset] + buf + self.m[offset + length :]
 
     def patchv(self, addr, buf):
         """
@@ -565,8 +574,7 @@ class ProcessMemory(object):
         :return: Generates offsets where regex was matched
         :rtype: Iterator[int]
         """
-        for chunk_addr, chunk in self.readv_regions(
-                addr, length, contiguous=False):
+        for chunk_addr, chunk in self.readv_regions(addr, length, contiguous=False):
             for idx in self._find(chunk, query):
                 yield idx + chunk_addr
 
@@ -614,8 +622,7 @@ class ProcessMemory(object):
             # E.g. '\xf7'.encode('utf-8') would be encoded to b'\xc3\xb7'
             # instead of b'\xf7'.
             raise TypeError("Query argument must be binary type (bytes)")
-        for chunk_addr, chunk in self.readv_regions(
-                addr, length, contiguous=False):
+        for chunk_addr, chunk in self.readv_regions(addr, length, contiguous=False):
             for entry in re.finditer(query, chunk, re.DOTALL):
                 yield chunk_addr + entry.start()
 
@@ -645,6 +652,7 @@ class ProcessMemory(object):
         :rtype: List[dict] or None
         """
         from ..extractor import ExtractManager, ExtractorModules
+
         if extract_manager is None:
             if modules is None:
                 modules = ExtractorModules()
@@ -687,10 +695,12 @@ class ProcessMemory(object):
             ptr = self.p2v(off, len)
             if ptr is not None and addr <= ptr < addr + length:
                 return ptr
+
         return ruleset.match(data=self.readp(0), offset_mapper=map_offset)
 
     def _findbytes(self, yara_fn, query, addr, length):
         from ..yara import Yara, YaraString
+
         query = ensure_string(query)
         rule = Yara(strings=YaraString(query, type=YaraString.HEX))
         match = yara_fn(rule, addr, length)
@@ -755,7 +765,7 @@ class ProcessMemory(object):
         :type addr: int
         :return: Virtual address of found MZ header or None
         """
-        addr &= ~0xfff
+        addr &= ~0xFFF
         while True:
             buf = self.readv(addr, 2)
             if not buf:

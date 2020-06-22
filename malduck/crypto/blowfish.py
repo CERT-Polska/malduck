@@ -25,21 +25,21 @@ class _Blowfish(object):
     def encrypt(self, key, data):
         warnings.warn(
             "malduck.blowfish.encrypt is deprecated, please use malduck.blowfish.ecb.encrypt",
-            DeprecationWarning
+            DeprecationWarning,
         )
         return self.ecb.encrypt(key, data)
 
     def decrypt(self, key, data):
         warnings.warn(
             "malduck.blowfish.decrypt is deprecated, please use malduck.blowfish.ecb.decrypt",
-            DeprecationWarning
+            DeprecationWarning,
         )
         return self.ecb.decrypt(key, data)
 
     def __call__(self, key, data):
         warnings.warn(
             "malduck.blowfish() is deprecated, please use malduck.blowfish.ecb.decrypt",
-            DeprecationWarning
+            DeprecationWarning,
         )
         return self.ecb.decrypt(key, data)
 
@@ -48,7 +48,7 @@ class Blowfish(object):
     def __init__(self, key):
         warnings.warn(
             "malduck.crypto.Blowfish is deprecated, please use malduck.blowfish.<mode> variants",
-            DeprecationWarning
+            DeprecationWarning,
         )
         self.key = key
 
