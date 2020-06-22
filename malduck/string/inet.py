@@ -4,8 +4,8 @@
 
 import re
 import socket
+from typing import Union
 
-from ..py2compat import is_integer, is_binary, ensure_string
 from ..string.bin import p32
 
 __all__ = ["ipv4"]
@@ -16,11 +16,18 @@ ipv4_regex = re.compile(
 )
 
 
-def ipv4(s):
-    if is_integer(s):
+def ipv4(s: Union[bytes, int]) -> str:
+    """
+    Decodes IPv4 address and returns dot-decimal notation
+
+    :param s: Buffer or integer value to be decoded as IPv4
+    :type s: int or bytes
+    :rtype: str
+    """
+    if isinstance(s, int):
         return socket.inet_ntoa(p32(s)[::-1])
-    if is_binary(s):
+    elif isinstance(s, bytes):
         if len(s) == 4:
             return socket.inet_ntoa(s)
         if re.match(ipv4_regex, s):
-            return ensure_string(s)
+            return s.decode()

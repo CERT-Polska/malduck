@@ -3,7 +3,6 @@
 # See the file 'docs/LICENSE.txt' for copying permission.
 
 import collections
-from .py2compat import is_string
 
 __all__ = ["disasm", "insn", "Disassemble", "Instruction", "Operand", "Memory"]
 
@@ -101,7 +100,7 @@ class Operand(object):
             return self.op.type == other.op.type and self.value == other.value
         if self.is_imm:
             return self.value == other
-        if is_string(other):
+        if isinstance(other, str):
             other = (other,)
         if self.is_reg and self.reg in other:
             return True

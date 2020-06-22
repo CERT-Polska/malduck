@@ -28,26 +28,11 @@ __all__ = [
     "iterbytes_ord",
     "long",
     "PY3",
-    "is_integer",
-    "is_string",
-    "is_binary",
     "iterbytes",
     "ensure_bytes",
     "ensure_string",
     "import_module_by_finder",
 ]
-
-
-def is_integer(v):
-    return isinstance(v, integer_types)
-
-
-def is_string(v):
-    return isinstance(v, string_types)
-
-
-def is_binary(v):
-    return isinstance(v, binary_type)
 
 
 def iterbytes(b):

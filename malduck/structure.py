@@ -39,7 +39,7 @@ class Structure(object):
     def __init__(self):
         self.subfields, fields = {}, []
         for field, type_ in self._fields_:
-            if is_integer(type_):
+            if isinstance(type_, int):
                 type_ = ctypes.c_char * type_
             elif issubclass(type_, IntTypeBase):
                 if issubclass(type_, MultipliedIntTypeBase):
