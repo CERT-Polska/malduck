@@ -18,11 +18,11 @@ sys.path.insert(0, os.path.abspath('..'))
 # -- Project information -----------------------------------------------------
 
 project = 'malduck'
-copyright = '2019, CERT Polska'
+copyright = '2020, CERT Polska'
 author = 'CERT Polska'
 
 # The full version, including alpha/beta/rc tags
-release = '3.1.1'
+release = '3.2.0'
 
 
 # -- General configuration ---------------------------------------------------
