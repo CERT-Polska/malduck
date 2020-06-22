@@ -5,9 +5,7 @@
 import pefile
 from .py2compat import binary_type, text_type, ensure_bytes, ensure_string, PY3
 
-__all__ = [
-    "pe", "PE", "MemoryPEData", "FastPE", "pe2cuckoo"
-]
+__all__ = ["pe", "PE", "MemoryPEData", "FastPE", "pe2cuckoo"]
 
 
 if not PY3:
@@ -15,6 +13,7 @@ if not PY3:
     Workaround for https://github.com/erocarrera/pefile/issues/267
     """
     from pefile import bytes
+
     pefile.allowed_function_name = bytes(pefile.allowed_function_name)
     pefile.allowed_filename = bytes(pefile.allowed_filename)
 
@@ -31,13 +30,15 @@ class FastPE(pefile.PE):
         """
 
         if not isinstance(data, bytes):
-            raise TypeError('data should be of type: bytes')
+            raise TypeError("data should be of type: bytes")
 
         if 0 <= offset < len(self.__data__):
             if isinstance(self.__data__, bytearray):
-                self.__data__[offset:offset + len(data)] = data
+                self.__data__[offset : offset + len(data)] = data
             else:
-                self.__data__ = (self.__data__[:offset] + data + self.__data__[offset + len(data):])
+                self.__data__ = (
+                    self.__data__[:offset] + data + self.__data__[offset + len(data) :]
+                )
         else:
             return False
 
@@ -65,10 +66,14 @@ class MemoryPEData(object):
         return self.memory.imgbase + (self.pe.get_rva_from_offset(offs) or offs)
 
     def __len__(self):
-        return self.memory.regions[-1].addr - self.memory.regions[0].addr + self.memory.regions[-1].size
+        return (
+            self.memory.regions[-1].addr
+            - self.memory.regions[0].addr
+            + self.memory.regions[-1].size
+        )
 
     def __getitem__(self, item):
-        if type(item) is slice:
+        if isinstance(item, slice):
             start = self.map_offset(item.start or 0)
             stop = self.map_offset(item.stop - 1)
         else:
@@ -80,18 +85,22 @@ class MemoryPEData(object):
         if end and beg >= end:
             return -1
         try:
-            return next(self.memory.regexv(str, self.memory.imgbase + beg, end and end - beg))
+            return next(
+                self.memory.regexv(str, self.memory.imgbase + beg, end and end - beg)
+            )
         except StopIteration:
             return -1
 
 
 class PE(object):
     """
-    Wrapper around :class:`pefile.PE`, accepts either bytes (raw file contents) or :class:`ProcessMemory` instance.
+    Wrapper around :class:`pefile.PE`, accepts either bytes (raw file contents) or
+    :class:`ProcessMemory` instance.
     """
 
     def __init__(self, data, fast_load=False):
         from .procmem import ProcessMemory
+
         if isinstance(data, ProcessMemory):
             self.data = MemoryPEData(data, fast_load)
             self.pe = self.data.pe
@@ -136,9 +145,7 @@ class PE(object):
         """
         Is it 64-bit file (PE+)?
         """
-        return (
-            self.optional_header.Magic == pefile.OPTIONAL_HEADER_MAGIC_PE_PLUS
-        )
+        return self.optional_header.Magic == pefile.OPTIONAL_HEADER_MAGIC_PE_PLUS
 
     @property
     def headers_size(self):
@@ -146,7 +153,11 @@ class PE(object):
         Estimated size of PE headers (first section offset).
         If there are no sections: returns 0x1000 or size of input if provided data are shorter than single page
         """
-        return self.sections[0].PointerToRawData if self.sections else min(len(self.pe.__data__), 0x1000)
+        return (
+            self.sections[0].PointerToRawData
+            if self.sections
+            else min(len(self.pe.__data__), 0x1000)
+        )
 
     def section(self, name):
         """
@@ -167,7 +178,7 @@ class PE(object):
         :rtype: :class:`pefile.Structure`
         """
         return self.optional_header.DATA_DIRECTORY[
-            pefile.DIRECTORY_ENTRY.get('IMAGE_DIRECTORY_ENTRY_'+name)
+            pefile.DIRECTORY_ENTRY.get("IMAGE_DIRECTORY_ENTRY_" + name)
         ]
 
     def structure(self, rva, format):
@@ -186,7 +197,7 @@ class PE(object):
         """
         Returns True if the first 8 imported library entries have valid library names
         """
-        import_dir = self.directory('IMPORT')
+        import_dir = self.directory("IMPORT")
         if not import_dir.VirtualAddress:
             # There's nothing wrong with no imports
             return True
@@ -195,12 +206,14 @@ class PE(object):
             # Don't go further than 8 entries
             for _ in range(8):
                 import_desc = self.structure(
-                    import_rva,
-                    pefile.PE.__IMAGE_IMPORT_DESCRIPTOR_format__)
+                    import_rva, pefile.PE.__IMAGE_IMPORT_DESCRIPTOR_format__
+                )
                 if import_desc.all_zeroes():
                     # End of import-table
                     break
-                import_dllname = self.pe.get_string_at_rva(import_desc.Name, pefile.MAX_DLL_LENGTH)
+                import_dllname = self.pe.get_string_at_rva(
+                    import_desc.Name, pefile.MAX_DLL_LENGTH
+                )
                 if not pefile.is_valid_dos_filename(import_dllname):
                     # Invalid import filename found
                     return False
@@ -213,25 +226,32 @@ class PE(object):
         """
         Returns True if first level of resource tree looks consistent
         """
-        resource_dir = self.directory('RESOURCE')
+        resource_dir = self.directory("RESOURCE")
         if not resource_dir.VirtualAddress:
             # There's nothing wrong with no resources
             return True
         try:
             resource_rva = resource_dir.VirtualAddress
             resource_desc = self.structure(
-                resource_rva,
-                pefile.PE.__IMAGE_RESOURCE_DIRECTORY_format__)
-            resource_no = resource_desc.NumberOfNamedEntries + resource_desc.NumberOfIdEntries
+                resource_rva, pefile.PE.__IMAGE_RESOURCE_DIRECTORY_format__
+            )
+            resource_no = (
+                resource_desc.NumberOfNamedEntries + resource_desc.NumberOfIdEntries
+            )
             if not 0 <= resource_no < 128:
                 # Incorrect resource number
                 return False
             for rsrc_idx in range(resource_no):
                 resource_entry_desc = self.structure(
                     resource_rva + resource_desc.sizeof() + rsrc_idx * 8,
-                    pefile.PE.__IMAGE_RESOURCE_DIRECTORY_ENTRY_format__
+                    pefile.PE.__IMAGE_RESOURCE_DIRECTORY_ENTRY_format__,
                 )
-                if self.pe.get_word_at_rva(resource_rva + resource_entry_desc.OffsetToData & 0x7fffffff) is None:
+                if (
+                    self.pe.get_word_at_rva(
+                        resource_rva + resource_entry_desc.OffsetToData & 0x7FFFFFFF
+                    )
+                    is None
+                ):
                     return False
             return True
         except pefile.PEFormatError:
@@ -258,7 +278,11 @@ class PE(object):
                 # Probably fixpe'd - seems to be ok
                 return True
             return not all(
-                b in [0, '\0'] for b in self.pe.__data__[section_start_offs:section_start_offs+data_len])
+                b in [0, "\0"]
+                for b in self.pe.__data__[
+                    section_start_offs : section_start_offs + data_len
+                ]
+            )
         except pefile.PEFormatError:
             return False
 
@@ -270,9 +294,17 @@ class PE(object):
         :type name: int or str or bytes
         :rtype: Iterator[bytes]
         """
-        name_str = lambda e1, e2, e3: (e1.name and e1.name.string == name) or (e2.name and e2.name.string == name)
-        name_int = lambda e1, e2, e3: e2.struct.Name == name
-        type_int = lambda e1, e2, e3: e1.id == type_id
+
+        def name_str(e1, e2, e3):
+            return (e1.name and e1.name.string == name) or (
+                e2.name and e2.name.string == name
+            )
+
+        def name_int(e1, e2, e3):
+            return e2.struct.Name == name
+
+        def type_int(e1, e2, e3):
+            return e1.id == type_id
 
         if isinstance(name, text_type):
             name = ensure_bytes(name)
@@ -310,6 +342,7 @@ class PE(object):
 
 def pe2cuckoo(data):
     from .procmem import ProcessMemoryPE, CuckooProcessMemory
+
     """Translate a PE file into a cuckoo-procmem file."""
     m = ProcessMemoryPE(data, image=True)
     return CuckooProcessMemory.from_memory(m).store()

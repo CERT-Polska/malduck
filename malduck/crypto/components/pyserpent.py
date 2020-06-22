@@ -42,7 +42,6 @@ key_size = 32
 
 
 class Serpent:
-
     def __init__(self, key=None):
         """Serpent."""
 
@@ -78,7 +77,7 @@ class Serpent:
         if len(block) % 16:
             raise ValueError("block size must be a multiple of 16")
 
-        plaintext = b''
+        plaintext = b""
 
         while block:
             a, b, c, d = struct.unpack("<4L", block[:16])
@@ -95,7 +94,7 @@ class Serpent:
         if len(block) % 16:
             raise ValueError("block size must be a multiple of 16")
 
-        ciphertext = b''
+        ciphertext = b""
 
         while block:
             a, b, c, d = struct.unpack("<4L", block[0:16])
@@ -127,7 +126,7 @@ class Serpent:
 #
 
 WORD_BIGENDIAN = 0
-if sys.byteorder == 'big':
+if sys.byteorder == "big":
     WORD_BIGENDIAN = 1
 
 
@@ -140,8 +139,12 @@ def rotl32(x, n):
 
 
 def byteswap32(x):
-    return ((x & 0xff) << 24) | (((x >> 8) & 0xff) << 16) | \
-           (((x >> 16) & 0xff) << 8) | ((x >> 24) & 0xff)
+    return (
+        ((x & 0xFF) << 24)
+        | (((x >> 8) & 0xFF) << 16)
+        | (((x >> 16) & 0xFF) << 8)
+        | ((x >> 24) & 0xFF)
+    )
 
 
 def set_key(l_key, key, key_len):
@@ -165,7 +168,7 @@ def set_key(l_key, key, key_len):
         lk = 1 << (key_len % 32)
         l_key[i] = (l_key[i] & (lk - 1)) | lk
     for i in range(132):
-        lk = l_key[i] ^ l_key[i + 3] ^ l_key[i + 5] ^ l_key[i + 7] ^ 0x9e3779b9 ^ i
+        lk = l_key[i] ^ l_key[i + 3] ^ l_key[i + 5] ^ l_key[i + 7] ^ 0x9E3779B9 ^ i
         l_key[i + 8] = ((lk << 11) & 0xFFFFFFFF) | (lk >> 21)
 
     key = l_key
@@ -2962,24 +2965,30 @@ def decrypt(key, in_blk):
     in_blk[3] = d
 
 
-__testkey = b'\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f'\
-            b'\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f'
-__testdat = b'\x00\x01\x02\x03\x04\x05\x06\x07\x08\t\n\x0b\x0c\r\x0e\x0f'
-assert b'\xde&\x9f\xf83\xe42\xb8[.\x88\xd2p\x1c\xe7\\' == Serpent(__testkey).encrypt(__testdat)
-assert __testdat == Serpent(__testkey).decrypt(b'\xde&\x9f\xf83\xe42\xb8[.\x88\xd2p\x1c\xe7\\')
+__testkey = (
+    b"\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f"
+    b"\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f"
+)
+__testdat = b"\x00\x01\x02\x03\x04\x05\x06\x07\x08\t\n\x0b\x0c\r\x0e\x0f"
+assert b"\xde&\x9f\xf83\xe42\xb8[.\x88\xd2p\x1c\xe7\\" == Serpent(__testkey).encrypt(
+    __testdat
+)
+assert __testdat == Serpent(__testkey).decrypt(
+    b"\xde&\x9f\xf83\xe42\xb8[.\x88\xd2p\x1c\xe7\\"
+)
 
 
 # CBC Encrypt - Jason Reaves
-def serpent_cbc_encrypt(key, data, iv=b'\x00' * 16):
+def serpent_cbc_encrypt(key, data, iv=b"\x00" * 16):
     out = b""
     last = iv
     for i in range(len(data) // 16):
-        temp = data[i * 16:(i + 1) * 16]
+        temp = data[i * 16 : (i + 1) * 16]
         to_encode = b""
         for j in range(4):
-            temp1 = struct.unpack_from('<I', temp[j * 4:])[0]
-            temp2 = struct.unpack_from('<I', last[j * 4:])[0]
-            to_encode += struct.pack('<I', ((temp1 ^ temp2) & 0xffffffff))
+            temp1 = struct.unpack_from("<I", temp[j * 4 :])[0]
+            temp2 = struct.unpack_from("<I", last[j * 4 :])[0]
+            to_encode += struct.pack("<I", ((temp1 ^ temp2) & 0xFFFFFFFF))
         last = Serpent(key).encrypt(to_encode)
         out += last
     # print(binascii.hexlify(Serpent(key).encrypt(data)))
@@ -2987,16 +2996,16 @@ def serpent_cbc_encrypt(key, data, iv=b'\x00' * 16):
 
 
 # CBC Decrypt - Jason Reaves
-def serpent_cbc_decrypt(key, data, iv=b'\x00' * 16):
+def serpent_cbc_decrypt(key, data, iv=b"\x00" * 16):
     out2 = b""
     last = iv
     for i in range(len(data) // 16):
-        temp = Serpent(key).decrypt(data[i * 16:(i + 1) * 16])
+        temp = Serpent(key).decrypt(data[i * 16 : (i + 1) * 16])
         to_decode = b""
         for j in range(4):
-            temp1 = struct.unpack_from('<I', temp[j * 4:])[0]
-            temp2 = struct.unpack_from('<I', last[j * 4:])[0]
-            to_decode += struct.pack('<I', ((temp1 ^ temp2) & 0xffffffff))
+            temp1 = struct.unpack_from("<I", temp[j * 4 :])[0]
+            temp2 = struct.unpack_from("<I", last[j * 4 :])[0]
+            to_decode += struct.pack("<I", ((temp1 ^ temp2) & 0xFFFFFFFF))
         out2 += to_decode
-        last = data[i * 16:(i + 1) * 16]
+        last = data[i * 16 : (i + 1) * 16]
     return out2

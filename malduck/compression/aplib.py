@@ -31,6 +31,7 @@ class aPLib(object):
     :type headerless: bool (default: `True`)
     :rtype: bytes
     """
+
     def decompress(self, buf, length=None, headerless=False):
         if length is not None:
             log.warning("Length argument is ignored by aPLib.decompress")

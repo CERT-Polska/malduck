@@ -5,6 +5,7 @@ class ProcessMemoryBinary(ProcessMemory):
     """
     Abstract class for memory-mapped executable binary
     """
+
     __magic__ = None
 
     def __init__(self, buf, base=0, regions=None, image=False, detect_image=False):

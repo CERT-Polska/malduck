@@ -8,9 +8,9 @@ Approximately ~20 times faster than the other Python implementations.
 """
 from io import BytesIO
 
-__all__ = ['decompress']
-__version__ = '0.3'
-__author__ = 'Sandor Nemes'
+__all__ = ["decompress"]
+__version__ = "0.3"
+__author__ = "Sandor Nemes"
 
 
 class APDSTATE(object):
@@ -136,4 +136,4 @@ def decompress(data):
     try:
         return bytes(ap_depack(data))
     except Exception:
-        raise Exception('aPLib decompression error')
+        raise Exception("aPLib decompression error")

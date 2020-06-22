@@ -32,7 +32,7 @@ from io import BytesIO
 
 import struct
 
-__all__ = ['decompress_data']
+__all__ = ["decompress_data"]
 
 
 def get_displacement(offset):
@@ -45,8 +45,7 @@ def get_displacement(offset):
     return result
 
 
-DISPLACEMENT_TABLE = array.array(
-    'B', [get_displacement(x) for x in range(8192)])
+DISPLACEMENT_TABLE = array.array("B", [get_displacement(x) for x in range(8192)])
 
 COMPRESSED_MASK = 1 << 15
 SIGNATURE_MASK = 3 << 12
@@ -70,7 +69,7 @@ def decompress_data(cdata):
         if block_header & SIGNATURE_MASK != SIGNATURE_MASK:
             break
 
-        size = (block_header & SIZE_MASK)
+        size = block_header & SIZE_MASK
 
         block_end = block_offset + size + 3
 
@@ -85,7 +84,8 @@ def decompress_data(cdata):
                     if header & mask:
                         pointer = struct.unpack("<H", in_fd.read(2))[0]
                         displacement = DISPLACEMENT_TABLE[
-                            output_fd.tell() - uncompressed_chunk_offset - 1]
+                            output_fd.tell() - uncompressed_chunk_offset - 1
+                        ]
 
                         symbol_offset = (pointer >> (12 - displacement)) + 1
                         symbol_length = (pointer & (0xFFF >> displacement)) + 3

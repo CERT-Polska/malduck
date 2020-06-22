@@ -4,9 +4,19 @@ from .bits import rol
 from .py2compat import long, add_metaclass
 
 __all__ = [
-    "QWORD", "DWORD", "WORD", "BYTE", "CHAR",
-    "UInt64", "UInt32", "UInt16", "UInt8",
-    "Int64", "Int32", "Int16", "Int8",
+    "QWORD",
+    "DWORD",
+    "WORD",
+    "BYTE",
+    "CHAR",
+    "UInt64",
+    "UInt32",
+    "UInt16",
+    "UInt8",
+    "Int64",
+    "Int32",
+    "Int16",
+    "Int8",
 ]
 
 
@@ -14,6 +24,7 @@ class IntTypeBase(object):
     """
     Base class representing all IntType instances
     """
+
     pass
 
 
@@ -21,6 +32,7 @@ class MultipliedIntTypeBase(IntTypeBase):
     """
     Base class representing all MultipliedIntType instances
     """
+
     int_type = None
     mul = 0
 
@@ -30,6 +42,7 @@ class MetaIntType(type):
     Metaclass for IntType classes.
     Provides ctypes-like behavior e.g. (QWORD*8).unpack(...) returns tuple of 8 QWORDs
     """
+
     @property
     def mask(cls):
         """

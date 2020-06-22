@@ -14,6 +14,7 @@ class MetaExtractor(type):
     """
     Metaclass for Extractor. Handles proper registration of decorated extraction methods
     """
+
     def __new__(cls, name, bases, attrs):
         """
         Collect ext_yara_string and ext_final methods
@@ -24,7 +25,9 @@ class MetaExtractor(type):
         klass.final_methods = list(getattr(klass, "final_methods", []))
 
         if type(getattr(klass, "yara_rules")) not in (list, tuple):
-            raise TypeError("'yara_rules' field must be 'list' or 'tuple' in {}".format(str(name)))
+            raise TypeError(
+                "'yara_rules' field must be 'list' or 'tuple' in {}".format(str(name))
+            )
 
         for name, method in attrs.items():
             if isinstance(method, ExtractorMethod):
@@ -32,8 +35,10 @@ class MetaExtractor(type):
                     klass.final_methods.append(name)
                 else:
                     if method.yara_string in klass.extractor_methods:
-                        raise TypeError('There can be only one extractor method '
-                                        'for "{}" string'.format(method.yara_string))
+                        raise TypeError(
+                            "There can be only one extractor method "
+                            'for "{}" string'.format(method.yara_string)
+                        )
                     klass.extractor_methods[method.yara_string] = name
 
         return klass
@@ -43,6 +48,7 @@ class ExtractorMethod(object):
     """
     Represents registered extractor method
     """
+
     def __init__(self, method):
         self.method = method
         self.weak = False
@@ -68,7 +74,7 @@ class ExtractorMethod(object):
 
 
 class ExtractorBase(object):
-    family = None   #: Extracted malware family, automatically added to "family" key for strong extraction methods
+    family = None  #: Extracted malware family, automatically added to "family" key for strong extraction methods
     overrides = []  #: Family match overrides another match e.g. citadel overrides zeus
 
     def __init__(self, parent):
@@ -127,9 +133,14 @@ class ExtractorBase(object):
 
         :return: :class:`logging.Logger`
         """
-        return logging.getLogger("{}.{}".format(
-            self.__class__.__module__,  # should be malduck.extractor.modules (see malduck.extractor.loaders)
-            self.__class__.__name__))
+        return logging.getLogger(
+            "{}.{}".format(
+                # should be malduck.extractor.modules (see
+                # malduck.extractor.loaders)
+                self.__class__.__module__,
+                self.__class__.__name__,
+            )
+        )
 
 
 @add_metaclass(MetaExtractor)
@@ -229,6 +240,7 @@ class Extractor(ExtractorBase):
         Use this decorator for extractors that need ELF instance. (:class:`malduck.procmem.ProcessMemoryELF`)
 
     """
+
     yara_rules = ()  #: Names of Yara rules for which handle_yara is called
 
     def on_error(self, exc, method_name):
@@ -260,19 +272,23 @@ class Extractor(ExtractorBase):
             for va in match[identifier]:
                 try:
                     if method.needs_exec and not isinstance(p, method.needs_exec):
-                        log.debug("Omitting %s.%s for %s@%x - %s is not %s",
-                                  self.__class__.__name__,
-                                  method_name,
-                                  identifier,
-                                  va,
-                                  p.__class__.__name__,
-                                  method.needs_exec.__name__)
+                        log.debug(
+                            "Omitting %s.%s for %s@%x - %s is not %s",
+                            self.__class__.__name__,
+                            method_name,
+                            identifier,
+                            va,
+                            p.__class__.__name__,
+                            method.needs_exec.__name__,
+                        )
                         continue
-                    log.debug("Trying %s.%s for %s@%x",
-                              self.__class__.__name__,
-                              method_name,
-                              identifier,
-                              va)
+                    log.debug(
+                        "Trying %s.%s for %s@%x",
+                        self.__class__.__name__,
+                        method_name,
+                        identifier,
+                        va,
+                    )
                     method(self, p, va)
                 except Exception as exc:
                     self.on_error(exc, method_name)
@@ -281,15 +297,15 @@ class Extractor(ExtractorBase):
         for method_name in self.final_methods:
             method = getattr(self, method_name)
             if method.needs_exec and not isinstance(p, method.needs_exec):
-                log.debug("Omitting %s.%s (final) - %s is not %s",
-                          self.__class__.__name__,
-                          method_name,
-                          p.__class__.__name__,
-                          method.needs_exec.__name__)
+                log.debug(
+                    "Omitting %s.%s (final) - %s is not %s",
+                    self.__class__.__name__,
+                    method_name,
+                    p.__class__.__name__,
+                    method.needs_exec.__name__,
+                )
                 continue
-            log.debug("Trying %s.%s (final)",
-                      self.__class__.__name__,
-                      method_name)
+            log.debug("Trying %s.%s (final)", self.__class__.__name__, method_name)
             try:
                 method(self, p)
             except Exception as exc:

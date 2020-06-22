@@ -10,10 +10,7 @@ from Cryptodome.Cipher import AES as AESCipher
 from .winhdr import BLOBHEADER, BaseBlob
 from ..string.bin import uint32
 
-__all__ = [
-    "PlaintextKeyBlob",
-    "AES", "aes"
-]
+__all__ = ["PlaintextKeyBlob", "AES", "aes"]
 
 
 class PlaintextKeyBlob(BaseBlob):
@@ -72,7 +69,7 @@ class AesCbc(object):
     def __call__(self, key, iv, data):
         warnings.warn(
             "malduck.aes.cbc() is deprecated, please use malduck.aes.cbc.decrypt()",
-            DeprecationWarning
+            DeprecationWarning,
         )
         return self.decrypt(key, iv, data)
 
@@ -89,28 +86,24 @@ class AesEcb(object):
     def __call__(self, key, iv, data):
         warnings.warn(
             "malduck.aes.ecb() is deprecated, please use malduck.aes.ecb.decrypt()",
-            DeprecationWarning
+            DeprecationWarning,
         )
         return self.decrypt(key, data)
 
 
 class AesCtr(object):
     def encrypt(self, key, nonce, data):
-        cipher = AESCipher.new(key, AESCipher.MODE_CTR,
-                               nonce=b'',
-                               initial_value=nonce)
+        cipher = AESCipher.new(key, AESCipher.MODE_CTR, nonce=b"", initial_value=nonce)
         return cipher.encrypt(data)
 
     def decrypt(self, key, nonce, data):
-        cipher = AESCipher.new(key, AESCipher.MODE_CTR,
-                               nonce=b'',
-                               initial_value=nonce)
+        cipher = AESCipher.new(key, AESCipher.MODE_CTR, nonce=b"", initial_value=nonce)
         return cipher.decrypt(data)
 
     def __call__(self, key, nonce, data):
         warnings.warn(
             "malduck.aes.ctr() is deprecated, please use malduck.aes.ctr.decrypt()",
-            DeprecationWarning
+            DeprecationWarning,
         )
         return self.decrypt(key, nonce, data)
 
@@ -123,21 +116,21 @@ class Aes(object):
     def encrypt(self, key, iv, data):
         warnings.warn(
             "malduck.aes.encrypt is deprecated, please use malduck.aes.cbc.encrypt",
-            DeprecationWarning
+            DeprecationWarning,
         )
         return self.cbc.encrypt(key, iv, data)
 
     def decrypt(self, key, iv, data):
         warnings.warn(
             "malduck.aes.decrypt is deprecated, please use malduck.aes.cbc.decrypt",
-            DeprecationWarning
+            DeprecationWarning,
         )
         return self.cbc.decrypt(key, iv, data)
 
     def __call__(self, mode):
         warnings.warn(
             "malduck.aes('<mode>') is deprecated, please use malduck.aes.<mode>",
-            DeprecationWarning
+            DeprecationWarning,
         )
         return getattr(self, mode)
 
@@ -157,8 +150,8 @@ class Aes(object):
         header = BLOBHEADER.parse(buf.read(BLOBHEADER.sizeof()))
 
         algorithms = (
-            0x0000660e,  # AES 128
-            0x0000660f,  # AES 192
+            0x0000660E,  # AES 128
+            0x0000660F,  # AES 192
             0x00006610,  # AES 256
         )
 
@@ -187,8 +180,8 @@ class AES(object):
     :type mode: str ("cbc", "ecb", "ctr")
     """
     algorithms = (
-        0x0000660e,  # AES 128
-        0x0000660f,  # AES 192
+        0x0000660E,  # AES 128
+        0x0000660F,  # AES 192
         0x00006610,  # AES 256
     )
 
@@ -201,7 +194,7 @@ class AES(object):
     def __init__(self, key, iv=None, mode="cbc"):
         warnings.warn(
             "malduck.crypto.AES is deprecated, please use malduck.aes.<mode> variants",
-            DeprecationWarning
+            DeprecationWarning,
         )
         self.key = key
         self.iv = iv

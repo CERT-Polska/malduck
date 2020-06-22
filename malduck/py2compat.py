@@ -1,6 +1,15 @@
 # Python 2/3 compatibility module
 import sys
-from six import add_metaclass, integer_types, string_types, binary_type, PY3, int2byte, indexbytes, text_type
+from six import (
+    add_metaclass,
+    integer_types,
+    string_types,
+    binary_type,
+    PY3,
+    int2byte,
+    indexbytes,
+    text_type,
+)
 from six import iterbytes as iterbytes_ord
 
 if PY3:
@@ -9,11 +18,23 @@ else:
     from __builtin__ import long
 
 __all__ = [
-    "add_metaclass", "integer_types", "string_types", "binary_type",
-    "int2byte", "indexbytes", "text_type", "iterbytes_ord",
-    "long", "PY3",
-    "is_integer", "is_string", "is_binary", "iterbytes", "ensure_bytes",
-    "ensure_string", "import_module_by_finder"
+    "add_metaclass",
+    "integer_types",
+    "string_types",
+    "binary_type",
+    "int2byte",
+    "indexbytes",
+    "text_type",
+    "iterbytes_ord",
+    "long",
+    "PY3",
+    "is_integer",
+    "is_string",
+    "is_binary",
+    "iterbytes",
+    "ensure_bytes",
+    "ensure_string",
+    "import_module_by_finder",
 ]
 
 
@@ -31,7 +52,7 @@ def is_binary(v):
 
 def iterbytes(b):
     """Returns single bytes rather than sequence of ints"""
-    return [b[i:i+1] for i in range(len(b))]
+    return [b[i : i + 1] for i in range(len(b))]
 
 
 def ensure_bytes(v):
@@ -52,7 +73,7 @@ def ensure_string(v):
     elif isinstance(v, string_types):
         return v
     else:
-        raise TypeError('v should be str/unicode/bytes instead of ' + str(type(v)))
+        raise TypeError("v should be str/unicode/bytes instead of " + str(type(v)))
 
 
 def import_module_by_finder(finder, module_name):
@@ -63,13 +84,14 @@ def import_module_by_finder(finder, module_name):
         return sys.modules[module_name]
     if PY3:
         import importlib.util
+
         # https://docs.python.org/3/library/importlib.html#importing-a-source-file-directly
         module_spec = finder.find_spec(module_name)
         module = importlib.util.module_from_spec(module_spec)
         sys.modules[module_name] = module
         try:
             module = module_spec.loader.exec_module(module)
-        except:
+        except BaseException:
             del sys.modules[module_name]
             raise
     else:

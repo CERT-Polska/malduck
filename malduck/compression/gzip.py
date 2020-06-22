@@ -26,6 +26,7 @@ class Gzip(object):
     :param buf: Buffer to decompress
     :type buf: bytes
     """
+
     def decompress(self, buf):
         if buf.startswith(b"\x1f\x8b\x08"):
             return GzipFile(fileobj=io.BytesIO(buf)).read()

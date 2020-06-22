@@ -2,9 +2,7 @@
 # This file is part of Roach - https://github.com/jbremer/roach.
 # See the file 'docs/LICENSE.txt' for copying permission.
 
-__all__ = [
-    "rol", "ror", "align", "align_down"
-]
+__all__ = ["rol", "ror", "align", "align_down"]
 
 
 def rol(value, count, bits=32):
@@ -20,8 +18,8 @@ def rol(value, count, bits=32):
 
     """
     count = (bits - 1) & count
-    value = (value << count) | ((2**count - 1) & (value >> (bits - count)))
-    return value % 2**bits
+    value = (value << count) | ((2 ** count - 1) & (value >> (bits - count)))
+    return value % 2 ** bits
 
 
 def ror(value, count, bits=32):
