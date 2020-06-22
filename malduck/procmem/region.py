@@ -38,7 +38,7 @@ class Region:
 
     def __init__(
         self, addr: int, size: int, state: int, type_: int, protect: int, offset: int
-    ):
+    ) -> None:
         self.addr = addr
         self.size = size
         self.state = state
