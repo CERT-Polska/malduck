@@ -4,6 +4,9 @@
 
 import collections
 from .py2compat import is_string
+from capstone import CsInsn
+from capstone.x86 import X86Op
+from typing import Any, List, Optional
 
 __all__ = ["disasm", "insn", "Disassemble", "Instruction", "Operand", "Memory"]
 
@@ -28,27 +31,27 @@ class Operand(object):
         8: "qword",
     }
 
-    def __init__(self, op, x64):
+    def __init__(self, op: X86Op, x64: bool) -> None:
         self.op = op
         self.x64 = x64
 
     @property
-    def is_imm(self):
+    def is_imm(self) -> bool:
         """Is it immediate operand?"""
         return self.op.type == Operand._x86_op_imm
 
     @property
-    def is_reg(self):
+    def is_reg(self) -> bool:
         """Is it register operand?"""
         return self.op.type == Operand._x86_op_reg
 
     @property
-    def is_mem(self):
+    def is_mem(self) -> bool:
         """Is it memory operand?"""
         return self.op.type == Operand._x86_op_mem
 
     @property
-    def value(self):
+    def value(self) -> int:
         """
         Returns operand value or displacement value for memory operands
 
@@ -62,7 +65,7 @@ class Operand(object):
             return self.regs[self.op.reg]
 
     @property
-    def reg(self):
+    def reg(self) -> Optional[str]:
         """
         Returns register used by operand.
 
@@ -79,7 +82,7 @@ class Operand(object):
             return self.regs[self.op.reg]
 
     @property
-    def mem(self):
+    def mem(self) -> Memory:
         """
         Returns :class:`Memory` object for memory operands
         """
@@ -96,7 +99,7 @@ class Operand(object):
             index, scale = None, None
         return Memory(self.sizes[self.op.size], base, scale, index, mem.disp)
 
-    def __eq__(self, other):
+    def __eq__(self, other: Any) -> bool:
         if isinstance(other, Operand):
             return self.op.type == other.op.type and self.value == other.value
         if self.is_imm:
@@ -109,7 +112,7 @@ class Operand(object):
             return True
         return False
 
-    def __str__(self):
+    def __str__(self) -> str:
         if self.is_imm:
             if self.x64:
                 return "0x%016x" % (self.value % 2 ** 64)
@@ -156,14 +159,22 @@ class Instruction(object):
        :py:meth:`malduck.procmem.ProcessMemory.disasmv`
     """
 
-    def __init__(self, mnem=None, op1=None, op2=None, op3=None, addr=None, x64=False):
+    def __init__(
+        self,
+        mnem: Optional[str] = None,
+        op1: Optional[int] = None,
+        op2: None = None,
+        op3: None = None,
+        addr: Optional[int] = None,
+        x64: bool = False,
+    ) -> None:
         self.insn = None
         self.mnem = mnem
         self.operands = op1, op2, op3
         self._addr = addr
         self.x64 = x64
 
-    def parse(self, insn):
+    def parse(self, insn: CsInsn) -> None:
         self.insn = insn
         self.mnem = insn.mnemonic
 
@@ -173,33 +184,33 @@ class Instruction(object):
         self.operands = operands[0], operands[1], operands[2]
 
     @staticmethod
-    def from_capstone(insn, x64=False):
+    def from_capstone(insn: CsInsn, x64: bool = False) -> "Instruction":
         ret = Instruction()
         ret.x64 = x64
         ret.parse(insn)
         return ret
 
     @property
-    def op1(self):
+    def op1(self) -> Operand:
         """First operand"""
         return self.operands[0]
 
     @property
-    def op2(self):
+    def op2(self) -> Optional[Operand]:
         """Second operand"""
         return self.operands[1]
 
     @property
-    def op3(self):
+    def op3(self) -> None:
         """Third operand"""
         return self.operands[2]
 
     @property
-    def addr(self):
+    def addr(self) -> int:
         """Instruction address"""
         return self._addr or self.insn.address
 
-    def __eq__(self, other):
+    def __eq__(self, other: "Instruction") -> bool:
         if not isinstance(other, Instruction):
             return False
         if self.mnem != other.mnem or self.addr != other.addr:
@@ -208,7 +219,7 @@ class Instruction(object):
             return True
         return False
 
-    def __str__(self):
+    def __str__(self) -> str:
         operands = []
         if self.op1 is not None:
             operands.append(str(self.op1))
@@ -222,7 +233,9 @@ class Instruction(object):
 
 
 class Disassemble(object):
-    def disassemble(self, data, addr, x64=False):
+    def disassemble(
+        self, data: bytes, addr: int, x64: bool = False
+    ) -> List[Instruction]:
         """
         Disassembles data from specific address
 
@@ -248,7 +261,7 @@ class Disassemble(object):
             ret.append(Instruction.from_capstone(insn, x64=x64))
         return ret
 
-    def init_once(self, *args, **kwargs):
+    def init_once(self, *args, **kwargs) -> List[Instruction]:
         import capstone.x86
 
         Operand._x86_op_imm = capstone.x86.X86_OP_IMM

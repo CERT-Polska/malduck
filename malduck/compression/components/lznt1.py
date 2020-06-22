@@ -35,7 +35,7 @@ import struct
 __all__ = ["decompress_data"]
 
 
-def get_displacement(offset):
+def get_displacement(offset: int) -> int:
     """Calculate the displacement."""
     result = 0
     while offset >= 0x10:
@@ -53,7 +53,7 @@ SIZE_MASK = (1 << 12) - 1
 TAG_MASKS = [(1 << i) for i in range(0, 8)]
 
 
-def decompress_data(cdata):
+def decompress_data(cdata: bytes) -> bytes:
     """Decompresses the data."""
 
     in_fd = BytesIO(cdata)

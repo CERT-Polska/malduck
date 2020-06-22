@@ -1,6 +1,7 @@
 from itertools import cycle
 
 from ..py2compat import is_integer, int2byte, iterbytes_ord
+from typing import Union
 
 __all__ = ["xor"]
 
@@ -17,7 +18,7 @@ class XOR(object):
     :rtype: bytes
     """
 
-    def __call__(self, key, data):
+    def __call__(self, key: Union[int, bytes], data: bytes) -> bytes:
         if is_integer(key):
             key = int2byte(key)
         return b"".join(

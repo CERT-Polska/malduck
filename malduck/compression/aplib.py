@@ -3,6 +3,7 @@ from ..py2compat import binary_type
 
 import logging
 import struct
+from typing import Optional
 
 __all__ = ["aPLib", "aplib"]
 
@@ -32,7 +33,9 @@ class aPLib(object):
     :rtype: bytes
     """
 
-    def decompress(self, buf, length=None, headerless=False):
+    def decompress(
+        self, buf: bytes, length: None = None, headerless: bool = False
+    ) -> Optional[bytes]:
         if length is not None:
             log.warning("Length argument is ignored by aPLib.decompress")
         try:

@@ -24,7 +24,7 @@ class RC4Cipher(object):
     """
 
     # todo: transform it to single rc4 function
-    def __call__(self, key, data):
+    def __call__(self, key: bytes, data: bytes) -> bytes:
         return ARC4.new(key).decrypt(data)
 
     def rc4(self, key, data):

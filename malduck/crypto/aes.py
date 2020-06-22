@@ -9,6 +9,8 @@ from Cryptodome.Cipher import AES as AESCipher
 
 from .winhdr import BLOBHEADER, BaseBlob
 from ..string.bin import uint32
+from io import BytesIO
+from typing import Tuple
 
 __all__ = ["PlaintextKeyBlob", "AES", "aes"]
 
@@ -25,11 +27,11 @@ class PlaintextKeyBlob(BaseBlob):
         32: "AES-256",
     }
 
-    def __init__(self):
+    def __init__(self) -> None:
         BaseBlob.__init__(self)
         self.key = None
 
-    def parse(self, buf):
+    def parse(self, buf: BytesIO) -> None:
         """
         Parse structure from buffer
 
@@ -42,7 +44,7 @@ class PlaintextKeyBlob(BaseBlob):
             return
         self.key = value
 
-    def export_key(self):
+    def export_key(self) -> Tuple[str, bytes]:
         """
         Exports key from structure
 
@@ -58,7 +60,7 @@ BlobTypes = {
 
 
 class AesCbc(object):
-    def encrypt(self, key, iv, data):
+    def encrypt(self, key: bytes, iv: bytes, data: bytes) -> bytes:
         """
         Encrypts buffer using AES algorithm in CBC mode.
 
@@ -74,7 +76,7 @@ class AesCbc(object):
         cipher = AESCipher.new(key, AESCipher.MODE_CBC, iv=iv)
         return cipher.encrypt(data)
 
-    def decrypt(self, key, iv, data):
+    def decrypt(self, key: bytes, iv: bytes, data: bytes) -> bytes:
         """
         Decrypts buffer using AES algorithm in CBC mode.
 
@@ -99,7 +101,7 @@ class AesCbc(object):
 
 
 class AesEcb(object):
-    def encrypt(self, key, data):
+    def encrypt(self, key: bytes, data: bytes) -> bytes:
         """
         Encrypts buffer using AES algorithm in ECB mode.
 
@@ -113,7 +115,7 @@ class AesEcb(object):
         cipher = AESCipher.new(key, AESCipher.MODE_ECB)
         return cipher.encrypt(data)
 
-    def decrypt(self, key, data):
+    def decrypt(self, key: bytes, data: bytes) -> bytes:
         """
         Decrypts buffer using AES algorithm in ECB mode.
 
@@ -136,7 +138,7 @@ class AesEcb(object):
 
 
 class AesCtr(object):
-    def encrypt(self, key, nonce, data):
+    def encrypt(self, key: bytes, nonce: bytes, data: bytes) -> bytes:
         """
         Encrypts buffer using AES algorithm in CTR mode.
 
@@ -152,7 +154,7 @@ class AesCtr(object):
         cipher = AESCipher.new(key, AESCipher.MODE_CTR, nonce=b"", initial_value=nonce)
         return cipher.encrypt(data)
 
-    def decrypt(self, key, nonce, data):
+    def decrypt(self, key: bytes, nonce: bytes, data: bytes) -> bytes:
         """
         Decrypts buffer using AES algorithm in CTR mode.
 
@@ -203,7 +205,7 @@ class Aes(object):
         return getattr(self, mode)
 
     @staticmethod
-    def import_key(data):
+    def import_key(data: bytes) -> Tuple[str, bytes]:
         """
         Extracts key from buffer containing :class:`PlaintextKeyBlob` data
 

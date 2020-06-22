@@ -1,12 +1,13 @@
 import warnings
 
 from .components.pyserpent import serpent_cbc_encrypt, serpent_cbc_decrypt
+from typing import Optional
 
 __all__ = ["Serpent", "serpent"]
 
 
 class SerpentCbc(object):
-    def encrypt(self, key, data, iv=None):
+    def encrypt(self, key: bytes, data: bytes, iv: None = None) -> bytes:
         """
         Encrypts buffer using Serpent algorithm in CBC mode.
 
@@ -21,7 +22,7 @@ class SerpentCbc(object):
         """
         return serpent_cbc_encrypt(key, data, iv=iv or b"\x00" * 16)
 
-    def decrypt(self, key, data, iv=None):
+    def decrypt(self, key: bytes, data: bytes, iv: None = None) -> bytes:
         """
         Decrypts buffer using Serpent algorithm in CBC mode.
 

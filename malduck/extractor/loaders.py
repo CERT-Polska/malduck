@@ -2,11 +2,14 @@ import logging
 import pkgutil
 
 from ..py2compat import import_module_by_finder
+from typing import Callable, Dict, Optional
 
 log = logging.getLogger(__name__)
 
 
-def load_modules(search_path, onerror=None):
+def load_modules(
+    search_path: str, onerror: Optional[Callable] = None
+) -> Dict[str, None]:
     """
     Loads plugin modules under specified paths
 

@@ -10,6 +10,8 @@ from itertools import takewhile
 from .winhdr import BLOBHEADER, BaseBlob
 from ..string.bin import uint32, bigint
 from ..py2compat import long
+from io import BytesIO
+from typing import Optional, Union
 
 __all__ = ["PublicKeyBlob", "PrivateKeyBlob", "RSA", "rsa"]
 
@@ -17,12 +19,12 @@ __all__ = ["PublicKeyBlob", "PrivateKeyBlob", "RSA", "rsa"]
 class PublicKeyBlob(BaseBlob):
     magic = b"RSA1"
 
-    def __init__(self):
+    def __init__(self) -> None:
         BaseBlob.__init__(self)
         self.e = None
         self.n = None
 
-    def parse(self, buf):
+    def parse(self, buf: BytesIO) -> int:
         header = buf.read(12)
         if len(header) != 12 or header[:4] != self.magic:
             return
@@ -37,14 +39,14 @@ class PublicKeyBlob(BaseBlob):
         self.n = bigint(n, self.bitsize)
         return 12 + self.bitsize // 8
 
-    def export_key(self):
+    def export_key(self) -> bytes:
         return RSA.export_key(self.n, self.e)
 
 
 class PrivateKeyBlob(PublicKeyBlob):
     magic = b"RSA2"
 
-    def __init__(self):
+    def __init__(self) -> None:
         PublicKeyBlob.__init__(self)
         self.p1 = None
         self.p2 = None
@@ -53,7 +55,7 @@ class PrivateKeyBlob(PublicKeyBlob):
         self.coeff = None
         self.d = None
 
-    def parse(self, buf):
+    def parse(self, buf: BytesIO) -> None:
         off = PublicKeyBlob.parse(self, buf)
         if not off:
             return
@@ -82,7 +84,7 @@ class PrivateKeyBlob(PublicKeyBlob):
         if self.d is None:
             return
 
-    def export_key(self):
+    def export_key(self) -> bytes:
         return RSA.export_key(self.n, self.e, self.d)
 
 
@@ -96,7 +98,7 @@ class RSA(object):
     algorithms = (0x0000A400,)  # RSA
 
     @staticmethod
-    def import_key(data):
+    def import_key(data: Union[str, bytes]) -> Optional[bytes]:
         r"""
         Extracts key from buffer containing :class:`PublicKeyBlob` or :class:`PrivateKeyBlob` data
 
@@ -126,7 +128,14 @@ class RSA(object):
         return obj.export_key()
 
     @staticmethod
-    def export_key(n, e, d=None, p=None, q=None, crt=None):
+    def export_key(
+        n: int,
+        e: int,
+        d: Optional[int] = None,
+        p: None = None,
+        q: None = None,
+        crt: None = None,
+    ) -> bytes:
         r"""
         Constructs key from tuple of RSA components
 

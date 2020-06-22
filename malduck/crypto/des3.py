@@ -5,19 +5,20 @@
 import warnings
 
 from Cryptodome.Cipher import DES, DES3 as DES3Cipher
+from Cryptodome.Cipher._mode_cbc import CbcMode
 
 __all__ = ["DES3", "des3"]
 
 
 class Des3Cbc(object):
-    def _get_cipher(self, key, iv):
+    def _get_cipher(self, key: bytes, iv: bytes) -> CbcMode:
         if len(key) == 8:
             # For 8 bytes it fallbacks to single DES
             # (original cryptography behaviour)
             return DES.new(key, DES.MODE_CBC, iv=iv)
         return DES3Cipher.new(key, DES3Cipher.MODE_CBC, iv=iv)
 
-    def encrypt(self, key, iv, data):
+    def encrypt(self, key: bytes, iv: bytes, data: bytes) -> bytes:
         """
         Encrypts buffer using DES/DES3 algorithm in CBC mode.
 
@@ -32,7 +33,7 @@ class Des3Cbc(object):
         """
         return self._get_cipher(key, iv).encrypt(data)
 
-    def decrypt(self, key, iv, data):
+    def decrypt(self, key: bytes, iv: bytes, data: bytes) -> bytes:
         """
         Decrypts buffer using DES/DES3 algorithm in CBC mode.
 

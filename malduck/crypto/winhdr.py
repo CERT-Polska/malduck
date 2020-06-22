@@ -25,7 +25,7 @@ class BLOBHEADER(Structure):
 
 
 class BaseBlob(object):
-    def __init__(self):
+    def __init__(self) -> None:
         self.bitsize = 0
 
     def parse(self, buf):

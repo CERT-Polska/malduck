@@ -7,13 +7,19 @@ from .loaders import load_modules
 
 from ..py2compat import binary_type
 from ..yara import Yara
+from malduck.procmem.procmem import ProcessMemory
+from malduck.yara import Yara, YaraMatches
+from typing import Any, Dict, List, Optional, Union
 
 log = logging.getLogger(__name__)
 
 __all__ = ["ExtractManager", "ExtractorModules"]
 
 
-def is_config_better(base_config, new_config):
+def is_config_better(
+    base_config: Dict[str, Union[List[str], str]],
+    new_config: Dict[str, Union[List[str], str]],
+) -> bool:
     """
     Checks whether new config looks more reliable than base.
     Currently just checking the amount of non-empty keys.
@@ -23,7 +29,7 @@ def is_config_better(base_config, new_config):
     return len(new) > len(base)
 
 
-def encode_for_json(data):
+def encode_for_json(data: Any) -> Any:
     if isinstance(data, binary_type):
         return data.decode("utf-8")
     elif isinstance(data, list) or isinstance(data, tuple):
@@ -34,7 +40,9 @@ def encode_for_json(data):
         return data
 
 
-def sanitize_config(config):
+def sanitize_config(
+    config: Dict[str, Union[bool, str, List[int], List[str]]]
+) -> Dict[str, Union[bool, str, List[int], List[str]]]:
     """
     Sanitize static configuration by removing empty strings/collections
 
@@ -44,7 +52,10 @@ def sanitize_config(config):
     return {k: v for k, v in config.items() if v in [0, False] or v}
 
 
-def merge_configs(base_config, new_config):
+def merge_configs(
+    base_config: Dict[str, Union[List[str], bool, List[int]]],
+    new_config: Dict[str, Union[bool, str, List[int], List[str]]],
+) -> Dict[str, Union[List[str], bool, List[int]]]:
     """
     Merge static configurations.
     Used internally. Removes "family" key from the result, which is set explicitly by ExtractManager.push_config
@@ -83,7 +94,7 @@ class ExtractorModules(object):
     :type modules_path: str
     """
 
-    def __init__(self, modules_path=None):
+    def __init__(self, modules_path: Optional[str] = None) -> None:
         if modules_path is None:
             modules_path = os.path.join(os.path.expanduser("~"), ".malduck")
             if not os.path.exists(modules_path):
@@ -116,12 +127,12 @@ class ExtractManager(object):
     :type modules: :class:`ExtractorModules`
     """
 
-    def __init__(self, modules):
+    def __init__(self, modules: ExtractorModules) -> None:
         self.modules = modules
         self.configs = {}
 
     @property
-    def rules(self):
+    def rules(self) -> Yara:
         """
         Bound Yara rules
         :rtype: :class:`malduck.yara.Yara`
@@ -188,7 +199,9 @@ class ExtractManager(object):
         with ProcessMemory.from_file(filepath, base=base) as p:
             return self.push_procmem(p, rip_binaries=True)
 
-    def push_config(self, family, config):
+    def push_config(
+        self, family: str, config: Dict[str, Union[List[str], bool, List[int]]]
+    ) -> Optional[str]:
         config["family"] = family
         if family not in self.configs:
             self.configs[family] = config
@@ -202,7 +215,9 @@ class ExtractManager(object):
             else:
                 log.debug("Config doesn't look better - ignoring.")
 
-    def push_procmem(self, p, rip_binaries=False):
+    def push_procmem(
+        self, p: ProcessMemory, rip_binaries: bool = False
+    ) -> Optional[str]:
         """
         Pushes ProcessMemory object for extraction
 
@@ -264,7 +279,14 @@ class ExtractManager(object):
         return ripped_family
 
     @property
-    def config(self):
+    def config(
+        self,
+    ) -> Union[
+        List[Dict[str, str]],
+        List[Dict[str, Union[List[str], str]]],
+        List[Dict[str, Union[bool, str]]],
+        List[Dict[str, Union[List[int], bool, str]]],
+    ]:
         """
         Extracted configuration (list of configs for each extracted family)
         """
@@ -276,7 +298,7 @@ class ProcmemExtractManager(object):
     Single-dump extraction context (single family)
     """
 
-    def __init__(self, parent):
+    def __init__(self, parent: ExtractManager) -> None:
         #: Collected configuration so far (especially useful for "final" extractors)
         self.collected_config = {}
         self.globals = {}
@@ -296,7 +318,9 @@ class ProcmemExtractManager(object):
         """
         self.parent.on_extractor_error(exc, extractor, method_name)
 
-    def push_procmem(self, p, _matches=None):
+    def push_procmem(
+        self, p: ProcessMemory, _matches: Optional[YaraMatches] = None
+    ) -> None:
         """
         Pushes ProcessMemory object for extraction
 
@@ -360,7 +384,7 @@ class ProcmemExtractManager(object):
             log.debug("%s tells it's %s", extractor.__class__.__name__, self.family)
 
     @property
-    def config(self):
+    def config(self) -> Dict[str, Union[List[str], bool, List[int]]]:
         """
         Returns collected config, but if family is not matched - returns empty dict.
         Family is not included in config itself, look at :py:attr:`ProcmemExtractManager.family`.

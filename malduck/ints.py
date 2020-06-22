@@ -2,6 +2,7 @@ from struct import pack, unpack_from, error
 
 from .bits import rol
 from .py2compat import long, add_metaclass
+from typing import Any, Optional, Union
 
 __all__ = [
     "QWORD",
@@ -44,14 +45,14 @@ class MetaIntType(type):
     """
 
     @property
-    def mask(cls):
+    def mask(cls) -> int:
         """
         Mask for potentially overflowing operations
         """
         return (2 ** cls.bits) - 1
 
     @property
-    def invert_mask(cls):
+    def invert_mask(cls) -> int:
         """
         Mask for sign bit
         """
@@ -141,21 +142,21 @@ class IntType(long, IntTypeBase):
     signed = False
     fmt = "Q"
 
-    def __new__(cls, value):
+    def __new__(cls: Any, value: Union[int, float, str]) -> IntType:
         value = long(value) & cls.mask
         if cls.signed:
             value |= -(value & cls.invert_mask)
         return long.__new__(cls, value)
 
-    def __add__(self, other):
+    def __add__(self, other: int) -> Union[Int8, UInt8]:
         res = super(IntType, self).__add__(other)
         return self.__class__(res)
 
-    def __sub__(self, other):
+    def __sub__(self, other: int) -> Union[Int8, UInt8]:
         res = super(IntType, self).__sub__(other)
         return self.__class__(res)
 
-    def __mul__(self, other):
+    def __mul__(self, other: int) -> Union[UInt16, Int16]:
         res = super(IntType, self).__mul__(other)
         return self.__class__(res)
 
@@ -163,11 +164,11 @@ class IntType(long, IntTypeBase):
         res = super(IntType, self).__div__(other)
         return self.__class__(res)
 
-    def __truediv__(self, other):
+    def __truediv__(self, other: int) -> Union[UInt16, Int16]:
         res = super(IntType, self).__truediv__(other)
         return self.__class__(res)
 
-    def __floordiv__(self, other):
+    def __floordiv__(self, other: int) -> UInt32:
         res = super(IntType, self).__floordiv__(other)
         return self.__class__(res)
 
@@ -179,11 +180,11 @@ class IntType(long, IntTypeBase):
         res = super(IntType, self).__xor__(other)
         return self.__class__(res)
 
-    def __or__(self, other):
+    def __or__(self, other: int) -> UInt32:
         res = super(IntType, self).__or__(other)
         return self.__class__(res)
 
-    def __lshift__(self, other):
+    def __lshift__(self, other: int) -> Union[Int16, UInt16, UInt32, UInt64]:
         res = super(IntType, self).__lshift__(other)
         return self.__class__(res)
 
@@ -191,31 +192,31 @@ class IntType(long, IntTypeBase):
         res = super(IntType, self).__pos__()
         return self.__class__(res)
 
-    def __abs__(self):
+    def __abs__(self) -> Union[Int8, UInt8]:
         res = super(IntType, self).__abs__()
         return self.__class__(res)
 
-    def __rshift__(self, other):
+    def __rshift__(self, other: int) -> Union[UInt16, UInt64]:
         res = long.__rshift__(long(self) & self.__class__.mask, other)
         return self.__class__(res)
 
-    def __neg__(self):
+    def __neg__(self) -> Union[Int8, UInt8]:
         res = (long(self) ^ self.__class__.mask) + 1
         return self.__class__(res)
 
-    def __invert__(self):
+    def __invert__(self) -> Union[Int8, UInt8]:
         res = long(self) ^ self.__class__.mask
         return self.__class__(res)
 
-    def rol(self, other):
+    def rol(self, other: int) -> UInt8:
         """Bitwise rotate left"""
         return self.__class__(rol(long(self), other, bits=self.bits))
 
-    def ror(self, other):
+    def ror(self, other: int) -> UInt8:
         """Bitwise rotate right"""
         return self.rol(self.bits - other)
 
-    def pack(self):
+    def pack(self) -> bytes:
         """Pack value into bytes with little-endian order"""
         return pack("<" + self.fmt, long(self))
 
@@ -224,7 +225,7 @@ class IntType(long, IntTypeBase):
         return pack(">" + self.fmt, long(self))
 
     @classmethod
-    def unpack(cls, other, offset=0, fixed=True):
+    def unpack(cls, other: bytes, offset: int = 0, fixed: bool = True) -> Optional[int]:
         """
         Unpacks single value from provided buffer with little-endian order
 
