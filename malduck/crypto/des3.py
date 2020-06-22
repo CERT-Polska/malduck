@@ -21,7 +21,7 @@ class Des3Cbc(object):
         """
         Encrypts buffer using DES/DES3 algorithm in CBC mode.
 
-        :param key: Cryptographic key (8 bytes for single DES, 16 or 24 bytes)
+        :param key: Cryptographic key (16 or 24 bytes, 8 bytes for single DES)
         :type key: bytes
         :param iv: Initialization vector
         :type iv: bytes
@@ -36,7 +36,7 @@ class Des3Cbc(object):
         """
         Decrypts buffer using DES/DES3 algorithm in CBC mode.
 
-        :param key: Cryptographic key (8 bytes for single DES, 16 or 24 bytes)
+        :param key: Cryptographic key (16 or 24 bytes, 8 bytes for single DES)
         :type key: bytes
         :param iv: Initialization vector
         :type iv: bytes
