@@ -2,7 +2,19 @@ import mmap
 import re
 
 from typing import (
-    Any, BinaryIO, Callable, Dict, Iterator, List, Optional, Tuple, Union, cast, TYPE_CHECKING
+    Any,
+    BinaryIO,
+    Callable,
+    Dict,
+    Iterator,
+    List,
+    Optional,
+    Tuple,
+    Type,
+    TypeVar,
+    Union,
+    cast,
+    TYPE_CHECKING,
 )
 
 if TYPE_CHECKING:
@@ -17,6 +29,7 @@ from ..yara import Yara, YaraString, YaraMatches
 __all__ = ["ProcessMemory", "procmem"]
 
 ProcessMemoryBuffer = Union[bytes, bytearray, mmap.mmap]
+T = TypeVar("T", bound="ProcessMemory")
 
 
 class ProcessMemory:
@@ -82,7 +95,11 @@ class ProcessMemory:
     """
 
     def __init__(
-        self, buf: ProcessMemoryBuffer, base: int = 0, regions: Optional[List[Region]] = None, **_
+        self,
+        buf: ProcessMemoryBuffer,
+        base: int = 0,
+        regions: Optional[List[Region]] = None,
+        **_
     ) -> None:
         self.f: Optional[BinaryIO] = None
         self.mapped_memory: Optional[mmap.mmap] = None
@@ -95,7 +112,9 @@ class ProcessMemory:
         elif isinstance(buf, bytearray):
             self.memory = buf
         else:
-            raise TypeError("Wrong buffer type - must be bytes, bytearray or mmap object")
+            raise TypeError(
+                "Wrong buffer type - must be bytes, bytearray or mmap object"
+            )
 
         self.imgbase = base
 
@@ -112,7 +131,11 @@ class ProcessMemory:
 
     @property
     def m(self) -> bytearray:
-        memory = cast(bytearray, self.mapped_memory) if self.mapped_memory is not None else self.memory
+        memory = (
+            cast(bytearray, self.mapped_memory)
+            if self.mapped_memory is not None
+            else self.memory
+        )
         if memory is None:
             raise RuntimeError("ProcessMemory object is invalidated")
         return memory
@@ -141,7 +164,7 @@ class ProcessMemory:
             self.f = None
 
     @classmethod
-    def from_file(cls, filename: str, **kwargs) -> "ProcessMemory":
+    def from_file(cls: Type[T], filename: str, **kwargs) -> T:
         """
         Opens file and loads its contents into ProcessMemory object
 
@@ -176,7 +199,9 @@ class ProcessMemory:
         return memory
 
     @classmethod
-    def from_memory(cls, memory: "ProcessMemory", base: int = None, **kwargs) -> "ProcessMemory":
+    def from_memory(
+        cls: Type[T], memory: "ProcessMemory", base: int = None, **kwargs
+    ) -> T:
         """
         Makes new instance based on another ProcessMemory object.
 
@@ -213,7 +238,7 @@ class ProcessMemory:
         offset: Optional[int] = None,
         length: Optional[int] = None,
         contiguous: bool = False,
-        trim: bool = False
+        trim: bool = False,
     ) -> Iterator[Region]:
         """
         Iterates over Region objects starting at provided virtual address or offset
@@ -399,7 +424,7 @@ class ProcessMemory:
         self,
         addr: Optional[int] = None,
         length: Optional[int] = None,
-        contiguous: bool = True
+        contiguous: bool = True,
     ) -> Iterator[Tuple[int, bytes]]:
         """
         Generate chunks of memory from next contiguous regions, starting from the specified virtual address,
@@ -605,7 +630,7 @@ class ProcessMemory:
         buf: bytes,
         query: bytes,
         offset: Optional[int] = None,
-        length: Optional[int] = None
+        length: Optional[int] = None,
     ) -> Iterator[int]:
         offset = offset or 0
         while True:
@@ -619,10 +644,7 @@ class ProcessMemory:
             offset = idx + 1
 
     def findp(
-        self,
-        query: bytes,
-        offset: Optional[int] = None,
-        length: Optional[int] = None
+        self, query: bytes, offset: Optional[int] = None, length: Optional[int] = None
     ) -> Iterator[int]:
         """
         Find raw bytes in memory (non-region-wise).
@@ -641,10 +663,7 @@ class ProcessMemory:
         return self._find(self.m, query, offset, length)
 
     def findv(
-        self,
-        query: bytes,
-        addr: Optional[int] = None,
-        length: Optional[int] = None
+        self, query: bytes, addr: Optional[int] = None, length: Optional[int] = None
     ) -> Iterator[int]:
         """
         Find raw bytes in memory (region-wise)
@@ -664,7 +683,9 @@ class ProcessMemory:
             for idx in self._find(chunk, query):
                 yield idx + chunk_addr
 
-    def regexp(self, query: bytes, offset: Optional[int] = None, length: Optional[int] = None) -> Iterator[int]:
+    def regexp(
+        self, query: bytes, offset: Optional[int] = None, length: Optional[int] = None
+    ) -> Iterator[int]:
         """
         Performs regex on the memory contents (non-region-wise)
 
@@ -689,7 +710,9 @@ class ProcessMemory:
         for entry in re.finditer(query, chunk, re.DOTALL):
             yield offset + entry.start()
 
-    def regexv(self, query: int, addr: Optional[int] = None, length: Optional[int] = None) -> Iterator[int]:
+    def regexv(
+        self, query: int, addr: Optional[int] = None, length: Optional[int] = None
+    ) -> Iterator[int]:
         """
         Performs regex on the memory contents (region-wise)
 
@@ -734,7 +757,7 @@ class ProcessMemory:
     def extract(
         self,
         modules: Optional["ExtractorModules"] = None,
-        extract_manager: Optional["ExtractManager"] = None
+        extract_manager: Optional["ExtractManager"] = None,
     ) -> Optional[List[Dict[str, Any]]]:
         """
         Tries to extract config from ProcessMemory object
@@ -755,7 +778,9 @@ class ProcessMemory:
         extract_manager.push_procmem(self)
         return extract_manager.config
 
-    def yarap(self, ruleset: Yara, offset: Optional[int] = None, length: Optional[int] = None) -> YaraMatches:
+    def yarap(
+        self, ruleset: Yara, offset: Optional[int] = None, length: Optional[int] = None
+    ) -> YaraMatches:
         """
         Perform yara matching (non-region-wise)
 
@@ -771,7 +796,9 @@ class ProcessMemory:
         """
         return ruleset.match(data=self.readp(offset or 0, length))
 
-    def yarav(self, ruleset: Yara, addr: Optional[int] = None, length: Optional[int] = None) -> YaraMatches:
+    def yarav(
+        self, ruleset: Yara, addr: Optional[int] = None, length: Optional[int] = None
+    ) -> YaraMatches:
         """
         Perform yara matching (region-wise)
 
@@ -799,13 +826,10 @@ class ProcessMemory:
 
     def _findbytes(
         self,
-        yara_fn: Callable[
-            [Yara, Optional[int], Optional[int]],
-            YaraMatches
-        ],
+        yara_fn: Callable[[Yara, Optional[int], Optional[int]], YaraMatches],
         query: Union[str, bytes],
         addr: Optional[int],
-        length: Optional[int]
+        length: Optional[int],
     ) -> List[int]:
         if isinstance(query, bytes):
             query = query.decode()
@@ -821,7 +845,7 @@ class ProcessMemory:
         self,
         query: Union[str, bytes],
         offset: Optional[int] = None,
-        length: Optional[int] = None
+        length: Optional[int] = None,
     ) -> Iterator[int]:
         """
         Search for byte sequences (e.g., `4? AA BB ?? DD`). Uses :py:meth:`yarap` internally
@@ -846,7 +870,7 @@ class ProcessMemory:
         self,
         query: Union[str, bytes],
         addr: Optional[int] = None,
-        length: Optional[int] = None
+        length: Optional[int] = None,
     ) -> Iterator[int]:
         """
         Search for byte sequences (e.g., `4? AA BB ?? DD`). Uses :py:meth:`yarav` internally

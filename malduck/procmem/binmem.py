@@ -1,8 +1,10 @@
 from abc import ABCMeta, abstractmethod
-from typing import List, Iterator, Optional
+from typing import List, Iterator, Optional, Type, TypeVar
 
 from .region import Region
 from .procmem import ProcessMemory, ProcessMemoryBuffer
+
+T = TypeVar("T", bound="ProcessMemoryBinary")
 
 
 class ProcessMemoryBinary(ProcessMemory, metaclass=ABCMeta):
@@ -13,18 +15,18 @@ class ProcessMemoryBinary(ProcessMemory, metaclass=ABCMeta):
     __magic__: Optional[bytes] = None
 
     def __init__(
-        self,
+        self: T,
         buf: ProcessMemoryBuffer,
         base: int = 0,
         regions: Optional[List[Region]] = None,
         image: bool = False,
-        detect_image: bool = False
+        detect_image: bool = False,
     ) -> None:
         super().__init__(buf, base=base, regions=regions)
         if detect_image:
             image = self.is_image_loaded_as_memdump()
         self.is_image = image
-        self._image = None
+        self._image: Optional[T] = None
         if image:
             self._reload_as_image()
 
@@ -36,7 +38,7 @@ class ProcessMemoryBinary(ProcessMemory, metaclass=ABCMeta):
         raise NotImplementedError()
 
     @property
-    def image(self) -> Optional["ProcessMemoryBinary"]:
+    def image(self: T) -> Optional[T]:
         """
         Returns ProcessMemory object loaded with image=True or None if can't be loaded or is loaded as image yet
         """
@@ -57,7 +59,7 @@ class ProcessMemoryBinary(ProcessMemory, metaclass=ABCMeta):
         raise NotImplementedError()
 
     @classmethod
-    def load_binaries_from_memory(cls, procmem: ProcessMemory) -> Iterator["ProcessMemoryBinary"]:
+    def load_binaries_from_memory(cls: Type[T], procmem: ProcessMemory) -> Iterator[T]:
         """
         Looks for binaries in ProcessMemory object and yields specialized ProcessMemoryBinary objects
         :param procmem: ProcessMemory object to search

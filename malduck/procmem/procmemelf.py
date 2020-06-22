@@ -29,7 +29,7 @@ class ProcessMemoryELF(ProcessMemoryBinary):
         base: int = 0,
         regions: Optional[List[Region]] = None,
         image: bool = False,
-        detect_image: bool = False
+        detect_image: bool = False,
     ) -> None:
         self._elf = None
         super().__init__(

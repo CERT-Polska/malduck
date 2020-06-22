@@ -36,7 +36,9 @@ page_access = {
 class Region:
     """Represents single mapped region in :class:`ProcessMemory`"""
 
-    def __init__(self, addr: int, size: int, state: int, type_: int, protect: int, offset: int):
+    def __init__(
+        self, addr: int, size: int, state: int, type_: int, protect: int, offset: int
+    ):
         self.addr = addr
         self.size = size
         self.state = state
@@ -141,7 +143,7 @@ class Region:
             new_offset,
         )
 
-    def __eq__(self, other: "Region") -> bool:
+    def __eq__(self, other: object) -> bool:
         if not isinstance(other, Region):
             raise ValueError("Not a region object!")
 
