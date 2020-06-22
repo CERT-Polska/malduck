@@ -1,6 +1,8 @@
 # Copyright (C) 2018 Jurriaan Bremer.
 # This file is part of Roach - https://github.com/jbremer/roach.
 # See the file 'docs/LICENSE.txt' for copying permission.
+from typing import Dict, Optional, Union
+
 __all__ = [
     "Region",
     "PAGE_READONLY",
@@ -42,7 +44,7 @@ class Region(object):
         self.protect = protect
         self.offset = offset
 
-    def to_json(self):
+    def to_json(self) -> Dict[str, Union[int, Optional[str]]]:
         """
         Returns JSON-like dict representation
         """
@@ -57,34 +59,34 @@ class Region(object):
         }
 
     @property
-    def end(self):
+    def end(self) -> int:
         """
         Virtual address of region end (first unmapped byte)
         """
         return self.addr + self.size
 
     @property
-    def end_offset(self):
+    def end_offset(self) -> int:
         """
         Offset of region end (first unmapped byte)
         """
         return self.offset + self.size
 
     @property
-    def last(self):
+    def last(self) -> int:
         """
         Virtual address of last region byte
         """
         return self.addr + self.size - 1
 
     @property
-    def last_offset(self):
+    def last_offset(self) -> int:
         """
         Offset of last region byte
         """
         return self.offset + self.size - 1
 
-    def v2p(self, addr):
+    def v2p(self, addr: int) -> int:
         """
         Virtual address to physical offset translation. Assumes that address is valid within Region.
         :param addr: Virtual address
@@ -92,33 +94,33 @@ class Region(object):
         """
         return self.offset + addr - self.addr
 
-    def p2v(self, off):
+    def p2v(self, off: int) -> int:
         """
         Physical offset to translation. Assumes that offset is valid within Region.
-        :param addr: Physical offset
+        :param off: Physical offset
         :return: Virtual address
         """
         return self.addr + off - self.offset
 
-    def contains_offset(self, offset):
+    def contains_offset(self, offset: int) -> bool:
         """
         Checks whether region contains provided physical offset
         """
         return self.offset <= offset < self.offset + self.size
 
-    def contains_addr(self, addr):
+    def contains_addr(self, addr: int) -> bool:
         """
         Checks whether region contains provided virtual address
         """
         return self.addr <= addr < self.end
 
-    def intersects_range(self, addr, length):
+    def intersects_range(self, addr: int, length: int) -> bool:
         """
         Checks whether region mapping intersects with provided range
         """
         return self.addr < addr + length and addr < self.end
 
-    def trim_range(self, addr, length=None):
+    def trim_range(self, addr: int, length: Optional[int] = None) -> Optional["Region"]:
         """
         Returns region intersection with provided range
         :param addr: Virtual address of starting point
@@ -139,7 +141,7 @@ class Region(object):
             new_offset,
         )
 
-    def __eq__(self, other):
+    def __eq__(self, other: "Region") -> bool:
         if not isinstance(other, Region):
             raise ValueError("Not a region object!")
 
