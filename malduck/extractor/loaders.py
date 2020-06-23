@@ -3,10 +3,12 @@ import logging
 import pkgutil
 import sys
 
+from typing import Callable, Optional, Any
+
 log = logging.getLogger(__name__)
 
 
-def import_module_by_finder(finder, module_name):
+def import_module_by_finder(finder: Any, module_name: str) -> Any:
     """
     Imports module from arbitrary path using importer returned by pkgutil.iter_modules
     """
@@ -25,7 +27,9 @@ def import_module_by_finder(finder, module_name):
     return module
 
 
-def load_modules(search_path, onerror=None):
+def load_modules(
+    search_path: str, onerror: Optional[Callable[[Exception, str], None]] = None
+):
     """
     Loads plugin modules under specified paths
 

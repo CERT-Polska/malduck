@@ -8,3 +8,4 @@ dist/
 build/
 malduck.egg-info/
 ven*/
+.mypy_cache/

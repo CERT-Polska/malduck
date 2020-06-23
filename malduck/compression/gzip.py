@@ -10,7 +10,7 @@ import io
 import zlib
 
 
-class Gzip(object):
+class Gzip:
     r"""
     gzip/zlib decompression
 

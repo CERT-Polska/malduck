@@ -7,7 +7,7 @@ import zlib
 __all__ = ["crc32"]
 
 
-def crc32(val):
+def crc32(val: bytes) -> int:
     """
     Computes CRC32 checksum for provided data
     """

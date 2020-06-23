@@ -10,7 +10,7 @@ from itertools import takewhile
 from .winhdr import BLOBHEADER, BaseBlob
 from ..string.bin import uint32, bigint
 from io import BytesIO
-from typing import Optional, Union
+from typing import Optional
 
 __all__ = ["PublicKeyBlob", "PrivateKeyBlob", "RSA", "rsa"]
 
@@ -23,17 +23,17 @@ class PublicKeyBlob(BaseBlob):
         self.e = None
         self.n = None
 
-    def parse(self, buf: BytesIO) -> int:
+    def parse(self, buf: BytesIO) -> Optional[int]:
         header = buf.read(12)
         if len(header) != 12 or header[:4] != self.magic:
-            return
+            return None
 
         self.bitsize = uint32(header[4:8])
         self.e = int(uint32(header[8:12]))
 
         n = buf.read(self.bitsize // 8)
         if len(n) != self.bitsize // 8:
-            return
+            return None
 
         self.n = bigint(n, self.bitsize)
         return 12 + self.bitsize // 8
@@ -93,11 +93,11 @@ BlobTypes = {
 }
 
 
-class RSA(object):
+class RSA:
     algorithms = (0x0000A400,)  # RSA
 
     @staticmethod
-    def import_key(data: Union[str, bytes]) -> Optional[bytes]:
+    def import_key(data: bytes) -> Optional[bytes]:
         r"""
         Extracts key from buffer containing :class:`PublicKeyBlob` or :class:`PrivateKeyBlob` data
 
@@ -127,7 +127,14 @@ class RSA(object):
         return obj.export_key()
 
     @staticmethod
-    def export_key(n: int, e: int, d: Optional[int]=None, p: None=None, q: None=None, crt: None=None) -> bytes:
+    def export_key(
+        n: int,
+        e: int,
+        d: Optional[int] = None,
+        p: Optional[int] = None,
+        q: Optional[int] = None,
+        crt: Optional[int] = None,
+    ) -> bytes:
         r"""
         Constructs key from tuple of RSA components
 

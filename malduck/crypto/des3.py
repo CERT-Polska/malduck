@@ -1,7 +1,7 @@
 # Copyright (C) 2018 Jurriaan Bremer.
 # This file is part of Roach - https://github.com/jbremer/roach.
 # See the file 'docs/LICENSE.txt' for copying permission.
-from typing import Any
+from typing import Union
 
 from Cryptodome.Cipher import DES, DES3 as DES3Cipher
 
@@ -9,7 +9,7 @@ __all__ = ["des3"]
 
 
 class Des3Cbc:
-    def _get_cipher(self, key: bytes, iv: bytes) -> Any:
+    def _get_cipher(self, key: bytes, iv: bytes) -> [DES, DES3Cipher]:
         if len(key) == 8:
             # For 8 bytes it fallbacks to single DES
             # (original cryptography behaviour)
