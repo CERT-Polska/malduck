@@ -10,7 +10,6 @@ from Cryptodome.Cipher import AES as AESCipher
 
 from .winhdr import BLOBHEADER, BaseBlob
 from ..string.bin import uint32
-from io import BytesIO
 
 __all__ = ["PlaintextKeyBlob", "aes"]
 

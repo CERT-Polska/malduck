@@ -5,7 +5,7 @@
 __all__ = ["rol", "ror", "align", "align_down"]
 
 
-def rol(value: int, count: int, bits: int=32) -> int:
+def rol(value: int, count: int, bits: int = 32) -> int:
     """
     Bitwise rotate left
 
@@ -23,7 +23,7 @@ def rol(value: int, count: int, bits: int=32) -> int:
     return value % 2 ** bits
 
 
-def ror(value: int, count: int, bits: int=32) -> int:
+def ror(value: int, count: int, bits: int = 32) -> int:
     """
     Bitwise rotate right
 
