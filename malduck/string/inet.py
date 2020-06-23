@@ -4,7 +4,7 @@
 
 import re
 import socket
-from typing import Union
+from typing import Optional, Union
 
 from ..string.bin import p32
 
@@ -16,7 +16,7 @@ ipv4_regex = re.compile(
 )
 
 
-def ipv4(s: Union[bytes, int]) -> str:
+def ipv4(s: Union[bytes, int]) -> Optional[str]:
     """
     Decodes IPv4 address and returns dot-decimal notation
 
@@ -31,3 +31,6 @@ def ipv4(s: Union[bytes, int]) -> str:
             return socket.inet_ntoa(s)
         if re.match(ipv4_regex, s):
             return s.decode()
+        return None
+    else:
+        raise TypeError("Wrong argument type, only bytes and int are allowed.")
