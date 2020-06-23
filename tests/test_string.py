@@ -110,10 +110,10 @@ def test_bin_reverse():
 
 
 def test_bigint():
-    with pytest.raises(ValueError):
-        bigint(b"ABCD", 40)
-    assert bigint(b"ABCDE", 40) == 0x4544434241
-    assert bigint(0x44434241, 40) == b"ABCD\x00"
+    assert bigint.unpack(b"ABCDE") == 0x4544434241
+    assert bigint.pack(0x44434241) == b"ABCD"
+    assert bigint.unpack_be(b"ABCDE") == 0x4142434445
+    assert bigint.pack_be(0x44434241) == b"DCBA"
 
 
 def test_pack():

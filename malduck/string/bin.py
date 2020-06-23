@@ -2,6 +2,7 @@
 # This file is part of Roach - https://github.com/jbremer/roach.
 # See the file 'docs/LICENSE.txt' for copying permission.
 import struct
+import warnings
 
 from ..py2compat import is_integer
 from ..string.ops import Padding, enhex, unhex
@@ -54,15 +55,34 @@ __all__ = [
 ]
 
 
-def bigint(s, bitsize):
-    if is_integer(s):
-        return Padding.null(unhex("%x" % s)[::-1], bitsize // 8)
+class Bigint:
+    def unpack(self, other: bytes) -> int:
+        return self.unpack_be(other[::-1])
 
-    if len(s) < bitsize // 8:
-        raise ValueError("Buffer is trimmed: {} < {}".format(len(s) * 8, bitsize))
+    def pack(self, other: int) -> bytes:
+        return self.pack_be(other)[::-1]
 
-    return int(enhex(s[: bitsize // 8][::-1]), 16)
+    def unpack_be(self, other: bytes) -> int:
+        return int(enhex(other), 16)
 
+    def pack_be(self, other: int) -> bytes:
+        return unhex(f"{other:x}")
+
+    def __call__(self, s, bitsize):
+        warnings.warn(
+            "malduck.bigint() is deprecated, use malduck.bigint.unpack/pack methods",
+            DeprecationWarning
+        )
+        if is_integer(s):
+            return Padding.null(unhex("%x" % s)[::-1], bitsize // 8)
+
+        if len(s) < bitsize // 8:
+            raise ValueError("Buffer is trimmed: {} < {}".format(len(s) * 8, bitsize))
+
+        return int(enhex(s[: bitsize // 8][::-1]), 16)
+
+
+bigint = Bigint()
 
 # Shortcuts for mostly used unpack methods
 uint64 = u64 = UInt64.unpack
