@@ -3,7 +3,7 @@
 # See the file 'docs/LICENSE.txt' for copying permission.
 
 from base64 import b64decode, b64encode
-from typing import Iterator, List, Optional, Union, Tuple
+from typing import Iterator, List, Optional, Sequence, Union, Tuple, TypeVar, cast
 
 import binascii
 
@@ -25,6 +25,8 @@ __all__ = [
     "unpkcs7",
 ]
 
+T = TypeVar("T", bound=Sequence)
+
 
 def asciiz(s: bytes) -> bytes:
     """
@@ -36,12 +38,12 @@ def asciiz(s: bytes) -> bytes:
     return s.split(b"\x00")[0]
 
 
-def chunks_iter(s: bytes, n: int) -> Iterator[bytes]:
+def chunks_iter(s: T, n: int) -> Iterator[T]:
     """Yield successive n-sized chunks from s."""
-    yield from (s[i : i + n] for i in range(0, len(s), n))
+    return (cast(T, s[i : i + n]) for i in range(0, len(s), n))
 
 
-def chunks(s: bytes, n: int) -> List[bytes]:
+def chunks(s: T, n: int) -> List[T]:
     """Return list of successive n-sized chunks from s."""
     return list(chunks_iter(s, n))
 
