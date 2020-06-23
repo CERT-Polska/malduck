@@ -92,9 +92,7 @@ class Bigint:
         """
         packed = unhex(f"{other:x}")[::-1]
         if size:
-            packed = packed[:size]
-            padding = b"\x00" * (size - len(packed))
-            packed = packed + padding
+            packed = packed[:size].ljust(size, b"\x00")
         return packed
 
     def unpack_be(self, other: bytes, size: Optional[int] = None) -> int:
@@ -128,9 +126,7 @@ class Bigint:
         """
         packed = unhex(f"{other:x}")
         if size:
-            packed = packed[:size]
-            padding = b"\x00" * (size - len(packed))
-            packed = padding + packed
+            packed = packed[:size].rjust(size, b"\x00")
         return packed
 
     def __call__(self, s, bitsize):
