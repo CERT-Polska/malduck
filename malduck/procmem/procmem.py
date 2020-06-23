@@ -711,7 +711,7 @@ class ProcessMemory:
             yield offset + entry.start()
 
     def regexv(
-        self, query: int, addr: Optional[int] = None, length: Optional[int] = None
+        self, query: bytes, addr: Optional[int] = None, length: Optional[int] = None
     ) -> Iterator[int]:
         """
         Performs regex on the memory contents (region-wise)
