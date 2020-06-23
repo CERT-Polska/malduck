@@ -34,14 +34,14 @@ class FastPE(pefile.PE):
         return True
 
 
-class MemoryPEData(object):
+class MemoryPEData:
     """
     `pefile.PE.__data__` represents image file usually aligned to 512 bytes.
     MemoryPEData perform mapping from pefile's offset-access to Memory object va-access
     based on section layout.
     """
 
-    def __init__(self, memory, fast_load):
+    def __init__(self, memory, fast_load) -> None:
         self.memory = memory
         # Preload headers
         self.pe = FastPE(data=self, fast_load=True)
@@ -49,12 +49,12 @@ class MemoryPEData(object):
         if not fast_load:
             self.pe.full_load()
 
-    def map_offset(self, offs):
+    def map_offset(self, offs: int) -> int:
         if not hasattr(self, "pe") or not self.pe.sections:
             return self.memory.imgbase + offs
         return self.memory.imgbase + (self.pe.get_rva_from_offset(offs) or offs)
 
-    def __len__(self):
+    def __len__(self) -> int:
         return (
             self.memory.regions[-1].addr
             - self.memory.regions[0].addr

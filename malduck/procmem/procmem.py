@@ -22,7 +22,6 @@ if TYPE_CHECKING:
 
 from .region import Region, PAGE_EXECUTE_READWRITE
 from ..disasm import disasm, Instruction
-from ..ints import IntType
 from ..string.bin import uint8, uint16, uint32, uint64, int8, int16, int32, int64
 from ..string.ops import utf16z
 from ..yara import Yara, YaraString, YaraMatches
@@ -95,13 +94,7 @@ class ProcessMemory:
             p.pe.resource("NPENCODINGDIALOG")
     """
 
-    def __init__(
-        self,
-        buf: ProcessMemoryBuffer,
-        base: int = 0,
-        regions: Optional[List[Region]] = None,
-        **_,
-    ) -> None:
+    def __init__(self, buf, base=0, regions=None, **_):
         self.f: Optional[BinaryIO] = None
         self.mapped_memory: Optional[mmap.mmap] = None
         self.memory: Optional[bytearray] = None
@@ -544,67 +537,67 @@ class ProcessMemory:
             )
         return self.patchp(region.v2p(addr), buf)
 
-    def uint8p(self, offset: int, fixed: bool = False) -> Union[IntType, int, None]:
+    def uint8p(self, offset, fixed=False):
         """Read unsigned 8-bit value at offset."""
         return uint8(self.readp(offset, 1), fixed=fixed)
 
-    def uint16p(self, offset: int, fixed: bool = False) -> Union[IntType, int, None]:
+    def uint16p(self, offset: int, fixed: bool = False):
         """Read unsigned 16-bit value at offset."""
         return uint16(self.readp(offset, 2), fixed=fixed)
 
-    def uint32p(self, offset: int, fixed: bool = False) -> Union[IntType, int, None]:
+    def uint32p(self, offset: int, fixed: bool = False):
         """Read unsigned 32-bit value at offset."""
         return uint32(self.readp(offset, 4), fixed=fixed)
 
-    def uint64p(self, offset: int, fixed: bool = False) -> Union[IntType, int, None]:
+    def uint64p(self, offset: int, fixed: bool = False):
         """Read unsigned 64-bit value at offset."""
         return uint64(self.readp(offset, 8), fixed=fixed)
 
-    def uint8v(self, addr: int, fixed: bool = False) -> Union[IntType, int, None]:
+    def uint8v(self, addr: int, fixed: bool = False):
         """Read unsigned 8-bit value at address."""
         return uint8(self.readv(addr, 1), fixed=fixed)
 
-    def uint16v(self, addr: int, fixed: bool = False) -> Union[IntType, int, None]:
+    def uint16v(self, addr: int, fixed: bool = False):
         """Read unsigned 16-bit value at address."""
         return uint16(self.readv(addr, 2), fixed=fixed)
 
-    def uint32v(self, addr: int, fixed: bool = False) -> Union[IntType, int, None]:
+    def uint32v(self, addr: int, fixed: bool = False):
         """Read unsigned 32-bit value at address."""
         return uint32(self.readv(addr, 4), fixed=fixed)
 
-    def uint64v(self, addr: int, fixed: bool = False) -> Union[IntType, int, None]:
+    def uint64v(self, addr: int, fixed: bool = False):
         """Read unsigned 64-bit value at address."""
         return uint64(self.readv(addr, 8), fixed=fixed)
 
-    def int8p(self, offset: int, fixed: bool = False) -> Union[IntType, int, None]:
+    def int8p(self, offset: int, fixed: bool = False):
         """Read signed 8-bit value at offset."""
         return int8(self.readp(offset, 1), fixed=fixed)
 
-    def int16p(self, offset: int, fixed: bool = False) -> Union[IntType, int, None]:
+    def int16p(self, offset: int, fixed: bool = False):
         """Read signed 16-bit value at offset."""
         return int16(self.readp(offset, 2), fixed=fixed)
 
-    def int32p(self, offset: int, fixed: bool = False) -> Union[IntType, int, None]:
+    def int32p(self, offset: int, fixed: bool = False):
         """Read signed 32-bit value at offset."""
         return int32(self.readp(offset, 4), fixed=fixed)
 
-    def int64p(self, offset: int, fixed: bool = False) -> Union[IntType, int, None]:
+    def int64p(self, offset: int, fixed: bool = False):
         """Read signed 64-bit value at offset."""
         return int64(self.readp(offset, 8), fixed=fixed)
 
-    def int8v(self, addr: int, fixed: bool = False) -> Union[IntType, int, None]:
+    def int8v(self, addr: int, fixed: bool = False):
         """Read signed 8-bit value at address."""
         return int8(self.readv(addr, 1), fixed=fixed)
 
-    def int16v(self, addr: int, fixed: bool = False) -> Union[IntType, int, None]:
+    def int16v(self, addr: int, fixed: bool = False):
         """Read signed 16-bit value at address."""
         return int16(self.readv(addr, 2), fixed=fixed)
 
-    def int32v(self, addr: int, fixed: bool = False) -> Union[IntType, int, None]:
+    def int32v(self, addr: int, fixed: bool = False):
         """Read signed 32-bit value at address."""
         return int32(self.readv(addr, 4), fixed=fixed)
 
-    def int64v(self, addr: int, fixed: bool = False) -> Union[IntType, int, None]:
+    def int64v(self, addr: int, fixed: bool = False):
         """Read signed 64-bit value at address."""
         return int64(self.readv(addr, 8), fixed=fixed)
 
