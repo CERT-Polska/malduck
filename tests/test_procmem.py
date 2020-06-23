@@ -237,11 +237,11 @@ def test_patchv():
     ]
 
     p = procmem(payload, regions=regions)
-    with pytest.raises(ValueError, match="Cross-region patching is not supported"):
+    with pytest.raises(ValueError, match="Patched bytes range must be contained within single, existing region"):
         p.patchv(0x3fffff, b"p" * 16)
     p.patchv(0x400000, b"p" * 16)
     assert p.readv(0x400000, 17) == b"p" * 16 + b"a"
-    with pytest.raises(ValueError, match="Cross-region patching is not supported"):
+    with pytest.raises(ValueError, match="Patched bytes range must be contained within single, existing region"):
         p.patchv(0x401fff, b"p" * 2)
 
 

@@ -64,7 +64,7 @@ class IDAProcessMemory(ProcessMemory):
             off = 0 if not regions else regions[-1].end_offset
             region = Region(seg, idc.get_segm_end(seg) - seg, 0, 0, 0, off)
             regions.append(region)
-        super(IDAProcessMemory, self).__init__(IDAVM(self), regions=regions)
+        super().__init__(IDAVM(self), regions=regions)
 
 
 idamem = IDAProcessMemory

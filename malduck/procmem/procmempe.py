@@ -1,5 +1,8 @@
-from .region import Region
+from typing import List, Optional
+
 from .binmem import ProcessMemoryBinary
+from .procmem import ProcessMemoryBuffer
+from .region import Region
 
 from ..bits import align
 from ..pe import PE
@@ -19,24 +22,35 @@ class ProcessMemoryPE(ProcessMemoryBinary):
 
     __magic__ = b"MZ"
 
-    def __init__(self, buf, base=0, regions=None, image=False, detect_image=False):
-        self._pe = None
+    def __init__(
+        self,
+        buf: ProcessMemoryBuffer,
+        base: int = 0,
+        regions: Optional[List[Region]] = None,
+        image: bool = False,
+        detect_image: bool = False,
+    ) -> None:
+        self._pe: Optional[PE] = None
         super(ProcessMemoryPE, self).__init__(
             buf, base=base, regions=regions, image=image, detect_image=detect_image
         )
 
-    def _pe_direct_load(self, fast_load=True):
+    def _pe_direct_load(self, fast_load: bool = True) -> PE:
         offset = self.v2p(self.imgbase)
+        if offset is None:
+            raise ValueError("imgbase out of regions")
         # Expected m type: bytearray
         m = bytearray(self.readp(offset))
         pe = PE(data=m, fast_load=fast_load)
         return pe
 
-    def _reload_as_image(self):
+    def _reload_as_image(self) -> None:
         # Load PE data from imgbase offset
         pe = self._pe_direct_load(fast_load=False)
         # Reset regions
-        self.m = pe.data
+        if self.mapped_memory:
+            self.close()
+        self.memory = pe.data
         self.imgbase = pe.optional_header.ImageBase
 
         self.regions = [Region(self.imgbase, pe.headers_size, 0, 0, 0, 0)]
@@ -54,7 +68,7 @@ class ProcessMemoryPE(ProcessMemoryBinary):
                     )
                 )
 
-    def is_valid(self):
+    def is_valid(self) -> bool:
         if self.readv(self.imgbase, 2) != self.__magic__:
             return False
         pe_offs = self.uint32v(self.imgbase + 0x3C)
@@ -68,7 +82,7 @@ class ProcessMemoryPE(ProcessMemoryBinary):
         except Exception:
             return False
 
-    def is_image_loaded_as_memdump(self):
+    def is_image_loaded_as_memdump(self) -> bool:
         """
         Checks whether memory region contains image incorrectly loaded as memory-mapped PE dump (image=False).
 
@@ -93,19 +107,19 @@ class ProcessMemoryPE(ProcessMemoryBinary):
         return True
 
     @property
-    def pe(self):
+    def pe(self) -> PE:
         """Related :class:`PE` object"""
-        if not self._pe:
+        if self._pe is None:
             self._pe = PE(self)
         return self._pe
 
     @property
-    def imgend(self):
+    def imgend(self) -> int:
         """Address where PE image ends"""
         section = self.pe.sections[-1]
         return self.imgbase + section.VirtualAddress + section.Misc_VirtualSize
 
-    def store(self):
+    def store(self) -> bytes:
         """
         Store ProcessMemoryPE contents as PE file data.
 
@@ -145,10 +159,10 @@ class ProcessMemoryPE(ProcessMemoryBinary):
         pe.optional_header.ImageBase = self.imgbase
 
         # Generate header data
-        data = b"".join([bytes(pe.pe.write())] + data)
+        pe_data = b"".join([bytes(pe.pe.write())] + data)
 
         # Return PE file data
-        return data
+        return pe_data
 
 
 procmempe = ProcessMemoryPE
