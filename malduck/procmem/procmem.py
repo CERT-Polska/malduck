@@ -538,7 +538,9 @@ class ProcessMemory:
         region = self.addr_region(addr)
         # Boundary check
         if region is None or region.end < (addr + len(buf)):
-            raise ValueError("Address is out of single region")
+            raise ValueError(
+                "Patched bytes range must be contained within single, existing region"
+            )
         return self.patchp(region.v2p(addr), buf)
 
     def uint8p(self, offset: int, fixed: bool = False) -> Optional[int]:
