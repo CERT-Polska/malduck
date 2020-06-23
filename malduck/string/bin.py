@@ -73,9 +73,7 @@ class Bigint:
         """
         if size:
             if len(other) < size:
-                raise ValueError(
-                    f"Buffer is trimmed: {len(other)} < {size}"
-                )
+                raise ValueError(f"Buffer is trimmed: {len(other)} < {size}")
             other = other[:size]
         return int(enhex(other[::-1]), 16)
 
@@ -111,9 +109,7 @@ class Bigint:
         """
         if size:
             if len(other) < size:
-                raise ValueError(
-                    f"Buffer is trimmed: {len(other)} < {size}"
-                )
+                raise ValueError(f"Buffer is trimmed: {len(other)} < {size}")
             other = other[:size]
         return int(enhex(other), 16)
 
