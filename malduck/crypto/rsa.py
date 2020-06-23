@@ -10,7 +10,7 @@ from itertools import takewhile
 from .winhdr import BLOBHEADER, BaseBlob
 from ..string.bin import uint32, bigint
 from io import BytesIO
-from typing import Optional
+from typing import Optional, cast
 
 __all__ = ["PublicKeyBlob", "PrivateKeyBlob", "RSA", "rsa"]
 
@@ -20,16 +20,16 @@ class PublicKeyBlob(BaseBlob):
 
     def __init__(self) -> None:
         BaseBlob.__init__(self)
-        self.e = None
-        self.n = None
+        self.e: Optional[int] = None
+        self.n: Optional[int] = None
 
     def parse(self, buf: BytesIO) -> Optional[int]:
         header = buf.read(12)
         if len(header) != 12 or header[:4] != self.magic:
             return None
 
-        self.bitsize = uint32(header[4:8])
-        self.e = int(uint32(header[8:12]))
+        self.bitsize = cast(int, uint32(header[4:8], fixed=False))
+        self.e = cast(int, uint32(header[8:12], fixed=False))
 
         n = buf.read(self.bitsize // 8)
         if len(n) != self.bitsize // 8:
@@ -39,6 +39,8 @@ class PublicKeyBlob(BaseBlob):
         return 12 + self.bitsize // 8
 
     def export_key(self) -> bytes:
+        if not (self.e and self.n):
+            raise Exception("The imported key is invalid")
         return RSA.export_key(self.n, self.e)
 
 
@@ -47,12 +49,12 @@ class PrivateKeyBlob(PublicKeyBlob):
 
     def __init__(self) -> None:
         PublicKeyBlob.__init__(self)
-        self.p1 = None
-        self.p2 = None
-        self.exp1 = None
-        self.exp2 = None
-        self.coeff = None
-        self.d = None
+        self.p1: Optional[int] = None
+        self.p2: Optional[int] = None
+        self.exp1: Optional[int] = None
+        self.exp2: Optional[int] = None
+        self.coeff: Optional[int] = None
+        self.d: Optional[int] = None
 
     def parse(self, buf: BytesIO) -> None:
         off = PublicKeyBlob.parse(self, buf)
@@ -84,6 +86,8 @@ class PrivateKeyBlob(PublicKeyBlob):
             return
 
     def export_key(self) -> bytes:
+        if not (self.e and self.n):
+            raise Exception("The imported key is invalid")
         return RSA.export_key(self.n, self.e, self.d)
 
 
@@ -112,15 +116,15 @@ class RSA:
             pass
 
         if len(data) < BLOBHEADER.sizeof():
-            return
+            return None
 
         buf = io.BytesIO(data)
         header = BLOBHEADER.parse(buf.read(BLOBHEADER.sizeof()))
         if header.bType not in BlobTypes:
-            return
+            return None
 
         if header.aiKeyAlg not in RSA.algorithms:
-            return
+            return None
 
         obj = BlobTypes[header.bType]()
         obj.parse(buf)
@@ -153,8 +157,8 @@ class RSA:
 
         tup = wrap(n), wrap(e), wrap(d), wrap(p), wrap(q), wrap(crt)
         # PyCryptodome accepts only variable-length tuples
-        tup = tuple(takewhile(lambda x: x is not None, tup))
-        return RSA_.construct(tup, consistency_check=False).export_key()
+        tup_w = tuple(takewhile(lambda x: x is not None, tup))
+        return RSA_.construct(tup_w, consistency_check=False).export_key() # type: ignore
 
 
 rsa = RSA

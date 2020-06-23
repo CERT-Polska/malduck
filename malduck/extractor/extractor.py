@@ -1,11 +1,12 @@
 import functools
 import logging
 
-from ..procmem import ProcessMemoryPE, ProcessMemoryELF
+from ..procmem import ProcessMemoryPE, ProcessMemoryELF, procmem
+from ..yara import YaraMatch
 
 from .extract_manager import ProcmemExtractManager
 
-from typing import Dict, Any, Optional, Callable
+from typing import Dict, Any, Callable, List
 
 log = logging.getLogger(__name__)
 
@@ -77,7 +78,7 @@ class ExtractorMethod:
 
 class ExtractorBase:
     family = None  #: Extracted malware family, automatically added to "family" key for strong extraction methods
-    overrides = []  #: Family match overrides another match e.g. citadel overrides zeus
+    overrides: List[str] = []  #: Family match overrides another match e.g. citadel overrides zeus
 
     def __init__(self, parent: ProcmemExtractManager) -> None:
         self.parent = parent  #: ProcmemExtractManager instance
@@ -102,7 +103,7 @@ class ExtractorBase:
         return self.parent.push_config(config, self)
 
     @property
-    def matched(self) -> Optional[str]:
+    def matched(self) -> bool:
         """
         Returns True if family has been matched so far
 

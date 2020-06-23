@@ -1,7 +1,7 @@
 import json
 import logging
 import os
-from typing import Any, Dict, Optional, List
+from typing import Any, Dict, Optional, List, Type, Union
 
 from ..yara import Yara, YaraMatches
 from .procmem import procmem
@@ -118,7 +118,7 @@ class ExtractManager:
 
     def __init__(self, modules: ExtractorModules) -> None:
         self.modules = modules
-        self.configs = {}
+        self.configs: Dict[str, Config] = {}
 
     @property
     def rules(self) -> Yara:
@@ -129,7 +129,7 @@ class ExtractManager:
         return self.modules.rules
 
     @property
-    def extractors(self) -> List[Extractor]:
+    def extractors(self) -> List[Type[Extractor]]:
         """
         Bound extractor modules
         :rtype: List[Type[:class:`malduck.extractor.Extractor`]]
@@ -204,6 +204,7 @@ class ExtractManager:
                 return family
             else:
                 log.debug("Config doesn't look better - ignoring.")
+        return None
 
     def push_procmem(self, p: procmem, rip_binaries: bool = False) -> Optional[str]:
         """
@@ -223,13 +224,12 @@ class ExtractManager:
         matches = p.yarav(self.rules)
         if not matches:
             log.debug("No Yara matches.")
-            return
+            return None
 
-        binaries = [p]
+        binaries: List[Union[procmem, ProcessMemoryELF, ProcessMemoryPE]] = [p]
         if rip_binaries:
-            binaries += list(ProcessMemoryPE.load_binaries_from_memory(p)) + list(
-                ProcessMemoryELF.load_binaries_from_memory(p)
-            )
+            binaries += list(ProcessMemoryPE.load_binaries_from_memory(p))
+            binaries += list(ProcessMemoryELF.load_binaries_from_memory(p))
 
         def fmt_procmem(p):
             procmem_type = "IMG" if getattr(p, "is_image", False) else "DMP"
@@ -276,8 +276,8 @@ class ProcmemExtractManager:
 
     def __init__(self, parent: ExtractManager) -> None:
         #: Collected configuration so far (especially useful for "final" extractors)
-        self.collected_config = {}
-        self.globals = {}
+        self.collected_config: Config = {}
+        self.globals: Dict[str, Any] = {}
         self.parent = parent  #: Bound ExtractManager instance
         self.family = None  #: Matched family
 

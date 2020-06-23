@@ -12,7 +12,7 @@ __all__ = ["disasm", "insn", "Disassemble", "Instruction", "Operand", "Memory"]
 Memory = collections.namedtuple("Memory", ("size", "base", "scale", "index", "disp"))
 
 
-class Operand(object):
+class Operand:
     """
     Operand object for single :class:`Instruction`
     """
@@ -50,7 +50,7 @@ class Operand(object):
         return self.op.type == Operand._x86_op_mem
 
     @property
-    def value(self) -> Optional[Union[str, int]]:
+    def value(self) -> Union[str, int]:
         """
         Returns operand value or displacement value for memory operands
 
@@ -58,11 +58,12 @@ class Operand(object):
         """
         if self.is_imm:
             return self.op.value.imm
-        if self.is_mem:
+        elif self.is_mem:
             return self.op.value.mem.disp
-        if self.is_reg:
+        elif self.is_reg:
             return self.regs[self.op.reg]
-        return None
+        else:
+            raise Exception("Invalid Operand type")
 
     @property
     def reg(self) -> Optional[Union[str, int]]:
@@ -122,9 +123,9 @@ class Operand(object):
                 return "0x%016x" % (self.value % 2 ** 64)
             else:
                 return "0x%08x" % (self.value % 2 ** 32)
-        if self.is_reg:
+        elif self.is_reg:
             return self.reg
-        if self.is_mem:
+        elif self.is_mem:
             s, m = [], self.mem
             if m.base:
                 s.append(m.base)
@@ -133,6 +134,8 @@ class Operand(object):
             if m.disp:
                 s.append("0x%08x" % (m.disp % 2 ** 32))
             return "%s [%s]" % (m.size, "+".join(s))
+        else:
+            raise Exception("Invalid Operand type")
 
 
 class Instruction(object):
