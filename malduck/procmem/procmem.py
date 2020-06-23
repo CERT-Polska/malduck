@@ -99,7 +99,7 @@ class ProcessMemory:
         buf: ProcessMemoryBuffer,
         base: int = 0,
         regions: Optional[List[Region]] = None,
-        **_
+        **_,
     ) -> None:
         self.f: Optional[BinaryIO] = None
         self.mapped_memory: Optional[mmap.mmap] = None
