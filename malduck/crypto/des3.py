@@ -9,7 +9,7 @@ __all__ = ["des3"]
 
 
 class Des3Cbc:
-    def _get_cipher(self, key: bytes, iv: bytes) -> [DES, DES3Cipher]:
+    def _get_cipher(self, key: bytes, iv: bytes) -> Union[DES, DES3Cipher]:
         if len(key) == 8:
             # For 8 bytes it fallbacks to single DES
             # (original cryptography behaviour)

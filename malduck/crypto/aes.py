@@ -28,7 +28,7 @@ class PlaintextKeyBlob(BaseBlob):
 
     def __init__(self) -> None:
         BaseBlob.__init__(self)
-        self.key = None
+        self.key: Optional[bytes] = None
 
     def parse(self, buf: io.BytesIO) -> None:
         """
@@ -43,14 +43,17 @@ class PlaintextKeyBlob(BaseBlob):
             return
         self.key = value
 
-    def export_key(self) -> Tuple[str, bytes]:
+    def export_key(self) -> Optional[Tuple[str, bytes]]:
         """
-        Exports key from structure
+        Exports key from structure or returns None if no key was imported
 
         :return: Tuple (`algorithm`, `key`). `Algorithm` is one of: "AES-128", "AES-192", "AES-256"
         :rtype: Tuple[str, bytes]
         """
-        return self.types[len(self.key)], self.key
+        if self.key is not None:
+            self.types[len(self.key)], self.key
+
+        return None
 
 
 BlobTypes = {
@@ -171,7 +174,7 @@ class Aes:
         :return: Tuple (`algorithm`, `key`). `Algorithm` is one of: "AES-128", "AES-192", "AES-256"
         """
         if len(data) < BLOBHEADER.sizeof():
-            return
+            return None
 
         buf = io.BytesIO(data)
         header = BLOBHEADER.parse(buf.read(BLOBHEADER.sizeof()))
@@ -183,10 +186,10 @@ class Aes:
         )
 
         if header.bType not in BlobTypes:
-            return
+            return None
 
         if header.aiKeyAlg not in algorithms:
-            return
+            return None
 
         obj = BlobTypes[header.bType]()
         obj.parse(buf)

@@ -5,7 +5,7 @@
 import collections
 from capstone import CsInsn
 from capstone.x86 import X86Op
-from typing import Any, List, Optional
+from typing import Any, List, Optional, Dict, Union
 
 __all__ = ["disasm", "insn", "Disassemble", "Instruction", "Operand", "Memory"]
 
@@ -21,7 +21,7 @@ class Operand(object):
     _x86_op_imm = None
     _x86_op_reg = None
     _x86_op_mem = None
-    regs = {}
+    regs: Dict[str, Union[str, int]] = {}
 
     sizes = {
         1: "byte",
@@ -50,11 +50,11 @@ class Operand(object):
         return self.op.type == Operand._x86_op_mem
 
     @property
-    def value(self) -> int:
+    def value(self) -> Optional[Union[str, int]]:
         """
         Returns operand value or displacement value for memory operands
 
-        :rtype: str or int
+        :rtype: str or int or None
         """
         if self.is_imm:
             return self.op.value.imm
@@ -62,9 +62,10 @@ class Operand(object):
             return self.op.value.mem.disp
         if self.is_reg:
             return self.regs[self.op.reg]
+        return None
 
     @property
-    def reg(self) -> Optional[str]:
+    def reg(self) -> Optional[Union[str, int]]:
         """
         Returns register used by operand.
 
@@ -79,23 +80,27 @@ class Operand(object):
                 return self.regs[reg]
         if self.is_reg:
             return self.regs[self.op.reg]
+        return None
 
     @property
-    def mem(self) -> Memory:
+    def mem(self) -> Optional[Memory]:
         """
         Returns :class:`Memory` object for memory operands
         """
         if not self.is_mem:
-            return
+            return None
+
         mem = self.op.value.mem
+        base: Optional[Union[str, int]] = None
+        index: Optional[Union[str, int]] = None
+        scale: Optional[int] = None
+
         if mem.base:
             base = self.regs[mem.base]
-        else:
-            base = None
+
         if mem.index:
             index, scale = self.regs[mem.index], mem.scale
-        else:
-            index, scale = None, None
+
         return Memory(self.sizes[self.op.size], base, scale, index, mem.disp)
 
     def __eq__(self, other: Any) -> bool:
@@ -162,8 +167,8 @@ class Instruction(object):
         self,
         mnem: Optional[str] = None,
         op1: Optional[int] = None,
-        op2: None = None,
-        op3: None = None,
+        op2: Optional[int] = None,
+        op3: Optional[int] = None,
         addr: Optional[int] = None,
         x64: bool = False,
     ) -> None:
@@ -200,7 +205,7 @@ class Instruction(object):
         return self.operands[1]
 
     @property
-    def op3(self) -> None:
+    def op3(self) -> Optional[Operand]:
         """Third operand"""
         return self.operands[2]
 
@@ -268,10 +273,10 @@ class Disassemble(object):
         Operand._x86_op_mem = capstone.x86.X86_OP_MEM
 
         # Index the available x86 registers.
-        for _ in dir(capstone.x86):
-            if not _.startswith("X86_REG_"):
+        for reg in dir(capstone.x86):
+            if not reg.startswith("X86_REG_"):
                 continue
-            Operand.regs[getattr(capstone.x86, _)] = _.split("_")[2].lower()
+            Operand.regs[getattr(capstone.x86, reg)] = reg.split("_")[2].lower()
 
         self.__call__ = self.disassemble
         return self.__call__(*args, **kwargs)

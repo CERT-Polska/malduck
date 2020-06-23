@@ -2,9 +2,11 @@
 # This file is part of Roach - https://github.com/jbremer/roach.
 # See the file 'docs/LICENSE.txt' for copying permission.
 
+import io
+from typing import Any
+
 from ..ints import UInt8, UInt16, UInt32
 from ..structure import Structure
-from typing import Any
 
 
 class BLOBHEADER(Structure):
@@ -29,7 +31,7 @@ class BaseBlob:
     def __init__(self) -> None:
         self.bitsize = 0
 
-    def parse(self, buf: bytes) -> None:
+    def parse(self, buf: io.BytesIO) -> None:
         raise NotImplementedError
 
     def export_key(self) -> Any:
