@@ -2,6 +2,9 @@
 # This file is part of Roach - https://github.com/jbremer/roach.
 # See the file 'docs/LICENSE.txt' for copying permission.
 import struct
+import warnings
+
+from typing import Optional
 
 from ..string.ops import Padding, enhex, unhex
 from ..ints import UInt8, UInt16, UInt32, UInt64, Int8, Int16, Int32, Int64
@@ -53,15 +56,93 @@ __all__ = [
 ]
 
 
-def bigint(s, bitsize):
-    if isinstance(s, int):
-        return Padding.null(unhex("%x" % s)[::-1], bitsize // 8)
+class Bigint:
+    def unpack(self, other: bytes, size: Optional[int] = None) -> int:
+        """
+        Unpacks bigint value from provided buffer with little-endian order
 
-    if len(s) < bitsize // 8:
-        raise ValueError(f"Buffer is trimmed: {len(s) * 8} < {bitsize}")
+        .. versionadded:: 4.0.0
+            Use bigint.unpack instead of bigint() method
 
-    return int(enhex(s[: bitsize // 8][::-1]), 16)
+        :param other: Buffer object containing value to unpack
+        :type other: bytes
+        :param size: Size of bigint in bytes
+        :type size: bytes, optional
+        :rtype: int
+        """
+        if size:
+            if len(other) < size:
+                raise ValueError(f"Buffer is trimmed: {len(other)} < {size}")
+            other = other[:size]
+        return int(enhex(other[::-1]), 16)
 
+    def pack(self, other: int, size: Optional[int] = None) -> bytes:
+        """
+        Packs bigint value into bytes with little-endian order
+
+        .. versionadded:: 4.0.0
+            Use bigint.pack instead of bigint() method
+
+        :param other: Value to be packed
+        :type other: int
+        :param size: Size of bigint in bytes
+        :type size: bytes, optional
+        :rtype: bytes
+        """
+        packed = unhex(f"{other:x}")[::-1]
+        if size:
+            packed = packed[:size].ljust(size, b"\x00")
+        return packed
+
+    def unpack_be(self, other: bytes, size: Optional[int] = None) -> int:
+        """
+        Unpacks bigint value from provided buffer with big-endian order
+
+        :param other: Buffer object containing value to unpack
+        :type other: bytes
+        :param size: Size of bigint in bytes
+        :type size: bytes, optional
+        :rtype: int
+        """
+        if size:
+            if len(other) < size:
+                raise ValueError(f"Buffer is trimmed: {len(other)} < {size}")
+            other = other[:size]
+        return int(enhex(other), 16)
+
+    def pack_be(self, other: int, size: Optional[int] = None) -> bytes:
+        """
+        Packs bigint value into bytes with big-endian order
+
+        .. versionadded:: 4.0.0
+            Use bigint.pack instead of bigint() method
+
+        :param other: Value to be packed
+        :type other: int
+        :param size: Size of bigint in bytes
+        :type size: bytes, optional
+        :rtype: bytes
+        """
+        packed = unhex(f"{other:x}")
+        if size:
+            packed = packed[:size].rjust(size, b"\x00")
+        return packed
+
+    def __call__(self, s, bitsize):
+        warnings.warn(
+            "malduck.bigint() is deprecated, use malduck.bigint.unpack/pack methods",
+            DeprecationWarning,
+        )
+        if isinstance(s, int):
+            return Padding.null(unhex("%x" % s)[::-1], bitsize // 8)
+
+        if len(s) < bitsize // 8:
+            raise ValueError(f"Buffer is trimmed: {len(s) * 8} < {bitsize}")
+
+        return int(enhex(s[: bitsize // 8][::-1]), 16)
+
+
+bigint = Bigint()
 
 # Shortcuts for mostly used unpack methods
 uint64 = u64 = UInt64.unpack

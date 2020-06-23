@@ -1,6 +1,17 @@
 from abc import ABCMeta, abstractmethod
 from struct import pack, unpack_from, error
-from typing import Any, Callable, Generic, Iterator, Optional, Union, Tuple, Type, TypeVar, cast
+from typing import (
+    Any,
+    Callable,
+    Generic,
+    Iterator,
+    Optional,
+    Union,
+    Tuple,
+    Type,
+    TypeVar,
+    cast,
+)
 
 from .bits import rol
 
@@ -27,6 +38,7 @@ class IntTypeBase(object):
     """
     Base class representing all IntType instances
     """
+
     pass
 
 
@@ -34,6 +46,7 @@ class MultipliedIntTypeBase(IntTypeBase, Generic[T], metaclass=ABCMeta):
     """
     Base class representing all MultipliedIntType instances
     """
+
     @staticmethod
     @abstractmethod
     def unpack(other: bytes, offset: int = 0) -> Optional[Tuple[T, ...]]:
@@ -45,6 +58,7 @@ class MetaIntType(type):
     Metaclass for IntType classes.
     Provides ctypes-like behavior e.g. (QWORD*8).unpack(...) returns tuple of 8 QWORDs
     """
+
     bits: int
     signed: bool
     fmt: str
@@ -231,7 +245,9 @@ class IntType(int, IntTypeBase, metaclass=MetaIntType):
         return pack(">" + self.fmt, int(self))
 
     @classmethod
-    def unpack(cls, other: bytes, offset: int = 0, fixed: bool = True) -> Union["IntType", int, None]:
+    def unpack(
+        cls, other: bytes, offset: int = 0, fixed: bool = True
+    ) -> Union["IntType", int, None]:
         """
         Unpacks single value from provided buffer with little-endian order
 
@@ -253,7 +269,9 @@ class IntType(int, IntTypeBase, metaclass=MetaIntType):
         return cls(ret[0]) if fixed else ret[0]
 
     @classmethod
-    def unpack_be(cls, other: bytes, offset: int = 0, fixed: bool = True) -> Union["IntType", int, None]:
+    def unpack_be(
+        cls, other: bytes, offset: int = 0, fixed: bool = True
+    ) -> Union["IntType", int, None]:
         """
         Unpacks single value from provided buffer with big-endian order
 

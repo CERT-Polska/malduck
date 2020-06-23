@@ -35,7 +35,7 @@ class PublicKeyBlob(BaseBlob):
         if len(n) != self.bitsize // 8:
             return None
 
-        self.n = bigint(n, self.bitsize)
+        self.n = bigint.unpack(n)
         return 12 + self.bitsize // 8
 
     def export_key(self) -> bytes:
@@ -59,27 +59,27 @@ class PrivateKeyBlob(PublicKeyBlob):
         if not off:
             return
 
-        self.p1 = bigint(buf.read(self.bitsize // 16), self.bitsize // 2)
+        self.p1 = bigint.unpack(buf.read(self.bitsize // 16))
         if self.p1 is None:
             return
 
-        self.p2 = bigint(buf.read(self.bitsize // 16), self.bitsize // 2)
+        self.p2 = bigint.unpack(buf.read(self.bitsize // 16))
         if self.p2 is None:
             return
 
-        self.exp1 = bigint(buf.read(self.bitsize // 16), self.bitsize // 2)
+        self.exp1 = bigint.unpack(buf.read(self.bitsize // 16))
         if self.exp1 is None:
             return
 
-        self.exp2 = bigint(buf.read(self.bitsize // 16), self.bitsize // 2)
+        self.exp2 = bigint.unpack(buf.read(self.bitsize // 16))
         if self.exp2 is None:
             return
 
-        self.coeff = bigint(buf.read(self.bitsize // 16), self.bitsize // 2)
+        self.coeff = bigint.unpack(buf.read(self.bitsize // 16))
         if self.coeff is None:
             return
 
-        self.d = bigint(buf.read(self.bitsize // 8), self.bitsize)
+        self.d = bigint.unpack(buf.read(self.bitsize // 8))
         if self.d is None:
             return
 
