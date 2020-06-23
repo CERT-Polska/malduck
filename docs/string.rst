@@ -56,7 +56,10 @@ Packing/unpacking (p64/p32/p16/p8, u64/u32/u16/u8, bigint)
 .. autofunction:: malduck.p16
 .. autofunction:: malduck.p8
 
-.. autofunction:: malduck.bigint
+.. autofunction:: malduck.bigint.unpack
+.. autofunction:: malduck.bigint.pack
+.. autofunction:: malduck.bigint.unpack_be
+.. autofunction:: malduck.bigint.pack_be
 
 IPv4 inet_ntoa
 ---------------

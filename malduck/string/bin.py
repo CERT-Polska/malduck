@@ -57,21 +57,55 @@ __all__ = [
 
 class Bigint:
     def unpack(self, other: bytes) -> int:
+        """
+        Unpacks bigint value from provided buffer with little-endian order
+
+        .. versionadded:: 4.0.0
+            Use bigint.unpack instead of bigint() method
+
+        :param other: Buffer object containing value to unpack
+        :type other: bytes
+        :rtype: int
+        """
         return self.unpack_be(other[::-1])
 
     def pack(self, other: int) -> bytes:
+        """
+        Packs bigint value into bytes with little-endian order
+
+        .. versionadded:: 4.0.0
+            Use bigint.pack instead of bigint() method
+
+        :param other: Value to be packed
+        :type other: int
+        :rtype: bytes
+        """
         return self.pack_be(other)[::-1]
 
     def unpack_be(self, other: bytes) -> int:
+        """
+        Unpacks bigint value from provided buffer with big-endian order
+
+        :param other: Buffer object containing value to unpack
+        :type other: bytes
+        :rtype: int
+        """
         return int(enhex(other), 16)
 
     def pack_be(self, other: int) -> bytes:
+        """
+        Packs bigint value into bytes with big-endian order
+
+        :param other: Value to be packed
+        :type other: int
+        :rtype: bytes
+        """
         return unhex(f"{other:x}")
 
     def __call__(self, s, bitsize):
         warnings.warn(
             "malduck.bigint() is deprecated, use malduck.bigint.unpack/pack methods",
-            DeprecationWarning
+            DeprecationWarning,
         )
         if is_integer(s):
             return Padding.null(unhex("%x" % s)[::-1], bitsize // 8)
