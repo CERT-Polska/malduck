@@ -140,7 +140,7 @@ class ProcessMemory:
             raise RuntimeError("ProcessMemory object is invalidated")
         return memory
 
-    def close(self, copy: bool = False):
+    def close(self, copy: bool = False) -> None:
         """
         Closes opened files referenced by ProcessMemory object
 
