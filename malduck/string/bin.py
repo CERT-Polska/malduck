@@ -4,6 +4,8 @@
 import struct
 import warnings
 
+from typing import Optional
+
 from ..py2compat import is_integer
 from ..string.ops import Padding, enhex, unhex
 from ..ints import UInt8, UInt16, UInt32, UInt64, Int8, Int16, Int32, Int64
@@ -56,7 +58,7 @@ __all__ = [
 
 
 class Bigint:
-    def unpack(self, other: bytes) -> int:
+    def unpack(self, other: bytes, size: Optional[int] = None) -> int:
         """
         Unpacks bigint value from provided buffer with little-endian order
 
@@ -65,11 +67,19 @@ class Bigint:
 
         :param other: Buffer object containing value to unpack
         :type other: bytes
+        :param size: Size of bigint in bytes
+        :type size: bytes, optional
         :rtype: int
         """
-        return self.unpack_be(other[::-1])
+        if size:
+            if len(other) < size:
+                raise ValueError(
+                    f"Buffer is trimmed: {len(other)} < {size}"
+                )
+            other = other[:size]
+        return int(enhex(other[::-1]), 16)
 
-    def pack(self, other: int) -> bytes:
+    def pack(self, other: int, size: Optional[int] = None) -> bytes:
         """
         Packs bigint value into bytes with little-endian order
 
@@ -78,29 +88,54 @@ class Bigint:
 
         :param other: Value to be packed
         :type other: int
+        :param size: Size of bigint in bytes
+        :type size: bytes, optional
         :rtype: bytes
         """
-        return self.pack_be(other)[::-1]
+        packed = unhex(f"{other:x}")[::-1]
+        if size:
+            packed = packed[:size]
+            padding = b"\x00" * (size - len(packed))
+            packed = packed + padding
+        return packed
 
-    def unpack_be(self, other: bytes) -> int:
+    def unpack_be(self, other: bytes, size: Optional[int] = None) -> int:
         """
         Unpacks bigint value from provided buffer with big-endian order
 
         :param other: Buffer object containing value to unpack
         :type other: bytes
+        :param size: Size of bigint in bytes
+        :type size: bytes, optional
         :rtype: int
         """
+        if size:
+            if len(other) < size:
+                raise ValueError(
+                    f"Buffer is trimmed: {len(other)} < {size}"
+                )
+            other = other[:size]
         return int(enhex(other), 16)
 
-    def pack_be(self, other: int) -> bytes:
+    def pack_be(self, other: int, size: Optional[int] = None) -> bytes:
         """
         Packs bigint value into bytes with big-endian order
 
+        .. versionadded:: 4.0.0
+            Use bigint.pack instead of bigint() method
+
         :param other: Value to be packed
         :type other: int
+        :param size: Size of bigint in bytes
+        :type size: bytes, optional
         :rtype: bytes
         """
-        return unhex(f"{other:x}")
+        packed = unhex(f"{other:x}")
+        if size:
+            packed = packed[:size]
+            padding = b"\x00" * (size - len(packed))
+            packed = padding + packed
+        return packed
 
     def __call__(self, s, bitsize):
         warnings.warn(
