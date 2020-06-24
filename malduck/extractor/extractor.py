@@ -1,7 +1,7 @@
 import functools
 import logging
 
-from typing import Any, Callable, Dict, List, Tuple, TYPE_CHECKING
+from typing import Any, Callable, Dict, List, Union, Tuple, TYPE_CHECKING
 
 from ..procmem import ProcessMemory, ProcessMemoryPE, ProcessMemoryELF
 from ..yara import YaraMatches
@@ -20,6 +20,7 @@ class MetaExtractor(type):
     """
     Metaclass for Extractor. Handles proper registration of decorated extraction methods
     """
+
     def __new__(cls, name, bases, attrs):
         """
         Collect ext_yara_string and ext_final methods
@@ -52,7 +53,7 @@ class ExtractorMethod:
     Represents registered extractor method
     """
 
-    def __init__(self, method: Callable[..., Config]) -> None:
+    def __init__(self, method: Callable[..., Union[Config, bool, None]]) -> None:
         self.method = method
         self.weak = False
         self.needs_exec = None
@@ -240,7 +241,9 @@ class Extractor(ExtractorBase, metaclass=MetaExtractor):
 
     """
 
-    yara_rules: Tuple[str, ...] = ()  #: Names of Yara rules for which handle_yara is called
+    yara_rules: Tuple[
+        str, ...
+    ] = ()  #: Names of Yara rules for which handle_yara is called
 
     extractor_methods: Dict[str, str]
     final_methods: Dict[str, str]

@@ -205,7 +205,9 @@ class ExtractManager:
                 log.debug("Config doesn't look better - ignoring.")
         return None
 
-    def push_procmem(self, p: ProcessMemory, rip_binaries: bool = False) -> Optional[str]:
+    def push_procmem(
+        self, p: ProcessMemory, rip_binaries: bool = False
+    ) -> Optional[str]:
         """
         Pushes ProcessMemory object for extraction
 
@@ -295,7 +297,9 @@ class ProcmemExtractManager:
         """
         self.parent.on_extractor_error(exc, extractor, method_name)
 
-    def push_procmem(self, p: ProcessMemory, _matches: Optional[YaraMatches] = None) -> None:
+    def push_procmem(
+        self, p: ProcessMemory, _matches: Optional[YaraMatches] = None
+    ) -> None:
         """
         Pushes ProcessMemory object for extraction
 
