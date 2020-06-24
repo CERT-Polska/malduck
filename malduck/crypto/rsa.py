@@ -40,7 +40,7 @@ class PublicKeyBlob(BaseBlob):
 
     def export_key(self) -> bytes:
         if not (self.e and self.n):
-            raise Exception("The imported key is invalid")
+            raise ValueError("The imported key is invalid")
         return RSA.export_key(self.n, self.e)
 
 
