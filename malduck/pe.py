@@ -4,6 +4,10 @@
 
 import pefile
 
+from typing import Optional
+
+from .procmem import ProcessMemory
+
 __all__ = ["pe", "PE", "MemoryPEData", "FastPE", "pe2cuckoo"]
 
 
@@ -41,7 +45,7 @@ class MemoryPEData:
     based on section layout.
     """
 
-    def __init__(self, memory, fast_load) -> None:
+    def __init__(self, memory: "ProcessMemory", fast_load: bool) -> None:
         self.memory = memory
         # Preload headers
         self.pe = FastPE(data=self, fast_load=True)
@@ -70,7 +74,7 @@ class MemoryPEData:
             stop = start
         return self.memory.readv(start, stop - start + 1)
 
-    def find(self, str, beg=0, end=None):
+    def find(self, str: bytes, beg: int = 0, end: Optional[int] = None) -> int:
         if end and beg >= end:
             return -1
         try:

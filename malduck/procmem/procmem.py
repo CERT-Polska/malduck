@@ -571,11 +571,11 @@ class ProcessMemory:
         """Read signed 64-bit value at address."""
         return int64(self.readv(addr, 8), fixed=fixed)
 
-    def asciiz(self, addr) -> bytes:
+    def asciiz(self, addr):
         """Read a null-terminated ASCII string at address."""
         return self.readv_until(addr, b"\x00")
 
-    def utf16z(self, addr) -> bytes:
+    def utf16z(self, addr):
         """
         Read a null-terminated UTF-16 ASCII string at address.
 
