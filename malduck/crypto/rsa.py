@@ -158,7 +158,7 @@ class RSA:
         tup = wrap(n), wrap(e), wrap(d), wrap(p), wrap(q), wrap(crt)
         # PyCryptodome accepts only variable-length tuples
         tup_w = tuple(takewhile(lambda x: x is not None, tup))
-        return RSA_.construct(tup_w, consistency_check=False).export_key() # type: ignore
+        return RSA_.construct(tup_w, consistency_check=False).export_key()  # type: ignore
 
 
 rsa = RSA

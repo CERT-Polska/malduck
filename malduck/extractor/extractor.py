@@ -78,7 +78,9 @@ class ExtractorMethod:
 
 class ExtractorBase:
     family = None  #: Extracted malware family, automatically added to "family" key for strong extraction methods
-    overrides: List[str] = []  #: Family match overrides another match e.g. citadel overrides zeus
+    overrides: List[
+        str
+    ] = []  #: Family match overrides another match e.g. citadel overrides zeus
 
     def __init__(self, parent: ProcmemExtractManager) -> None:
         self.parent = parent  #: ProcmemExtractManager instance

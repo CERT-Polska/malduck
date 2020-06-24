@@ -248,6 +248,7 @@ class Instruction(object):
 class Disassemble:
     def __init__(self) -> None:
         import capstone.x86
+
         Operand._x86_op_imm = capstone.x86.X86_OP_IMM
         Operand._x86_op_reg = capstone.x86.X86_OP_REG
         Operand._x86_op_mem = capstone.x86.X86_OP_MEM
