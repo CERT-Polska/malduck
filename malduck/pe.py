@@ -4,6 +4,10 @@
 
 import pefile
 
+from typing import Optional
+
+from .procmem import ProcessMemory
+
 __all__ = ["pe", "PE", "MemoryPEData", "FastPE", "pe2cuckoo"]
 
 
@@ -34,14 +38,14 @@ class FastPE(pefile.PE):
         return True
 
 
-class MemoryPEData(object):
+class MemoryPEData:
     """
     `pefile.PE.__data__` represents image file usually aligned to 512 bytes.
     MemoryPEData perform mapping from pefile's offset-access to Memory object va-access
     based on section layout.
     """
 
-    def __init__(self, memory, fast_load):
+    def __init__(self, memory: "ProcessMemory", fast_load: bool) -> None:
         self.memory = memory
         # Preload headers
         self.pe = FastPE(data=self, fast_load=True)
@@ -49,12 +53,12 @@ class MemoryPEData(object):
         if not fast_load:
             self.pe.full_load()
 
-    def map_offset(self, offs):
+    def map_offset(self, offs: int) -> int:
         if not hasattr(self, "pe") or not self.pe.sections:
             return self.memory.imgbase + offs
         return self.memory.imgbase + (self.pe.get_rva_from_offset(offs) or offs)
 
-    def __len__(self):
+    def __len__(self) -> int:
         return (
             self.memory.regions[-1].addr
             - self.memory.regions[0].addr
@@ -70,7 +74,7 @@ class MemoryPEData(object):
             stop = start
         return self.memory.readv(start, stop - start + 1)
 
-    def find(self, str, beg=0, end=None):
+    def find(self, str: bytes, beg: int = 0, end: Optional[int] = None) -> int:
         if end and beg >= end:
             return -1
         try:
