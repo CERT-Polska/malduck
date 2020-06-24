@@ -28,11 +28,13 @@ from ..ints import IntType
 ProcessMemoryBuffer = Union[bytes, bytearray, mmap.mmap]
 T = TypeVar("T", bound="ProcessMemory")
 
+procmem: "ProcessMemory"
+
 class ProcessMemory:
     f: Optional[BinaryIO]
     memory: Optional[bytearray]
     mapped_memory: Optional[mmap.mmap]
-    imgbase: Optional[int]
+    imgbase: int
     regions: List[Region]
     def __init__(
         self,

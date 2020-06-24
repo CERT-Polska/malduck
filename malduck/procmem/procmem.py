@@ -206,7 +206,9 @@ class ProcessMemory:
         else:
             return 0
 
-    def iter_regions(self, addr=None, offset=None, length=None, contiguous=False, trim=False):
+    def iter_regions(
+        self, addr=None, offset=None, length=None, contiguous=False, trim=False
+    ):
         """
         Iterates over Region objects starting at provided virtual address or offset
 
