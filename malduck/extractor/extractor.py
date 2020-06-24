@@ -1,12 +1,13 @@
 import functools
 import logging
 
-from ..procmem import ProcessMemoryPE, ProcessMemoryELF, procmem
-from ..yara import YaraMatch
+from typing import Any, Callable, Dict, List, Tuple, TYPE_CHECKING
 
-from .extract_manager import ProcmemExtractManager
+from ..procmem import ProcessMemory, ProcessMemoryPE, ProcessMemoryELF
+from ..yara import YaraMatches
 
-from typing import Dict, Any, Callable, List
+if TYPE_CHECKING:
+    from .extract_manager import ProcmemExtractManager
 
 log = logging.getLogger(__name__)
 
@@ -19,7 +20,6 @@ class MetaExtractor(type):
     """
     Metaclass for Extractor. Handles proper registration of decorated extraction methods
     """
-
     def __new__(cls, name, bases, attrs):
         """
         Collect ext_yara_string and ext_final methods
@@ -82,10 +82,10 @@ class ExtractorBase:
         str
     ] = []  #: Family match overrides another match e.g. citadel overrides zeus
 
-    def __init__(self, parent: ProcmemExtractManager) -> None:
+    def __init__(self, parent: "ProcmemExtractManager") -> None:
         self.parent = parent  #: ProcmemExtractManager instance
 
-    def push_procmem(self, procmem: procmem, **info):
+    def push_procmem(self, procmem: ProcessMemory, **info):
         """
         Push procmem object for further analysis
 
@@ -240,7 +240,10 @@ class Extractor(ExtractorBase, metaclass=MetaExtractor):
 
     """
 
-    yara_rules = ()  #: Names of Yara rules for which handle_yara is called
+    yara_rules: Tuple[str, ...] = ()  #: Names of Yara rules for which handle_yara is called
+
+    extractor_methods: Dict[str, str]
+    final_methods: Dict[str, str]
 
     def on_error(self, exc: Exception, method_name: str) -> None:
         """
@@ -253,7 +256,7 @@ class Extractor(ExtractorBase, metaclass=MetaExtractor):
         """
         self.parent.on_extractor_error(exc, self, method_name)
 
-    def handle_yara(self, p: procmem, match: List[YaraMatch]) -> None:
+    def handle_yara(self, p: ProcessMemory, match: YaraMatches) -> None:
         """
         Override this if you don't want to use decorators and customize ripping process
         (e.g. yara-independent, brute-force techniques)
@@ -261,7 +264,7 @@ class Extractor(ExtractorBase, metaclass=MetaExtractor):
         :param p: ProcessMemory object
         :type p: :class:`malduck.procmem.ProcessMemory`
         :param match: Found yara matches for this family
-        :type match: List[:class:`malduck.yara.YaraMatch`]
+        :type match: :class:`malduck.yara.YaraMatches`
         """
         # Call string-based extractors
         for identifier, method_name in self.extractor_methods.items():

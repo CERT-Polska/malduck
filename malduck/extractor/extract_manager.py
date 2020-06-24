@@ -4,8 +4,9 @@ import os
 from typing import Any, Dict, Optional, List, Type, Union
 
 from ..yara import Yara, YaraMatches
-from .procmem import procmem
-from .extractor import Extractor
+from ..procmem import ProcessMemory
+from ..procmem.binmem import ProcessMemoryBinary
+from .extractor import Extractor, ExtractorBase
 from .loaders import load_modules
 
 log = logging.getLogger(__name__)
@@ -185,8 +186,6 @@ class ExtractManager:
         :return: Family name if ripped successfully and provided better configuration than previous files.
                  Returns None otherwise.
         """
-        from ..procmem import ProcessMemory
-
         log.debug("Started extraction of file %s:%x", filepath, base)
         with ProcessMemory.from_file(filepath, base=base) as p:
             return self.push_procmem(p, rip_binaries=True)
@@ -206,7 +205,7 @@ class ExtractManager:
                 log.debug("Config doesn't look better - ignoring.")
         return None
 
-    def push_procmem(self, p: procmem, rip_binaries: bool = False) -> Optional[str]:
+    def push_procmem(self, p: ProcessMemory, rip_binaries: bool = False) -> Optional[str]:
         """
         Pushes ProcessMemory object for extraction
 
@@ -226,7 +225,7 @@ class ExtractManager:
             log.debug("No Yara matches.")
             return None
 
-        binaries: List[Union[procmem, ProcessMemoryELF, ProcessMemoryPE]] = [p]
+        binaries: List[Union[ProcessMemory, ProcessMemoryBinary]] = [p]
         if rip_binaries:
             binaries += list(ProcessMemoryPE.load_binaries_from_memory(p))
             binaries += list(ProcessMemoryELF.load_binaries_from_memory(p))
@@ -296,7 +295,7 @@ class ProcmemExtractManager:
         """
         self.parent.on_extractor_error(exc, extractor, method_name)
 
-    def push_procmem(self, p: procmem, _matches: Optional[YaraMatches] = None) -> None:
+    def push_procmem(self, p: ProcessMemory, _matches: Optional[YaraMatches] = None) -> None:
         """
         Pushes ProcessMemory object for extraction
 
@@ -317,7 +316,7 @@ class ProcmemExtractManager:
                     except Exception as exc:
                         self.parent.on_error(exc, extractor)
 
-    def push_config(self, config: Config, extractor: Extractor) -> None:
+    def push_config(self, config: Config, extractor: ExtractorBase) -> None:
         """
         Pushes new partial config
 

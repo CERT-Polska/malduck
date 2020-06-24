@@ -51,7 +51,7 @@ class PlaintextKeyBlob(BaseBlob):
         :rtype: Tuple[str, bytes]
         """
         if self.key is not None:
-            self.types[len(self.key)], self.key
+            return self.types[len(self.key)], self.key
 
         return None
 

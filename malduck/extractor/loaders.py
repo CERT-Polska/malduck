@@ -3,9 +3,10 @@ import logging
 import pkgutil
 import sys
 
+from importlib.abc import FileLoader
 from importlib.machinery import FileFinder
 
-from typing import Callable, Optional, Any, Dict
+from typing import Callable, Optional, Any, Dict, cast
 
 log = logging.getLogger(__name__)
 
@@ -24,7 +25,8 @@ def import_module_by_finder(finder: FileFinder, module_name: str) -> Any:
     module = importlib.util.module_from_spec(module_spec)
     sys.modules[module_name] = module
     try:
-        module = module_spec.loader.exec_module(module)
+        loader: FileLoader = cast(FileLoader, module_spec.loader)
+        loader.exec_module(module)
     except BaseException:
         del sys.modules[module_name]
         raise
