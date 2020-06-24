@@ -3,12 +3,14 @@ import logging
 import pkgutil
 import sys
 
-from typing import Callable, Optional, Any
+from importlib.machinery import FileFinder
+
+from typing import Callable, Optional, Any, Dict
 
 log = logging.getLogger(__name__)
 
 
-def import_module_by_finder(finder: Any, module_name: str) -> Any:
+def import_module_by_finder(finder: FileFinder, module_name: str) -> Any:
     """
     Imports module from arbitrary path using importer returned by pkgutil.iter_modules
     """
@@ -17,6 +19,8 @@ def import_module_by_finder(finder: Any, module_name: str) -> Any:
 
     # https://docs.python.org/3/library/importlib.html#importing-a-source-file-directly
     module_spec = finder.find_spec(module_name)
+    if module_spec is None or module_spec.loader is None:
+        raise Exception("Couldn't find module spec for %s", module_name)
     module = importlib.util.module_from_spec(module_spec)
     sys.modules[module_name] = module
     try:
@@ -29,7 +33,7 @@ def import_module_by_finder(finder: Any, module_name: str) -> Any:
 
 def load_modules(
     search_path: str, onerror: Optional[Callable[[Exception, str], None]] = None
-):
+) -> Dict[str, Any]:
     """
     Loads plugin modules under specified paths
 
@@ -42,7 +46,7 @@ def load_modules(
     :param onerror: Exception handler (default: ignore exceptions)
     :return: dict {name: module}
     """
-    modules = {}
+    modules: Dict[str, Any] = {}
     for finder, module_name, is_pkg in pkgutil.iter_modules(
         [search_path], "malduck.extractor.modules."
     ):

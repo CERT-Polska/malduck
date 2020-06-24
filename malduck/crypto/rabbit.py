@@ -29,7 +29,8 @@ class Rabbit:
     def __init__(self, key: bytes, iv: Optional[bytes]) -> None:
         self.ctx = Context()
         self.set_key(key)
-        iv and self.set_iv(iv)
+        if iv:
+            self.set_iv(iv)
 
     def g_func(self, x: int) -> int:
         x = x & 0xFFFFFFFF

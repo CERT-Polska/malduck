@@ -120,13 +120,15 @@ class Operand:
     def __str__(self) -> str:
         if self.is_imm:
             if self.x64:
-                return "0x%016x" % (self.value % 2 ** 64)
+                return "0x%016x" % (int(self.value) % 2 ** 64)
             else:
-                return "0x%08x" % (self.value % 2 ** 32)
+                return "0x%08x" % (int(self.value) % 2 ** 32)
         elif self.is_reg:
-            return self.reg
+            return str(self.reg)
         elif self.is_mem:
             s, m = [], self.mem
+            if m is None:
+                raise Exception("Invalid mem object")
             if m.base:
                 s.append(m.base)
             if m.index:
@@ -169,9 +171,9 @@ class Instruction(object):
     def __init__(
         self,
         mnem: Optional[str] = None,
-        op1: Optional[int] = None,
-        op2: Optional[int] = None,
-        op3: Optional[int] = None,
+        op1: Optional[Operand] = None,
+        op2: Optional[Operand] = None,
+        op3: Optional[Operand] = None,
         addr: Optional[int] = None,
         x64: bool = False,
     ) -> None:
@@ -185,7 +187,7 @@ class Instruction(object):
         self.insn = insn
         self.mnem = insn.mnemonic
 
-        operands = []
+        operands: List[Optional[Operand]] = []
         for op in insn.operands + [None, None, None]:
             operands.append(Operand(op, self.x64) if op else None)
         self.operands = operands[0], operands[1], operands[2]
@@ -198,7 +200,7 @@ class Instruction(object):
         return ret
 
     @property
-    def op1(self) -> Operand:
+    def op1(self) -> Optional[Operand]:
         """First operand"""
         return self.operands[0]
 
@@ -213,11 +215,15 @@ class Instruction(object):
         return self.operands[2]
 
     @property
-    def addr(self) -> int:
+    def addr(self) -> Optional[int]:
         """Instruction address"""
-        return self._addr or self.insn.address
+        if self._addr:
+            return self._addr
+        if self.insn is not None:
+            return self.insn.address
+        return None
 
-    def __eq__(self, other: "Instruction") -> bool:
+    def __eq__(self, other: Any) -> bool:
         if not isinstance(other, Instruction):
             return False
         if self.mnem != other.mnem or self.addr != other.addr:
@@ -236,10 +242,22 @@ class Instruction(object):
             operands.append(str(self.op3))
         if operands:
             return "%s %s" % (self.mnem, ", ".join(operands))
-        return self.mnem
+        return self.mnem or "<invalid mnem>"
 
 
-class Disassemble(object):
+class Disassemble:
+    def __init__(self) -> None:
+        import capstone.x86
+        Operand._x86_op_imm = capstone.x86.X86_OP_IMM
+        Operand._x86_op_reg = capstone.x86.X86_OP_REG
+        Operand._x86_op_mem = capstone.x86.X86_OP_MEM
+
+        # Index the available x86 registers.
+        for reg in dir(capstone.x86):
+            if not reg.startswith("X86_REG_"):
+                continue
+            Operand.regs[getattr(capstone.x86, reg)] = reg.split("_")[2].lower()
+
     def disassemble(
         self, data: bytes, addr: int, x64: bool = False
     ) -> List[Instruction]:
@@ -268,23 +286,7 @@ class Disassemble(object):
             ret.append(Instruction.from_capstone(insn, x64=x64))
         return ret
 
-    def init_once(self, *args, **kwargs) -> List[Instruction]:
-        import capstone.x86
-
-        Operand._x86_op_imm = capstone.x86.X86_OP_IMM
-        Operand._x86_op_reg = capstone.x86.X86_OP_REG
-        Operand._x86_op_mem = capstone.x86.X86_OP_MEM
-
-        # Index the available x86 registers.
-        for reg in dir(capstone.x86):
-            if not reg.startswith("X86_REG_"):
-                continue
-            Operand.regs[getattr(capstone.x86, reg)] = reg.split("_")[2].lower()
-
-        self.__call__ = self.disassemble
-        return self.__call__(*args, **kwargs)
-
-    __call__ = init_once
+    __call__ = disassemble
 
 
 disasm = Disassemble()

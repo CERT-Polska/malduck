@@ -136,7 +136,7 @@ def byteswap32(x: int) -> int:
 def set_key(l_key: List[int], key: List[int], key_len: int) -> None:
     key_len *= 8
     if key_len > 256:
-        return False
+        return None
 
     i = 0
     lk = (key_len + 31) // 32

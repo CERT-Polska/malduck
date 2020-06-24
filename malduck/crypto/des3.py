@@ -1,20 +1,21 @@
 # Copyright (C) 2018 Jurriaan Bremer.
 # This file is part of Roach - https://github.com/jbremer/roach.
 # See the file 'docs/LICENSE.txt' for copying permission.
-from typing import Union
+from typing import cast
 
 from Cryptodome.Cipher import DES, DES3 as DES3Cipher
+from Cryptodome.Cipher._mode_cbc import CbcMode
 
 __all__ = ["des3"]
 
 
 class Des3Cbc:
-    def _get_cipher(self, key: bytes, iv: bytes) -> Union[DES, DES3Cipher]:
+    def _get_cipher(self, key: bytes, iv: bytes) -> CbcMode:
         if len(key) == 8:
             # For 8 bytes it fallbacks to single DES
             # (original cryptography behaviour)
-            return DES.new(key, DES.MODE_CBC, iv=iv)
-        return DES3Cipher.new(key, DES3Cipher.MODE_CBC, iv=iv)
+            return cast(CbcMode, DES.new(key, DES.MODE_CBC, iv=iv))
+        return cast(CbcMode, DES3Cipher.new(key, DES3Cipher.MODE_CBC, iv=iv))
 
     def encrypt(self, key: bytes, iv: bytes, data: bytes) -> bytes:
         """
