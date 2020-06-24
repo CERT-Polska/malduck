@@ -4,9 +4,10 @@
 
 import pefile
 
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 
-from .procmem import ProcessMemory
+if TYPE_CHECKING:
+    from .procmem import ProcessMemory
 
 __all__ = ["pe", "PE", "MemoryPEData", "FastPE", "pe2cuckoo"]
 
