@@ -75,12 +75,12 @@ class Extractor:
 
     .. code-block:: Python
 
-        from ripper import Extractor
+        from malduck import Extractor
 
         class Citadel(Extractor):
             family = "citadel"
-            yara_rules = ["citadel"]
-            overrides = ["zeus"]
+            yara_rules = ("citadel",)
+            overrides = ("zeus",)
 
             @Extractor.extractor("briankerbs")
             def citadel_found(self, p, addr):
@@ -107,29 +107,120 @@ class Extractor:
 
         Extractor can be called for many number-suffixed strings e.g. `$keyex1` and `$keyex2` will call `keyex` method.
 
-    .. py:decoratormethod:: Extractor.extractor(string_or_method, final=False)
+        You can optionally provide the actual string identifier as an argument if you don't want to name your method
+        after the string identifier.
 
-        Specialized `@extractor` variant
+        Signature of decorated method:
+
+        .. code-block:: Python
+
+            @Extractor.extractor
+            def string_identifier(self, p: ProcessMemory, addr: int) -> Config:
+                # p: ProcessMemory object that contains matched file/dump representation
+                # addr: Virtual address of matched string
+                # Called for each "$string_identifier" hit
+                ...
+
+        Extractor methods should return `dict` object with extracted part of configuration or bool/None indicating
+        a match or lack of it.
+
+        For strong methods: truthy values are transformed to `dict` with `{"family": self.family}` key.
 
         :param string_or_method:
             If method name doesn't match the string identifier
             pass yara string identifier as decorator argument
-        :type string_or_method: str
-        :param final:
-            Extractor will be called whenever Yara rule has been matched,
-            but always after string-based extractors
-        :type final: bool
-
-    .. py:decoratormethod:: Extractor.final
-
-        Decorator for final extractors, called after regular extraction methods.
+        :type string_or_method: str, optional
 
         .. code-block:: Python
 
-            from ripper import Extractor
+            from malduck import Extractor
+
+            class Citadel(Extractor):
+                family = "citadel"
+                yara_rules = ("citadel",)
+                overrides = ("zeus",)
+
+                @Extractor.extractor("briankerbs")
+                def citadel_found(self, p, addr):
+                    # Called for each $briankerbs hit
+                    ...
+
+                @Extractor.extractor
+                def cit_login(self, p, addr):
+                    # Called for each $cit_login1, $cit_login2 hit
+                    ...
+
+    .. py:decoratormethod:: Extractor.rule
+
+        Decorator for rule-based extractor methods, called once for rule match after string-based extraction methods.
+
+        Method is called each time when rule with the same identifier as method name has matched.
+
+        You can optionally provide the actual rule identifier as an argument if you don't want to name your method
+        after the rule identifier.
+
+        Rule identifier must appear in `yara_rules` tuple.
+
+        Signature of decorated method:
+
+        .. code-block:: Python
+
+            @Extractor.rule
+            def rule_identifier(self, p: ProcessMemory, matches: YaraMatch) -> Config:
+                # p: ProcessMemory object that contains matched file/dump representation
+                # matches: YaraMatch object with offsets of all matched strings related with the rule
+                # Called for matched rule named "rule_identifier".
+                ...
+
+        .. versionadded:: 4.0.0
+
+            Added `@Extractor.rule` decorator
+
+        .. code-block:: Python
+
+            from malduck import Extractor
 
             class Evil(Extractor):
-                yara_rules = ["evil"]
+                yara_rules = ("evil", "weird")
+                family = "evil"
+
+                ...
+
+                @Extractor.rule
+                def evil(self, p, matches):
+                    # This will be called each time evil match.
+                    # `matches` is YaraMatch object that contains information about
+                    # all string matches related with this rule.
+                    ...
+
+        :param string_or_method:
+            If method name doesn't match the rule identifier
+            pass yara string identifier as decorator argument
+        :type string_or_method: str, optional
+
+    .. py:decoratormethod:: Extractor.final
+
+        Decorator for final extractor methods, called once for each single rule match after other extraction methods.
+
+        Behaves similarly to the @rule-decorated methods but is called for each rule match regardless of
+        the rule identifier.
+
+        Signature of decorated method:
+
+        .. code-block:: Python
+
+            @Extractor.rule
+            def rule_identifier(self, p: ProcessMemory) -> Config:
+                # p: ProcessMemory object that contains matched file/dump representation
+                # Called for each matched rule in self.yara_rules
+                ...
+
+        .. code-block:: Python
+
+            from malduck import Extractor
+
+            class Evil(Extractor):
+                yara_rules = ("evil", "weird")
                 family = "evil"
 
                 ...
@@ -137,6 +228,7 @@ class Extractor:
                 @Extractor.needs_pe
                 @Extractor.final
                 def get_config(self, p):
+                    # This will be called each time evil or weird match
                     cfg = {"urls": self.get_cncs_from_rsrc(p)}
                     if "role" not in self.collected_config:
                         cfg["role"] = "loader"
@@ -148,13 +240,52 @@ class Extractor:
 
         All "weak configs" will be flushed when "strong config" appears.
 
+        .. versionchanged:: 4.0.0
+
+            Method must be decorated first with `@extractor`, `@rule` or `@final` decorator
+
+        .. code-block:: Python
+
+            from malduck import Extractor
+
+            class Evil(Extractor):
+                yara_rules = ("evil", "weird")
+                family = "evil"
+
+                ...
+
+                @Extractor.weak
+                @Extractor.extractor
+                def dga_seed(self, p, hit):
+                    # Even if we're able to get the DGA seed, extractor won't produce config
+                    # until is_it_really_evil match as well
+                    dga_config = p.readv(hit, 128)
+                    seed = self._get_dga_seed(dga_config)
+                    if seed is not None:
+                        return {"dga_seed": seed}
+
+                @Extractor.final
+                def is_it_really_evil(self, p):
+                    # If p starts with 'evil', we can produce config
+                    return p.read(p.imgbase, 4) == b'evil'
+
     .. py:decoratormethod:: Extractor.needs_pe
 
-        Use this decorator for extractors that need PE instance. (:class:`malduck.procmem.ProcessMemoryPE`)
+        Use this decorator for extractors that need PE instance.
+        (p is guaranteed to be :class:`malduck.procmem.ProcessMemoryPE`)
+
+        .. versionchanged:: 4.0.0
+
+            Method must be decorated first with `@extractor`, `@rule` or `@final` decorator
 
     .. py:decoratormethod:: Extractor.needs_elf
 
-        Use this decorator for extractors that need ELF instance. (:class:`malduck.procmem.ProcessMemoryELF`)
+        Use this decorator for extractors that need ELF instance.
+        (p is guaranteed to be :class:`malduck.procmem.ProcessMemoryELF`)
+
+        .. versionchanged:: 4.0.0
+
+            Method must be decorated first with `@extractor`, `@rule` or `@final` decorator.
 
     """
 
@@ -247,7 +378,7 @@ class Extractor:
 
         :param p: ProcessMemory object
         :type p: :class:`malduck.procmem.ProcessMemory`
-        :param match: Found yara matches for this family
+        :param match: Found yara matches for currently matched rule
         :type match: :class:`malduck.yara.YaraMatch`
         """
         # Call string-based extractors
@@ -294,10 +425,12 @@ class Extractor:
                 raise TypeError("@extractor decorator must be first")
             return StringExtractorMethod(string_or_method)
         elif isinstance(string_or_method, str):
+
             def extractor_wrapper(method):
                 if isinstance(string_or_method, ExtractorMethod):
                     raise TypeError("@extractor decorator must be first")
                 return StringExtractorMethod(method, string_name=string_or_method)
+
             return extractor_wrapper
         else:
             raise TypeError("Expected string or callable argument")
@@ -309,10 +442,12 @@ class Extractor:
                 raise TypeError("@rule decorator must be first")
             return RuleExtractorMethod(string_or_method)
         elif isinstance(string_or_method, str):
+
             def extractor_wrapper(method):
                 if isinstance(string_or_method, ExtractorMethod):
                     raise TypeError("@rule decorator must be first")
                 return RuleExtractorMethod(method, rule_name=string_or_method)
+
             return extractor_wrapper
         else:
             raise TypeError("Expected string or callable argument")
@@ -326,20 +461,26 @@ class Extractor:
     @staticmethod
     def needs_pe(method):
         if not isinstance(method, ExtractorMethod):
-            raise TypeError("@needs_pe decorator must be placed before @final/@rule/@extractor decorator")
+            raise TypeError(
+                "@needs_pe decorator must be placed before @final/@rule/@extractor decorator"
+            )
         method.procmem_type = ProcessMemoryPE
         return method
 
     @staticmethod
     def needs_elf(method):
         if not isinstance(method, ExtractorMethod):
-            raise TypeError("@needs_elf decorator must be placed before @final/@rule/@extractor decorator")
+            raise TypeError(
+                "@needs_elf decorator must be placed before @final/@rule/@extractor decorator"
+            )
         method.procmem_type = ProcessMemoryELF
         return method
 
     @staticmethod
     def weak(method):
         if not isinstance(method, ExtractorMethod):
-            raise TypeError("@weak decorator must be placed before @final/@rule/@extractor decorator")
+            raise TypeError(
+                "@weak decorator must be placed before @final/@rule/@extractor decorator"
+            )
         method.weak = True
         return method

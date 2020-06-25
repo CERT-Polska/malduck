@@ -28,24 +28,24 @@ U = TypeVar("U", bound=ProcessMemory, contravariant=True)
 V = TypeVar("V", bound="ExtractorMethod")
 
 class _StringCallback(Protocol[T, U]):
-    def __call__(cls, self: T, procmem: U, addr: int) -> Union[Config, bool, None]: ...
+    def __call__(cls, self: T, p: U, addr: int) -> Union[Config, bool, None]: ...
 
 class _RuleCallback(Protocol[T, U]):
     def __call__(
-        cls, self: T, procmem: U, matches: YaraMatch
+        cls, self: T, p: U, matches: YaraMatch
     ) -> Union[Config, bool, None]: ...
 
 class _FinalCallback(Protocol[T, U]):
-    def __call__(cls, self: T, procmem: U) -> Union[Config, bool, None]: ...
+    def __call__(cls, self: T, p: U) -> Union[Config, bool, None]: ...
 
 class ExtractorMethod(Generic[T, U]):
     """
     Represents registered extractor method
     """
+
     method: Union[_StringCallback[T, U], _RuleCallback[T, U], _FinalCallback[T, U]]
     procmem_type: Type["ProcessMemory"]
     weak: bool
-
     def __init__(
         self,
         method: Union[_StringCallback[T, U], _RuleCallback[T, U], _FinalCallback[T, U]],

@@ -89,10 +89,10 @@ class ExtractorModules:
             if not os.path.exists(modules_path):
                 os.makedirs(modules_path)
         # Load Yara rules
-        self.rules = Yara.from_dir(modules_path)
+        self.rules: Yara = Yara.from_dir(modules_path)
         # Preload modules
         load_modules(modules_path, onerror=self.on_error)
-        self.extractors = Extractor.__subclasses__()
+        self.extractors: List[Type[Extractor]] = Extractor.__subclasses__()
 
     def on_error(self, exc: Exception, module_name: str) -> None:
         """
@@ -231,11 +231,11 @@ class ExtractManager:
             binaries += list(ProcessMemoryPE.load_binaries_from_memory(p))
             binaries += list(ProcessMemoryELF.load_binaries_from_memory(p))
 
-        def fmt_procmem(p):
+        def fmt_procmem(p: ProcessMemory) -> str:
             procmem_type = "IMG" if getattr(p, "is_image", False) else "DMP"
             return f"{p.__class__.__name__}:{procmem_type}:{p.imgbase:x}"
 
-        def extract_config(procmem):
+        def extract_config(procmem: ProcessMemory) -> Optional[str]:
             log.debug("%s - ripping...", fmt_procmem(procmem))
             extractor = ProcmemExtractManager(self)
             matches.remap(procmem.p2v)
@@ -245,6 +245,7 @@ class ExtractManager:
                 return self.push_config(extractor.family, extractor.config)
             else:
                 log.debug("%s - No luck.", fmt_procmem(procmem))
+            return None
 
         # 'list()' for prettier logs
         log.debug("Matched rules: %s", list(matches.keys()))

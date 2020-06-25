@@ -10,6 +10,8 @@ from .crypto import aes, blowfish, des3, rabbit, rc4, rsa, serpent, xor
 
 from .disasm import disasm, insn
 
+from .extractor import Extractor
+
 from .hash import crc32, md5, sha1, sha224, sha256, sha384, sha512
 
 from .ints import (
@@ -132,6 +134,8 @@ __all__ = [
     # disasm
     "disasm",
     "insn",
+    # extractor
+    "Extractor",
     # hash
     "crc32",
     "md5",
