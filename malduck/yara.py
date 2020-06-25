@@ -8,7 +8,7 @@ import textwrap
 import yara
 
 
-__all__ = ["Yara", "YaraString", "YaraMatches"]
+__all__ = ["Yara", "YaraString", "YaraMatch", "YaraMatches"]
 
 log = logging.getLogger(__name__)
 

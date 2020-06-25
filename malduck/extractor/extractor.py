@@ -1,51 +1,11 @@
 import functools
 import logging
 
-from typing import Any, Callable, Dict, List, Union, Tuple, TYPE_CHECKING
-
 from ..procmem import ProcessMemory, ProcessMemoryPE, ProcessMemoryELF
-from ..yara import YaraMatches
-
-if TYPE_CHECKING:
-    from .extract_manager import ProcmemExtractManager
 
 log = logging.getLogger(__name__)
 
 __all__ = ["Extractor"]
-
-Config = Dict[str, Any]
-
-
-class MetaExtractor(type):
-    """
-    Metaclass for Extractor. Handles proper registration of decorated extraction methods
-    """
-
-    def __new__(cls, name, bases, attrs):
-        """
-        Collect ext_yara_string and ext_final methods
-        """
-        klass = type.__new__(cls, name, bases, attrs)
-
-        klass.extractor_methods = dict(getattr(klass, "extractor_methods", {}))
-        klass.final_methods = list(getattr(klass, "final_methods", []))
-
-        if type(getattr(klass, "yara_rules")) not in (list, tuple):
-            raise TypeError(f"'yara_rules' field must be 'list' or 'tuple' in {name}")
-
-        for name, method in attrs.items():
-            if isinstance(method, ExtractorMethod):
-                if method.final:
-                    klass.final_methods.append(name)
-                else:
-                    if method.yara_string in klass.extractor_methods:
-                        raise TypeError(
-                            "There can be only one extractor method "
-                            f'for "{method.yara_string}" string'
-                        )
-                    klass.extractor_methods[method.yara_string] = name
-
-        return klass
 
 
 class ExtractorMethod:
@@ -53,17 +13,24 @@ class ExtractorMethod:
     Represents registered extractor method
     """
 
-    def __init__(self, method: Callable[..., Union[Config, bool, None]]) -> None:
+    def __init__(self, method):
         self.method = method
+        self.procmem_type = ProcessMemory
         self.weak = False
-        self.needs_exec = None
-        self.final = False
-        self.yara_string = method.__name__
         functools.update_wrapper(self, method)
 
-    def __call__(self, extractor: "Extractor", *args, **kwargs) -> None:
+    def __call__(self, extractor, procmem, *args, **kwargs):
+        if not isinstance(procmem, self.procmem_type):
+            log.debug(
+                "Omitting %s.%s - %s is not %s",
+                self.__class__.__name__,
+                self.method.__name__,
+                procmem.__class__.__name__,
+                self.procmem_type.__name__,
+            )
+            return
         # Get config from extractor method
-        config = self.method(extractor, *args, **kwargs)
+        config = self.method(extractor, procmem, *args, **kwargs)
         if not config:
             return
         # If method returns True - family matched (for non-weak methods)
@@ -73,86 +40,36 @@ class ExtractorMethod:
         if not self.weak and extractor.family and "family" not in config:
             config["family"] = extractor.family
         # If config is not empty - push it
-        if config:
+        if config and isinstance(config, dict):
             extractor.push_config(config)
 
 
-class ExtractorBase:
-    family = None  #: Extracted malware family, automatically added to "family" key for strong extraction methods
-    overrides: List[
-        str
-    ] = []  #: Family match overrides another match e.g. citadel overrides zeus
-
-    def __init__(self, parent: "ProcmemExtractManager") -> None:
-        self.parent = parent  #: ProcmemExtractManager instance
-
-    def push_procmem(self, procmem: ProcessMemory, **info):
-        """
-        Push procmem object for further analysis
-
-        :param procmem: ProcessMemory object
-        :type procmem: :class:`malduck.procmem.ProcessMemory`
-        :param info: Additional info about object
-        """
-        return self.parent.push_procmem(procmem, **info)
-
-    def push_config(self, config):
-        """
-        Push partial config (used by :py:meth:`Extractor.handle_yara`)
-
-        :param config: Partial config element
-        :type config: dict
-        """
-        return self.parent.push_config(config, self)
-
-    @property
-    def matched(self) -> bool:
-        """
-        Returns True if family has been matched so far
-
-        :rtype: bool
-        """
-        return self.parent.family is not None
-
-    @property
-    def collected_config(self) -> Config:
-        """
-        Shows collected config so far (useful in "final" extractors)
-
-        :rtype: dict
-        """
-        return self.parent.collected_config
-
-    @property
-    def globals(self) -> Dict[str, Any]:
-        """
-        Container for global variables associated with analysis
-
-        :rtype: dict
-        """
-        return self.parent.globals
-
-    @property
-    def log(self) -> logging.Logger:
-        """
-        Logger instance for Extractor methods
-
-        :return: :class:`logging.Logger`
-        """
-        return logging.getLogger(
-            f"{self.__class__.__module__}.{self.__class__.__name__}"
-        )
+class StringExtractorMethod(ExtractorMethod):
+    def __init__(self, method, string_name=None) -> None:
+        super().__init__(method)
+        self.string_name = string_name or method.__name__
 
 
-class Extractor(ExtractorBase, metaclass=MetaExtractor):
+class RuleExtractorMethod(ExtractorMethod):
+    def __init__(self, method, rule_name=None):
+        super().__init__(method)
+        self.rule_name = rule_name or method.__name__
+
+
+class FinalExtractorMethod(ExtractorMethod):
+    def __init__(self, method):
+        super().__init__(method)
+
+
+class Extractor:
     """
     Base class for extractor modules
 
     Following parameters need to be defined:
 
-    * :py:attr:`family` (see :py:attr:`extractor.ExtractorBase.family`)
+    * :py:attr:`family` (see :py:attr:`extractor.Extractor.family`)
     * :py:attr:`yara_rules`
-    * :py:attr:`overrides` (optional, see :py:attr:`extractor.ExtractorBase.overrides`)
+    * :py:attr:`overrides` (optional, see :py:attr:`extractor.Extractor.overrides`)
 
     Example extractor code for Citadel:
 
@@ -241,14 +158,78 @@ class Extractor(ExtractorBase, metaclass=MetaExtractor):
 
     """
 
-    yara_rules: Tuple[
-        str, ...
-    ] = ()  #: Names of Yara rules for which handle_yara is called
+    yara_rules = ()  #: Names of Yara rules for which handle_yara is called
+    family = None  #: Extracted malware family, automatically added to "family" key for strong extraction methods
+    overrides = []  #: Family match overrides another match e.g. citadel overrides zeus
 
-    extractor_methods: Dict[str, str]
-    final_methods: Dict[str, str]
+    def __init__(self, parent) -> None:
+        self.parent = parent
 
-    def on_error(self, exc: Exception, method_name: str) -> None:
+    def push_procmem(self, procmem: ProcessMemory, **info):
+        """
+        Push procmem object for further analysis
+
+        :param procmem: ProcessMemory object
+        :type procmem: :class:`malduck.procmem.ProcessMemory`
+        :param info: Additional info about object
+        """
+        return self.parent.push_procmem(procmem, **info)
+
+    def push_config(self, config):
+        """
+        Push partial config (used by :py:meth:`Extractor.handle_yara`)
+
+        :param config: Partial config element
+        :type config: dict
+        """
+        return self.parent.push_config(config, self)
+
+    @property
+    def matched(self):
+        """
+        Returns True if family has been matched so far
+
+        :rtype: bool
+        """
+        return self.parent.family is not None
+
+    @property
+    def collected_config(self):
+        """
+        Shows collected config so far (useful in "final" extractors)
+
+        :rtype: dict
+        """
+        return self.parent.collected_config
+
+    @property
+    def globals(self):
+        """
+        Container for global variables associated with analysis
+
+        :rtype: dict
+        """
+        return self.parent.globals
+
+    @property
+    def log(self):
+        """
+        Logger instance for Extractor methods
+
+        :return: :class:`logging.Logger`
+        """
+        return logging.getLogger(
+            f"{self.__class__.__module__}.{self.__class__.__name__}"
+        )
+
+    def _get_methods(self, method_type):
+        return (
+            (name, method)
+            for name, method in self.__class__.__dict__.items()
+            if isinstance(method, method_type)
+        )
+
+    def on_error(self, exc, method_name):
         """
         Handler for all Exception's throwed by extractor methods.
 
@@ -259,7 +240,7 @@ class Extractor(ExtractorBase, metaclass=MetaExtractor):
         """
         self.parent.on_extractor_error(exc, self, method_name)
 
-    def handle_yara(self, p: ProcessMemory, match: YaraMatches) -> None:
+    def handle_yara(self, p, match):
         """
         Override this if you don't want to use decorators and customize ripping process
         (e.g. yara-independent, brute-force techniques)
@@ -267,26 +248,15 @@ class Extractor(ExtractorBase, metaclass=MetaExtractor):
         :param p: ProcessMemory object
         :type p: :class:`malduck.procmem.ProcessMemory`
         :param match: Found yara matches for this family
-        :type match: :class:`malduck.yara.YaraMatches`
+        :type match: :class:`malduck.yara.YaraMatch`
         """
         # Call string-based extractors
-        for identifier, method_name in self.extractor_methods.items():
+        for method_name, method in self._get_methods(StringExtractorMethod):
+            identifier = method.string_name
             if identifier not in match:
                 continue
-            method = getattr(self, method_name)
             for va in match[identifier]:
                 try:
-                    if method.needs_exec and not isinstance(p, method.needs_exec):
-                        log.debug(
-                            "Omitting %s.%s for %s@%x - %s is not %s",
-                            self.__class__.__name__,
-                            method_name,
-                            identifier,
-                            va,
-                            p.__class__.__name__,
-                            method.needs_exec.__name__,
-                        )
-                        continue
                     log.debug(
                         "Trying %s.%s for %s@%x",
                         self.__class__.__name__,
@@ -298,18 +268,18 @@ class Extractor(ExtractorBase, metaclass=MetaExtractor):
                 except Exception as exc:
                     self.on_error(exc, method_name)
 
-        # Call final extractors
-        for method_name in self.final_methods:
-            method = getattr(self, method_name)
-            if method.needs_exec and not isinstance(p, method.needs_exec):
-                log.debug(
-                    "Omitting %s.%s (final) - %s is not %s",
-                    self.__class__.__name__,
-                    method_name,
-                    p.__class__.__name__,
-                    method.needs_exec.__name__,
-                )
+        # Call rule-based extractors
+        for method_name, method in self._get_methods(RuleExtractorMethod):
+            if match.name != method.rule_name:
                 continue
+            log.debug("Trying %s.%s (rule)", self.__class__.__name__, method_name)
+            try:
+                method(self, p, match)
+            except Exception as exc:
+                self.on_error(exc, method_name)
+
+        # Call final extractors
+        for method_name, method in self._get_methods(FinalExtractorMethod):
             log.debug("Trying %s.%s (final)", self.__class__.__name__, method_name)
             try:
                 method(self, p)
@@ -317,53 +287,59 @@ class Extractor(ExtractorBase, metaclass=MetaExtractor):
                 self.on_error(exc, method_name)
 
     # Extractor method decorators
+    @staticmethod
+    def extractor(string_or_method):
+        if callable(string_or_method):
+            if isinstance(string_or_method, ExtractorMethod):
+                raise TypeError("@extractor decorator must be first")
+            return StringExtractorMethod(string_or_method)
+        elif isinstance(string_or_method, str):
+            def extractor_wrapper(method):
+                if isinstance(string_or_method, ExtractorMethod):
+                    raise TypeError("@extractor decorator must be first")
+                return StringExtractorMethod(method, string_name=string_or_method)
+            return extractor_wrapper
+        else:
+            raise TypeError("Expected string or callable argument")
+
+    @staticmethod
+    def rule(string_or_method):
+        if callable(string_or_method):
+            if isinstance(string_or_method, ExtractorMethod):
+                raise TypeError("@rule decorator must be first")
+            return RuleExtractorMethod(string_or_method)
+        elif isinstance(string_or_method, str):
+            def extractor_wrapper(method):
+                if isinstance(string_or_method, ExtractorMethod):
+                    raise TypeError("@rule decorator must be first")
+                return RuleExtractorMethod(method, rule_name=string_or_method)
+            return extractor_wrapper
+        else:
+            raise TypeError("Expected string or callable argument")
+
+    @staticmethod
+    def final(method):
+        if isinstance(method, ExtractorMethod):
+            raise TypeError("@final decorator must be first")
+        return FinalExtractorMethod(method)
 
     @staticmethod
     def needs_pe(method):
-        method = Extractor._extractor_method(method)
-        method.needs_exec = ProcessMemoryPE
+        if not isinstance(method, ExtractorMethod):
+            raise TypeError("@needs_pe decorator must be placed before @final/@rule/@extractor decorator")
+        method.procmem_type = ProcessMemoryPE
         return method
 
     @staticmethod
     def needs_elf(method):
-        method = Extractor._extractor_method(method)
-        method.needs_exec = ProcessMemoryELF
+        if not isinstance(method, ExtractorMethod):
+            raise TypeError("@needs_elf decorator must be placed before @final/@rule/@extractor decorator")
+        method.procmem_type = ProcessMemoryELF
         return method
 
     @staticmethod
     def weak(method):
-        method = Extractor._extractor_method(method)
+        if not isinstance(method, ExtractorMethod):
+            raise TypeError("@weak decorator must be placed before @final/@rule/@extractor decorator")
         method.weak = True
         return method
-
-    @staticmethod
-    def extractor(string_or_method=None, final=False):
-        if final and string_or_method:
-            raise ValueError("String identifier is unnecessary for final methods")
-
-        def extractor_wrapper(method):
-            extractor_method = Extractor._extractor_method(method)
-            # If there is string provided, use it as yara_string
-            if string_or_method and not callable(string_or_method):
-                extractor_method.yara_string = string_or_method
-            extractor_method.final = final
-            return extractor_method
-
-        if callable(string_or_method):
-            return extractor_wrapper(string_or_method)
-        else:
-            return extractor_wrapper
-
-    @staticmethod
-    def final(method):
-        return Extractor.extractor(final=True)(method)
-
-    # Internals
-
-    @staticmethod
-    def _extractor_method(method):
-        # Check whether method is already wrapped by ExtractorMethod
-        if isinstance(method, ExtractorMethod):
-            return method
-        else:
-            return ExtractorMethod(method)

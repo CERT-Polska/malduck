@@ -5,7 +5,7 @@ from typing import Any, Dict, Optional, List, Type, Union
 
 from ..yara import Yara, YaraMatches
 from ..procmem import ProcessMemory
-from .extractor import Extractor, ExtractorBase
+from .extractor import Extractor
 from .loaders import load_modules
 
 log = logging.getLogger(__name__)
@@ -319,7 +319,7 @@ class ProcmemExtractManager:
                     except Exception as exc:
                         self.parent.on_error(exc, extractor)
 
-    def push_config(self, config: Config, extractor: ExtractorBase) -> None:
+    def push_config(self, config: Config, extractor: Extractor) -> None:
         """
         Pushes new partial config
 
