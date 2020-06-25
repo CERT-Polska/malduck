@@ -3,19 +3,13 @@
 # See the file 'docs/LICENSE.txt' for copying permission.
 
 import pefile
-from .py2compat import binary_type, text_type, ensure_bytes, ensure_string, PY3
+
+from typing import Optional, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .procmem import ProcessMemory
 
 __all__ = ["pe", "PE", "MemoryPEData", "FastPE", "pe2cuckoo"]
-
-
-if not PY3:
-    """
-    Workaround for https://github.com/erocarrera/pefile/issues/267
-    """
-    from pefile import bytes
-
-    pefile.allowed_function_name = bytes(pefile.allowed_function_name)
-    pefile.allowed_filename = bytes(pefile.allowed_filename)
 
 
 class FastPE(pefile.PE):
@@ -45,14 +39,14 @@ class FastPE(pefile.PE):
         return True
 
 
-class MemoryPEData(object):
+class MemoryPEData:
     """
     `pefile.PE.__data__` represents image file usually aligned to 512 bytes.
     MemoryPEData perform mapping from pefile's offset-access to Memory object va-access
     based on section layout.
     """
 
-    def __init__(self, memory, fast_load):
+    def __init__(self, memory: "ProcessMemory", fast_load: bool) -> None:
         self.memory = memory
         # Preload headers
         self.pe = FastPE(data=self, fast_load=True)
@@ -60,12 +54,12 @@ class MemoryPEData(object):
         if not fast_load:
             self.pe.full_load()
 
-    def map_offset(self, offs):
+    def map_offset(self, offs: int) -> int:
         if not hasattr(self, "pe") or not self.pe.sections:
             return self.memory.imgbase + offs
         return self.memory.imgbase + (self.pe.get_rva_from_offset(offs) or offs)
 
-    def __len__(self):
+    def __len__(self) -> int:
         return (
             self.memory.regions[-1].addr
             - self.memory.regions[0].addr
@@ -81,7 +75,7 @@ class MemoryPEData(object):
             stop = start
         return self.memory.readv(start, stop - start + 1)
 
-    def find(self, str, beg=0, end=None):
+    def find(self, str: bytes, beg: int = 0, end: Optional[int] = None) -> int:
         if end and beg >= end:
             return -1
         try:
@@ -166,8 +160,11 @@ class PE(object):
         :param name: Section name
         :type name: str or bytes
         """
+        if isinstance(name, str):
+            name = name.encode()
+
         for section in self.pe.sections:
-            if section.Name.rstrip(b"\x00") == ensure_bytes(name):
+            if section.Name.rstrip(b"\x00") == name:
                 return section
 
     def directory(self, name):
@@ -306,13 +303,13 @@ class PE(object):
         def type_int(e1, e2, e3):
             return e1.id == type_id
 
-        if isinstance(name, text_type):
-            name = ensure_bytes(name)
+        if isinstance(name, str):
+            name = name.encode()
 
-        if isinstance(name, binary_type):
+        if isinstance(name, bytes):
             if name.startswith(b"RT_"):
                 compare = type_int
-                type_id = pefile.RESOURCE_TYPE[ensure_string(name)]
+                type_id = pefile.RESOURCE_TYPE[name.decode()]
             else:
                 compare = name_str
         else:

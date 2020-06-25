@@ -6,7 +6,6 @@ import warnings
 
 from typing import Optional
 
-from ..py2compat import is_integer
 from ..string.ops import Padding, enhex, unhex
 from ..ints import UInt8, UInt16, UInt32, UInt64, Int8, Int16, Int32, Int64
 
@@ -134,11 +133,11 @@ class Bigint:
             "malduck.bigint() is deprecated, use malduck.bigint.unpack/pack methods",
             DeprecationWarning,
         )
-        if is_integer(s):
+        if isinstance(s, int):
             return Padding.null(unhex("%x" % s)[::-1], bitsize // 8)
 
         if len(s) < bitsize // 8:
-            raise ValueError("Buffer is trimmed: {} < {}".format(len(s) * 8, bitsize))
+            raise ValueError(f"Buffer is trimmed: {len(s) * 8} < {bitsize}")
 
         return int(enhex(s[: bitsize // 8][::-1]), 16)
 

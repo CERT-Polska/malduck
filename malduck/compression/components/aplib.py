@@ -8,22 +8,22 @@ Approximately ~20 times faster than the other Python implementations.
 """
 from io import BytesIO
 
-__all__ = ["decompress"]
+__all__ = ["ap_depack"]
 __version__ = "0.3"
 __author__ = "Sandor Nemes"
 
 
-class APDSTATE(object):
+class APDSTATE:
     """internal data structure"""
 
-    def __init__(self, source):
+    def __init__(self, source: bytes) -> None:
         self.source = BytesIO(source)
         self.destination = bytearray()
         self.tag = 0
         self.bitcount = 0
 
 
-def ap_getbit(ud):
+def ap_getbit(ud: APDSTATE) -> int:
     # check if tag is empty
     ud.bitcount -= 1
     if ud.bitcount < 0:
@@ -38,7 +38,7 @@ def ap_getbit(ud):
     return bit
 
 
-def ap_getgamma(ud):
+def ap_getgamma(ud: APDSTATE) -> int:
     result = 1
 
     # input gamma2-encoded bits
@@ -50,7 +50,7 @@ def ap_getgamma(ud):
     return result
 
 
-def ap_depack(source):
+def ap_depack(source: bytes) -> bytearray:
     ud = APDSTATE(source)
 
     r0 = -1
@@ -130,10 +130,3 @@ def ap_depack(source):
             lwm = 0
 
     return ud.destination
-
-
-def decompress(data):
-    try:
-        return bytes(ap_depack(data))
-    except Exception:
-        raise Exception("aPLib decompression error")

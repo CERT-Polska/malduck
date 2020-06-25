@@ -1,30 +1,44 @@
-from .procmem import ProcessMemory
+from abc import ABCMeta, abstractmethod
+from typing import List, Iterator, Optional, Type, TypeVar
+
+from .region import Region
+from .procmem import ProcessMemory, ProcessMemoryBuffer
+
+T = TypeVar("T", bound="ProcessMemoryBinary")
 
 
-class ProcessMemoryBinary(ProcessMemory):
+class ProcessMemoryBinary(ProcessMemory, metaclass=ABCMeta):
     """
     Abstract class for memory-mapped executable binary
     """
 
-    __magic__ = None
+    __magic__: Optional[bytes] = None
 
-    def __init__(self, buf, base=0, regions=None, image=False, detect_image=False):
-        super(ProcessMemoryBinary, self).__init__(buf, base=base, regions=regions)
+    def __init__(
+        self: T,
+        buf: ProcessMemoryBuffer,
+        base: int = 0,
+        regions: Optional[List[Region]] = None,
+        image: bool = False,
+        detect_image: bool = False,
+    ) -> None:
+        super().__init__(buf, base=base, regions=regions)
         if detect_image:
             image = self.is_image_loaded_as_memdump()
         self.is_image = image
-        self._image = None
+        self._image: Optional[T] = None
         if image:
             self._reload_as_image()
 
-    def _reload_as_image(self):
+    @abstractmethod
+    def _reload_as_image(self) -> None:
         """
         Load executable file embedded in ProcessMemory like native loader does
         """
         raise NotImplementedError()
 
     @property
-    def image(self):
+    def image(self: T) -> Optional[T]:
         """
         Returns ProcessMemory object loaded with image=True or None if can't be loaded or is loaded as image yet
         """
@@ -37,14 +51,15 @@ class ProcessMemoryBinary(ProcessMemory):
         except Exception:
             return None
 
-    def is_valid(self):
+    @abstractmethod
+    def is_valid(self) -> bool:
         """
         Checks whether imgbase is pointing at valid binary header
         """
         raise NotImplementedError()
 
     @classmethod
-    def load_binaries_from_memory(cls, procmem):
+    def load_binaries_from_memory(cls: Type[T], procmem: ProcessMemory) -> Iterator[T]:
         """
         Looks for binaries in ProcessMemory object and yields specialized ProcessMemoryBinary objects
         :param procmem: ProcessMemory object to search
@@ -56,7 +71,8 @@ class ProcessMemoryBinary(ProcessMemory):
             if binary_procmem.is_valid():
                 yield binary_procmem
 
-    def is_image_loaded_as_memdump(self):
+    @abstractmethod
+    def is_image_loaded_as_memdump(self) -> bool:
         """
         Uses some heuristics to deduce whether contents can be loaded with `image=True`.
         Used by `detect_image`

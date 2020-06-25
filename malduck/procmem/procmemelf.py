@@ -1,9 +1,12 @@
-from .region import Region
-from .binmem import ProcessMemoryBinary
-
 import elftools
 import elftools.elf.elffile
 import io
+
+from typing import List, Optional
+
+from .binmem import ProcessMemoryBinary
+from .procmem import ProcessMemoryBuffer
+from .region import Region
 
 __all__ = ["ProcessMemoryELF", "procmemelf"]
 
@@ -20,14 +23,23 @@ class ProcessMemoryELF(ProcessMemoryBinary):
 
     __magic__ = b"\x7fELF"
 
-    def __init__(self, buf, base=0, regions=None, image=False, detect_image=False):
+    def __init__(
+        self,
+        buf: ProcessMemoryBuffer,
+        base: int = 0,
+        regions: Optional[List[Region]] = None,
+        image: bool = False,
+        detect_image: bool = False,
+    ) -> None:
         self._elf = None
-        super(ProcessMemoryELF, self).__init__(
+        super().__init__(
             buf, base=base, regions=regions, image=image, detect_image=detect_image
         )
 
-    def _elf_direct_load(self):
+    def _elf_direct_load(self) -> elftools.elf.elffile.ELFFile:
         offset = self.v2p(self.imgbase)
+        if offset is None:
+            raise RuntimeError("imgbase out of regions")
         # Stream required for ELFFile()
         stream = io.BytesIO(self.readp(offset))
         elf = elftools.elf.elffile.ELFFile(stream)
@@ -35,7 +47,7 @@ class ProcessMemoryELF(ProcessMemoryBinary):
         list(elf.iter_segments())
         return elf
 
-    def is_valid(self):
+    def is_valid(self) -> bool:
         if self.readv(self.imgbase, 4) != self.__magic__:
             return False
         try:
@@ -44,17 +56,17 @@ class ProcessMemoryELF(ProcessMemoryBinary):
         except Exception:
             return False
 
-    def _reload_as_image(self):
+    def _reload_as_image(self) -> None:
         page_size = 0x1000
         # Reset regions
-        self.imgbase = None
-        self.regions = []
+        imgbase = None
+        regions = []
         # Load image segments
         for segment in self.elf.iter_segments():
             if segment.header["p_type"] == "PT_LOAD":
                 if segment.header["p_offset"] == 0:
                     # virtual address of ELF file header
-                    self.imgbase = segment.header["p_vaddr"]
+                    imgbase = segment.header["p_vaddr"]
                 if page_size is None:
                     presegment_len = 0
                     postsegment_len = 0
@@ -65,7 +77,7 @@ class ProcessMemoryELF(ProcessMemoryBinary):
                         - (segment.header["p_vaddr"] + segment.header["p_filesz"])
                         % page_size
                     )
-                self.regions.append(
+                regions.append(
                     Region(
                         segment.header["p_vaddr"] - presegment_len,
                         segment.header["p_filesz"] + presegment_len + postsegment_len,
@@ -75,11 +87,15 @@ class ProcessMemoryELF(ProcessMemoryBinary):
                         segment.header["p_offset"] - presegment_len,
                     )
                 )
-        if len(self.regions) == 0:
+        if len(regions) == 0:
             raise elftools.elf.elffile.ELFError("No regions in ELF file!")
+        if imgbase is None:
+            raise elftools.elf.elffile.ELFError("Can't find ELF image base!")
+        self.imgbase = imgbase
+        self.regions = regions
 
     @property
-    def elf(self):
+    def elf(self) -> elftools.elf.elffile.ELFFile:
         """Related :class:`ELFFile` object"""
         if not self._elf:
             self._elf = self._elf_direct_load()
@@ -89,7 +105,7 @@ class ProcessMemoryELF(ProcessMemoryBinary):
         raise NotImplementedError()
 
     @property
-    def imgend(self):
+    def imgend(self) -> int:
         """Address where ELF image ends"""
         lastSegment = self.elf.get_segment(self.elf.num_segment() - 1)
         return lastSegment.header["p_vaddr"] + lastSegment.header["p_memsz"]

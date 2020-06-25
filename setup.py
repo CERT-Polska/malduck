@@ -20,7 +20,8 @@ setup(
     install_requires=open("requirements.txt").read().splitlines(),
     url="https://github.com/CERT-Polska/malduck",
     classifiers=[
-        "Programming Language :: Python",
+        "Programming Language :: Python :: 3",
         "Operating System :: POSIX :: Linux",
-    ]
+    ],
+    python_requires='>=3.6'
 )

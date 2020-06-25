@@ -1,5 +1,6 @@
+from typing import Optional
+
 from .components.aplib import ap_depack
-from ..py2compat import binary_type
 
 import logging
 import struct
@@ -9,12 +10,9 @@ __all__ = ["aPLib", "aplib"]
 log = logging.getLogger(__name__)
 
 
-class aPLib(object):
+class aPLib:
     r"""
     aPLib decompression
-
-    .. versionchanged:: 2.0
-        `length` argument is deprecated
 
     .. code-block:: python
 
@@ -32,16 +30,14 @@ class aPLib(object):
     :rtype: bytes
     """
 
-    def decompress(self, buf, length=None, headerless=False):
-        if length is not None:
-            log.warning("Length argument is ignored by aPLib.decompress")
+    def decompress(self, buf: bytes, headerless: bool = False) -> Optional[bytes]:
         try:
             # Trim header
             if not headerless and buf.startswith(b"AP32"):
                 hdr_length = struct.unpack_from("<I", buf, 4)[0]
                 buf = buf[hdr_length:]
             # Decompress aPLib
-            return binary_type(ap_depack(buf))
+            return bytes(ap_depack(buf))
         except Exception:
             return None
 

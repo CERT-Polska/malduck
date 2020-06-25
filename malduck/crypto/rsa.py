@@ -9,7 +9,8 @@ from itertools import takewhile
 
 from .winhdr import BLOBHEADER, BaseBlob
 from ..string.bin import uint32, bigint
-from ..py2compat import long
+from io import BytesIO
+from typing import Optional, cast
 
 __all__ = ["PublicKeyBlob", "PrivateKeyBlob", "RSA", "rsa"]
 
@@ -17,43 +18,45 @@ __all__ = ["PublicKeyBlob", "PrivateKeyBlob", "RSA", "rsa"]
 class PublicKeyBlob(BaseBlob):
     magic = b"RSA1"
 
-    def __init__(self):
+    def __init__(self) -> None:
         BaseBlob.__init__(self)
-        self.e = None
-        self.n = None
+        self.e: Optional[int] = None
+        self.n: Optional[int] = None
 
-    def parse(self, buf):
+    def parse(self, buf: BytesIO) -> Optional[int]:
         header = buf.read(12)
         if len(header) != 12 or header[:4] != self.magic:
-            return
+            return None
 
-        self.bitsize = uint32(header[4:8])
-        self.e = int(uint32(header[8:12]))
+        self.bitsize = cast(int, uint32(header[4:8], fixed=False))
+        self.e = cast(int, uint32(header[8:12], fixed=False))
 
         n = buf.read(self.bitsize // 8)
         if len(n) != self.bitsize // 8:
-            return
+            return None
 
         self.n = bigint.unpack(n)
         return 12 + self.bitsize // 8
 
-    def export_key(self):
+    def export_key(self) -> bytes:
+        if not (self.e and self.n):
+            raise ValueError("The imported key is invalid")
         return RSA.export_key(self.n, self.e)
 
 
 class PrivateKeyBlob(PublicKeyBlob):
     magic = b"RSA2"
 
-    def __init__(self):
+    def __init__(self) -> None:
         PublicKeyBlob.__init__(self)
-        self.p1 = None
-        self.p2 = None
-        self.exp1 = None
-        self.exp2 = None
-        self.coeff = None
-        self.d = None
+        self.p1: Optional[int] = None
+        self.p2: Optional[int] = None
+        self.exp1: Optional[int] = None
+        self.exp2: Optional[int] = None
+        self.coeff: Optional[int] = None
+        self.d: Optional[int] = None
 
-    def parse(self, buf):
+    def parse(self, buf: BytesIO) -> None:
         off = PublicKeyBlob.parse(self, buf)
         if not off:
             return
@@ -82,7 +85,9 @@ class PrivateKeyBlob(PublicKeyBlob):
         if self.d is None:
             return
 
-    def export_key(self):
+    def export_key(self) -> bytes:
+        if not (self.e and self.n):
+            raise ValueError("The imported key is invalid")
         return RSA.export_key(self.n, self.e, self.d)
 
 
@@ -92,11 +97,11 @@ BlobTypes = {
 }
 
 
-class RSA(object):
+class RSA:
     algorithms = (0x0000A400,)  # RSA
 
     @staticmethod
-    def import_key(data):
+    def import_key(data: bytes) -> Optional[bytes]:
         r"""
         Extracts key from buffer containing :class:`PublicKeyBlob` or :class:`PrivateKeyBlob` data
 
@@ -111,22 +116,29 @@ class RSA(object):
             pass
 
         if len(data) < BLOBHEADER.sizeof():
-            return
+            return None
 
         buf = io.BytesIO(data)
         header = BLOBHEADER.parse(buf.read(BLOBHEADER.sizeof()))
         if header.bType not in BlobTypes:
-            return
+            return None
 
         if header.aiKeyAlg not in RSA.algorithms:
-            return
+            return None
 
         obj = BlobTypes[header.bType]()
         obj.parse(buf)
         return obj.export_key()
 
     @staticmethod
-    def export_key(n, e, d=None, p=None, q=None, crt=None):
+    def export_key(
+        n: int,
+        e: int,
+        d: Optional[int] = None,
+        p: Optional[int] = None,
+        q: Optional[int] = None,
+        crt: Optional[int] = None,
+    ) -> bytes:
         r"""
         Constructs key from tuple of RSA components
 
@@ -141,12 +153,12 @@ class RSA(object):
         """
 
         def wrap(x):
-            return None if x is None else long(x)
+            return None if x is None else int(x)
 
         tup = wrap(n), wrap(e), wrap(d), wrap(p), wrap(q), wrap(crt)
         # PyCryptodome accepts only variable-length tuples
-        tup = tuple(takewhile(lambda x: x is not None, tup))
-        return RSA_.construct(tup, consistency_check=False).export_key()
+        tup_w = tuple(takewhile(lambda x: x is not None, tup))
+        return RSA_.construct(tup_w, consistency_check=False).export_key()  # type: ignore
 
 
 rsa = RSA

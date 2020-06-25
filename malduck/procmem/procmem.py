@@ -1,16 +1,20 @@
 import mmap
 import re
 
+from typing import BinaryIO, List, Optional, Union, cast
+
 from .region import Region, PAGE_EXECUTE_READWRITE
 from ..disasm import disasm
 from ..string.bin import uint8, uint16, uint32, uint64, int8, int16, int32, int64
 from ..string.ops import utf16z
-from ..py2compat import is_binary, ensure_string, binary_type
+from ..yara import Yara, YaraString
 
 __all__ = ["ProcessMemory", "procmem"]
 
+ProcessMemoryBuffer = Union[bytes, bytearray, mmap.mmap]
 
-class ProcessMemory(object):
+
+class ProcessMemory:
     """
     Basic virtual memory representation
 
@@ -72,13 +76,22 @@ class ProcessMemory(object):
             p.pe.resource("NPENCODINGDIALOG")
     """
 
-    def __init__(self, buf, base=0, regions=None):
-        self.f = None
+    def __init__(self, buf, base=0, regions=None, **_):
+        self.f: Optional[BinaryIO] = None
+        self.mapped_memory: Optional[mmap.mmap] = None
+        self.memory: Optional[bytearray] = None
 
-        if isinstance(buf, binary_type):
-            self.m = bytearray(buf)
+        if isinstance(buf, mmap.mmap):
+            self.mapped_memory = buf
+        elif isinstance(buf, bytes):
+            self.memory = bytearray(buf)
+        elif isinstance(buf, bytearray):
+            self.memory = buf
         else:
-            self.m = buf
+            raise TypeError(
+                "Wrong buffer type - must be bytes, bytearray or mmap object"
+            )
+
         self.imgbase = base
 
         if regions is not None:
@@ -92,21 +105,37 @@ class ProcessMemory(object):
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
 
+    @property
+    def m(self):
+        memory = (
+            cast(bytearray, self.mapped_memory)
+            if self.mapped_memory is not None
+            else self.memory
+        )
+        if memory is None:
+            raise RuntimeError("ProcessMemory object is invalidated")
+        return memory
+
     def close(self, copy=False):
         """
         Closes opened files referenced by ProcessMemory object
 
+        If copy is False (default): invalidates the object.
+
         :param copy: Copy data into string before closing the mmap object (default: False)
+        :type copy: bool
         """
         if self.f is not None:
-            if self._mmaped:
+            if self.mapped_memory is not None:
                 if copy:
-                    self.m.seek(0)
-                    buf = bytearray(self.m.read())
+                    self.mapped_memory.seek(0)
+                    contents = self.mapped_memory.read()
+                    buf: Optional[bytearray] = bytearray(contents)
                 else:
                     buf = None
-                self.m.close()
-                self.m = buf
+                self.mapped_memory.close()
+                self.mapped_memory = None
+                self.memory = buf
             self.f.close()
             self.f = None
 
@@ -140,8 +169,9 @@ class ProcessMemory(object):
             # Fallback to f.read()
             memory = cls(f.read(), **kwargs)
             f.close()
-            f = None
-        memory.f = f
+            memory.f = None
+        else:
+            memory.f = f
         return memory
 
     @classmethod
@@ -154,7 +184,7 @@ class ProcessMemory(object):
         :param memory: ProcessMemory object to be copied
         :type memory: :class:`ProcessMemory`
         :param base: Virtual address of region of interest (imgbase)
-        :type base: int
+        :type base: int (optional, default is provided by specialized class)
         :rtype: :class:`ProcessMemory`
         """
         copied = cls(
@@ -164,15 +194,17 @@ class ProcessMemory(object):
         return copied
 
     @property
-    def _mmaped(self):
-        return isinstance(self.m, mmap.mmap)
-
-    @property
     def length(self):
-        if self._mmaped:
-            return self.m.size()
+        """
+        Returns length of raw memory contents
+        :rtype: int
+        """
+        if self.mapped_memory is not None:
+            return self.mapped_memory.size()
+        elif self.memory is not None:
+            return len(self.memory)
         else:
-            return len(self.m)
+            return 0
 
     def iter_regions(
         self, addr=None, offset=None, length=None, contiguous=False, trim=False
@@ -250,6 +282,10 @@ class ProcessMemory(object):
         # Now, our starting "addr"/"offset" is placed inside starting "region"
         # Let's translate our offset to addr if necessary
         if addr is None:
+            if offset is None:
+                raise RuntimeError(
+                    "Something went wrong, starting region offset is set to None?"
+                )
             addr = region.p2v(offset)
         # Continue enumeration
         prev_region = None
@@ -287,6 +323,8 @@ class ProcessMemory(object):
             mapping_length += region.size
             if mapping_length >= length:
                 return region.v2p(addr)
+        else:
+            return None
 
     def p2v(self, off, length=None):
         """
@@ -311,6 +349,8 @@ class ProcessMemory(object):
             mapping_length += region.size
             if mapping_length >= length:
                 return region.p2v(off)
+        else:
+            return None
 
     def is_addr(self, addr):
         """
@@ -345,9 +385,9 @@ class ProcessMemory(object):
         :rtype: bytes
         """
         if length is None:
-            return binary_type(self.m[offset:])
+            return bytes(self.m[offset:])
         else:
-            return binary_type(self.m[offset : offset + length])
+            return bytes(self.m[offset : offset + length])
 
     def readv_regions(self, addr=None, length=None, contiguous=True):
         """
@@ -365,8 +405,8 @@ class ProcessMemory(object):
         :param contiguous: If True, readv_regions breaks after first gap
         :rtype: Iterator[Tuple[int, bytes]]
         """
-        current_addr = None
-        current_strings = []
+        current_addr = 0
+        current_strings: List[bytes] = []
         prev_region = None
         for region in self.iter_regions(
             addr=addr, length=length, contiguous=contiguous, trim=True
@@ -397,7 +437,7 @@ class ProcessMemory(object):
         _, chunk = next(self.readv_regions(addr, length), (0, b""))
         return chunk
 
-    def readv_until(self, addr, s=None):
+    def readv_until(self, addr, s):
         """
         Read a chunk of memory until the stop marker
 
@@ -446,15 +486,13 @@ class ProcessMemory(object):
                 embed_pe = procmempe.from_memory(embed_pe, image=True)
                 assert embed_pe.asciiz(0x1000a410) == b"StrToIntExA"
         """
-        length = len(buf)
-        if hasattr(self.m, "__setitem__"):
-            self.m[offset : offset + length] = buf
-        else:
-            self.m = self.m[:offset] + buf + self.m[offset + length :]
+        self.m[offset : offset + len(buf)] = buf
 
     def patchv(self, addr, buf):
         """
         Patch bytes under specified virtual address
+
+        Patched address range must be within single region, ValueError is raised otherwise.
 
         :param addr: Virtual address
         :type addr: int
@@ -464,7 +502,9 @@ class ProcessMemory(object):
         region = self.addr_region(addr)
         # Boundary check
         if region is None or region.end < (addr + len(buf)):
-            raise ValueError("Cross-region patching is not supported")
+            raise ValueError(
+                "Patched bytes range must be contained within single, existing region"
+            )
         return self.patchp(region.v2p(addr), buf)
 
     def uint8p(self, offset, fixed=False):
@@ -498,6 +538,22 @@ class ProcessMemory(object):
     def uint64v(self, addr, fixed=False):
         """Read unsigned 64-bit value at address."""
         return uint64(self.readv(addr, 8), fixed=fixed)
+
+    def int8p(self, offset, fixed=False):
+        """Read signed 8-bit value at offset."""
+        return int8(self.readp(offset, 1), fixed=fixed)
+
+    def int16p(self, offset, fixed=False):
+        """Read signed 16-bit value at offset."""
+        return int16(self.readp(offset, 2), fixed=fixed)
+
+    def int32p(self, offset, fixed=False):
+        """Read signed 32-bit value at offset."""
+        return int32(self.readp(offset, 4), fixed=fixed)
+
+    def int64p(self, offset, fixed=False):
+        """Read signed 64-bit value at offset."""
+        return int64(self.readp(offset, 8), fixed=fixed)
 
     def int8v(self, addr, fixed=False):
         """Read signed 8-bit value at address."""
@@ -535,7 +591,8 @@ class ProcessMemory(object):
             buf += self.readv(addr + len(buf), 1)
         return utf16z(buf + b"\x00\x00")
 
-    def _find(self, buf, query, offset=0, length=None):
+    def _find(self, buf, query, offset=None, length=None):
+        offset = offset or 0
         while True:
             if length is None:
                 idx = buf.find(query, offset)
@@ -546,9 +603,11 @@ class ProcessMemory(object):
             yield idx
             offset = idx + 1
 
-    def findp(self, query, offset=0, length=None):
+    def findp(self, query, offset=None, length=None):
         """
         Find raw bytes in memory (non-region-wise).
+
+        If offset is None, looks for substring from the beginning of memory
 
         :param query: Substring to find
         :type query: bytes
@@ -565,6 +624,8 @@ class ProcessMemory(object):
         """
         Find raw bytes in memory (region-wise)
 
+        If addr is None, looks for substring from the beginning of memory
+
         :param query: Substring to find
         :type query: bytes
         :param addr: Virtual address of region where searching starts
@@ -578,9 +639,11 @@ class ProcessMemory(object):
             for idx in self._find(chunk, query):
                 yield idx + chunk_addr
 
-    def regexp(self, query, offset=0, length=None):
+    def regexp(self, query, offset=None, length=None):
         """
         Performs regex on the memory contents (non-region-wise)
+
+        If offset is None, looks for match from the beginning of memory
 
         :param query: Regular expression to find
         :type query: bytes
@@ -591,8 +654,9 @@ class ProcessMemory(object):
         :return: Generates offsets where regex was matched
         :rtype: Iterator[int]
         """
+        offset = offset or 0
         chunk = self.readp(offset, length)
-        if not is_binary(query):
+        if not isinstance(query, bytes):
             # Can't just encode the string.
             # E.g. '\xf7'.encode('utf-8') would be encoded to b'\xc3\xb7'
             # instead of b'\xf7'.
@@ -603,6 +667,8 @@ class ProcessMemory(object):
     def regexv(self, query, addr=None, length=None):
         """
         Performs regex on the memory contents (region-wise)
+
+        If addr is None, looks for match from the beginning of memory
 
         :param query: Regular expression to find
         :type query: bytes
@@ -617,7 +683,7 @@ class ProcessMemory(object):
 
            Method doesn't match bytes overlapping the border between regions
         """
-        if not is_binary(query):
+        if not isinstance(query, bytes):
             # Can't just encode the string.
             # E.g. '\xf7'.encode('utf-8') would be encoded to b'\xc3\xb7'
             # instead of b'\xf7'.
@@ -636,7 +702,7 @@ class ProcessMemory(object):
         :type size: int
         :param x64: Assembly is 64bit
         :type x64: bool (optional)
-        :return: :class:`Disassemble`
+        :return: :class:`List[Instruction]`
         """
         return disasm(self.readv(addr, size), addr, x64=x64)
 
@@ -660,9 +726,11 @@ class ProcessMemory(object):
         extract_manager.push_procmem(self)
         return extract_manager.config
 
-    def yarap(self, ruleset, offset=0, length=None):
+    def yarap(self, ruleset, offset=None, length=None):
         """
         Perform yara matching (non-region-wise)
+
+        If offset is None, looks for match from the beginning of memory
 
         :param ruleset: Yara object with loaded yara rules
         :type ruleset: :class:`malduck.yara.Yara`
@@ -672,11 +740,13 @@ class ProcessMemory(object):
         :type length: int (optional)
         :rtype: :class:`malduck.yara.YaraMatches`
         """
-        return ruleset.match(data=self.readp(offset, length))
+        return ruleset.match(data=self.readp(offset or 0, length))
 
     def yarav(self, ruleset, addr=None, length=None):
         """
         Perform yara matching (region-wise)
+
+        If addr is None, looks for match from the beginning of memory
 
         :param ruleset: Yara object with loaded yara rules
         :type ruleset: :class:`malduck.yara.Yara`
@@ -699,9 +769,9 @@ class ProcessMemory(object):
         return ruleset.match(data=self.readp(0), offset_mapper=map_offset)
 
     def _findbytes(self, yara_fn, query, addr, length):
-        from ..yara import Yara, YaraString
+        if isinstance(query, bytes):
+            query = query.decode()
 
-        query = ensure_string(query)
         rule = Yara(strings=YaraString(query, type=YaraString.HEX))
         match = yara_fn(rule, addr, length)
         if match:
@@ -709,9 +779,11 @@ class ProcessMemory(object):
         else:
             return []
 
-    def findbytesp(self, query, offset=0, length=None):
+    def findbytesp(self, query, offset=None, length=None):
         """
         Search for byte sequences (e.g., `4? AA BB ?? DD`). Uses :py:meth:`yarap` internally
+
+        If offset is None, looks for match from the beginning of memory
 
         .. versionadded:: 1.4.0
            Query is passed to yarap as single hexadecimal string rule. Use Yara-compatible strings only
@@ -730,6 +802,8 @@ class ProcessMemory(object):
     def findbytesv(self, query, addr=None, length=None):
         """
         Search for byte sequences (e.g., `4? AA BB ?? DD`). Uses :py:meth:`yarav` internally
+
+        If addr is None, looks for match from the beginning of memory
 
         .. versionadded:: 1.4.0
            Query is passed to yarav as single hexadecimal string rule. Use Yara-compatible strings only
@@ -769,7 +843,7 @@ class ProcessMemory(object):
         while True:
             buf = self.readv(addr, 2)
             if not buf:
-                return
+                return None
             if buf == b"MZ":
                 return addr
             addr -= 0x1000

@@ -4,19 +4,13 @@ import json
 import logging
 import os
 import re
+import textwrap
 import yara
 
-__all__ = ["Yara", "YaraString"]
+
+__all__ = ["Yara", "YaraString", "YaraMatches"]
 
 log = logging.getLogger(__name__)
-
-_YARA_RULE_FORMAT = """
-rule {name} {{
-    strings:
-        {strings}
-    condition:
-        {condition}
-}}"""
 
 
 class Yara(object):
@@ -83,15 +77,19 @@ class Yara(object):
 
         yara_strings = "\n        ".join(
             [
-                "${key} = {value}".format(
-                    key=key,
-                    value=str(YaraString(value) if isinstance(value, str) else value),
-                )
+                f"${key} = {str(YaraString(value) if isinstance(value, str) else value)}"
                 for key, value in strings.items()
             ]
         )
-        yara_source = _YARA_RULE_FORMAT.format(
-            name=name, strings=yara_strings, condition=condition
+        yara_source = textwrap.dedent(
+            f"""
+            rule {name} {{
+                strings:
+                    {yara_strings}
+                condition:
+                    {condition}
+            }}
+        """
         )
 
         self.rules = yara.compile(source=yara_source)
@@ -118,9 +116,8 @@ class Yara(object):
                 ruleset_path = os.path.join(root, fname)
                 if ruleset_name in rule_paths:
                     log.warning(
-                        "Yara file name collision - {} overridden by {}".format(
-                            rule_paths[ruleset_name], ruleset_path
-                        )
+                        f"Yara file name collision - {rule_paths[ruleset_name]} "
+                        f"overridden by {ruleset_path}"
                     )
                 rule_paths[ruleset_name] = ruleset_path
             if not recursive:
@@ -167,11 +164,12 @@ class YaraString(object):
         if self.type == YaraString.TEXT:
             str_value = json.dumps(self.value)
         elif self.type == YaraString.HEX:
-            str_value = "{{ {} }}".format(self.value)
+            str_value = f"{{ {self.value} }}"
         elif self.type == YaraString.REGEX:
-            str_value = "/{}/".format("\\/".join(self.value.split("/")))
+            str_regex = "\\/".join(self.value.split("/"))
+            str_value = f"/{str_regex}/"
         else:
-            raise ValueError("Unknown YaraString type: {}".format(self.type))
+            raise ValueError(f"Unknown YaraString type: {self.type}")
         return str_value + "".join([" " + modifier for modifier in self.modifiers])
 
 

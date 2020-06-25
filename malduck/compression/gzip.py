@@ -10,7 +10,7 @@ import io
 import zlib
 
 
-class Gzip(object):
+class Gzip:
     r"""
     gzip/zlib decompression
 
@@ -28,7 +28,7 @@ class Gzip(object):
     :rtype: bytes
     """
 
-    def decompress(self, buf):
+    def decompress(self, buf: bytes) -> bytes:
         if buf.startswith(b"\x1f\x8b\x08"):
             return GzipFile(fileobj=io.BytesIO(buf)).read()
         return zlib.decompress(buf)

@@ -1,13 +1,19 @@
 import functools
 import logging
 
-from ..procmem import ProcessMemoryPE, ProcessMemoryELF
+from typing import Any, Callable, Dict, List, Union, Tuple, TYPE_CHECKING
 
-from ..py2compat import add_metaclass
+from ..procmem import ProcessMemory, ProcessMemoryPE, ProcessMemoryELF
+from ..yara import YaraMatches
+
+if TYPE_CHECKING:
+    from .extract_manager import ProcmemExtractManager
 
 log = logging.getLogger(__name__)
 
 __all__ = ["Extractor"]
+
+Config = Dict[str, Any]
 
 
 class MetaExtractor(type):
@@ -25,9 +31,7 @@ class MetaExtractor(type):
         klass.final_methods = list(getattr(klass, "final_methods", []))
 
         if type(getattr(klass, "yara_rules")) not in (list, tuple):
-            raise TypeError(
-                "'yara_rules' field must be 'list' or 'tuple' in {}".format(str(name))
-            )
+            raise TypeError(f"'yara_rules' field must be 'list' or 'tuple' in {name}")
 
         for name, method in attrs.items():
             if isinstance(method, ExtractorMethod):
@@ -37,19 +41,19 @@ class MetaExtractor(type):
                     if method.yara_string in klass.extractor_methods:
                         raise TypeError(
                             "There can be only one extractor method "
-                            'for "{}" string'.format(method.yara_string)
+                            f'for "{method.yara_string}" string'
                         )
                     klass.extractor_methods[method.yara_string] = name
 
         return klass
 
 
-class ExtractorMethod(object):
+class ExtractorMethod:
     """
     Represents registered extractor method
     """
 
-    def __init__(self, method):
+    def __init__(self, method: Callable[..., Union[Config, bool, None]]) -> None:
         self.method = method
         self.weak = False
         self.needs_exec = None
@@ -57,7 +61,7 @@ class ExtractorMethod(object):
         self.yara_string = method.__name__
         functools.update_wrapper(self, method)
 
-    def __call__(self, extractor, *args, **kwargs):
+    def __call__(self, extractor: "Extractor", *args, **kwargs) -> None:
         # Get config from extractor method
         config = self.method(extractor, *args, **kwargs)
         if not config:
@@ -73,14 +77,16 @@ class ExtractorMethod(object):
             extractor.push_config(config)
 
 
-class ExtractorBase(object):
+class ExtractorBase:
     family = None  #: Extracted malware family, automatically added to "family" key for strong extraction methods
-    overrides = []  #: Family match overrides another match e.g. citadel overrides zeus
+    overrides: List[
+        str
+    ] = []  #: Family match overrides another match e.g. citadel overrides zeus
 
-    def __init__(self, parent):
+    def __init__(self, parent: "ProcmemExtractManager") -> None:
         self.parent = parent  #: ProcmemExtractManager instance
 
-    def push_procmem(self, procmem, **info):
+    def push_procmem(self, procmem: ProcessMemory, **info):
         """
         Push procmem object for further analysis
 
@@ -100,7 +106,7 @@ class ExtractorBase(object):
         return self.parent.push_config(config, self)
 
     @property
-    def matched(self):
+    def matched(self) -> bool:
         """
         Returns True if family has been matched so far
 
@@ -109,7 +115,7 @@ class ExtractorBase(object):
         return self.parent.family is not None
 
     @property
-    def collected_config(self):
+    def collected_config(self) -> Config:
         """
         Shows collected config so far (useful in "final" extractors)
 
@@ -118,7 +124,7 @@ class ExtractorBase(object):
         return self.parent.collected_config
 
     @property
-    def globals(self):
+    def globals(self) -> Dict[str, Any]:
         """
         Container for global variables associated with analysis
 
@@ -127,24 +133,18 @@ class ExtractorBase(object):
         return self.parent.globals
 
     @property
-    def log(self):
+    def log(self) -> logging.Logger:
         """
         Logger instance for Extractor methods
 
         :return: :class:`logging.Logger`
         """
         return logging.getLogger(
-            "{}.{}".format(
-                # should be malduck.extractor.modules (see
-                # malduck.extractor.loaders)
-                self.__class__.__module__,
-                self.__class__.__name__,
-            )
+            f"{self.__class__.__module__}.{self.__class__.__name__}"
         )
 
 
-@add_metaclass(MetaExtractor)
-class Extractor(ExtractorBase):
+class Extractor(ExtractorBase, metaclass=MetaExtractor):
     """
     Base class for extractor modules
 
@@ -241,9 +241,14 @@ class Extractor(ExtractorBase):
 
     """
 
-    yara_rules = ()  #: Names of Yara rules for which handle_yara is called
+    yara_rules: Tuple[
+        str, ...
+    ] = ()  #: Names of Yara rules for which handle_yara is called
 
-    def on_error(self, exc, method_name):
+    extractor_methods: Dict[str, str]
+    final_methods: Dict[str, str]
+
+    def on_error(self, exc: Exception, method_name: str) -> None:
         """
         Handler for all Exception's throwed by extractor methods.
 
@@ -254,7 +259,7 @@ class Extractor(ExtractorBase):
         """
         self.parent.on_extractor_error(exc, self, method_name)
 
-    def handle_yara(self, p, match):
+    def handle_yara(self, p: ProcessMemory, match: YaraMatches) -> None:
         """
         Override this if you don't want to use decorators and customize ripping process
         (e.g. yara-independent, brute-force techniques)
@@ -262,7 +267,7 @@ class Extractor(ExtractorBase):
         :param p: ProcessMemory object
         :type p: :class:`malduck.procmem.ProcessMemory`
         :param match: Found yara matches for this family
-        :type match: List[:class:`malduck.yara.YaraMatch`]
+        :type match: :class:`malduck.yara.YaraMatches`
         """
         # Call string-based extractors
         for identifier, method_name in self.extractor_methods.items():
