@@ -5,7 +5,6 @@ from typing import Any, Dict, Optional, List, Type, Union
 
 from ..yara import Yara, YaraMatches
 from ..procmem import ProcessMemory
-from ..procmem.binmem import ProcessMemoryBinary
 from .extractor import Extractor, ExtractorBase
 from .loaders import load_modules
 
