@@ -8,12 +8,12 @@ Approximately ~20 times faster than the other Python implementations.
 """
 from io import BytesIO
 
-__all__ = ["decompress"]
+__all__ = ["ap_depack"]
 __version__ = "0.3"
 __author__ = "Sandor Nemes"
 
 
-class APDSTATE(object):
+class APDSTATE:
     """internal data structure"""
 
     def __init__(self, source: bytes) -> None:
@@ -130,10 +130,3 @@ def ap_depack(source: bytes) -> bytearray:
             lwm = 0
 
     return ud.destination
-
-
-def decompress(data):
-    try:
-        return bytes(ap_depack(data))
-    except Exception:
-        raise Exception("aPLib decompression error")

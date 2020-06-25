@@ -29,7 +29,8 @@ class Rabbit:
     def __init__(self, key: bytes, iv: Optional[bytes]) -> None:
         self.ctx = Context()
         self.set_key(key)
-        iv and self.set_iv(iv)
+        if iv:
+            self.set_iv(iv)
 
     def g_func(self, x: int) -> int:
         x = x & 0xFFFFFFFF
@@ -81,7 +82,7 @@ class Rabbit:
         s.c = state.c[:]
         return s
 
-    def set_iv(self, iv):
+    def set_iv(self, iv: bytes) -> None:
         # Generate four subvectors.
         v = [0] * 4
         v[0], v[2] = struct.unpack("II", iv[:8])
@@ -99,7 +100,7 @@ class Rabbit:
         for i in range(4):
             self.next_state(self.ctx.w)
 
-    def next_state(self, state):
+    def next_state(self, state: State) -> None:
         g = [0] * 8
         x = [0x4D34D34D, 0xD34D34D3, 0x34D34D34]
 

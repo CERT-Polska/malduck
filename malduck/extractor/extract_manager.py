@@ -1,18 +1,22 @@
 import json
 import logging
 import os
+from typing import Any, Dict, Optional, List, Type, Union
 
-from .extractor import Extractor
+from ..yara import Yara, YaraMatches
+from ..procmem import ProcessMemory
+from ..procmem.binmem import ProcessMemoryBinary
+from .extractor import Extractor, ExtractorBase
 from .loaders import load_modules
 
-from ..yara import Yara
-
 log = logging.getLogger(__name__)
+
+Config = Dict[str, Any]
 
 __all__ = ["ExtractManager", "ExtractorModules"]
 
 
-def is_config_better(base_config, new_config):
+def is_config_better(base_config: Config, new_config: Config) -> bool:
     """
     Checks whether new config looks more reliable than base.
     Currently just checking the amount of non-empty keys.
@@ -22,7 +26,7 @@ def is_config_better(base_config, new_config):
     return len(new) > len(base)
 
 
-def encode_for_json(data):
+def encode_for_json(data: Any) -> Any:
     if isinstance(data, bytes):
         return data.decode()
     elif isinstance(data, list) or isinstance(data, tuple):
@@ -33,7 +37,7 @@ def encode_for_json(data):
         return data
 
 
-def sanitize_config(config):
+def sanitize_config(config: Config) -> Config:
     """
     Sanitize static configuration by removing empty strings/collections
 
@@ -43,7 +47,7 @@ def sanitize_config(config):
     return {k: v for k, v in config.items() if v in [0, False] or v}
 
 
-def merge_configs(base_config, new_config):
+def merge_configs(base_config: Config, new_config: Config) -> Config:
     """
     Merge static configurations.
     Used internally. Removes "family" key from the result, which is set explicitly by ExtractManager.push_config
@@ -72,7 +76,7 @@ def merge_configs(base_config, new_config):
     return config
 
 
-class ExtractorModules(object):
+class ExtractorModules:
     """
     Configuration object with loaded Extractor modules for ExtractManager
 
@@ -80,7 +84,7 @@ class ExtractorModules(object):
     :type modules_path: str
     """
 
-    def __init__(self, modules_path=None):
+    def __init__(self, modules_path: Optional[str] = None) -> None:
         if modules_path is None:
             modules_path = os.path.join(os.path.expanduser("~"), ".malduck")
             if not os.path.exists(modules_path):
@@ -91,7 +95,7 @@ class ExtractorModules(object):
         load_modules(modules_path, onerror=self.on_error)
         self.extractors = Extractor.__subclasses__()
 
-    def on_error(self, exc, module_name):
+    def on_error(self, exc: Exception, module_name: str) -> None:
         """
         Handler for all Exception's throwed during module load
 
@@ -105,7 +109,7 @@ class ExtractorModules(object):
         log.warning("%s not loaded: %s", module_name, exc)
 
 
-class ExtractManager(object):
+class ExtractManager:
     """
     Multi-dump extraction context. Handles merging configs from different dumps, additional dropped families etc.
 
@@ -113,12 +117,12 @@ class ExtractManager(object):
     :type modules: :class:`ExtractorModules`
     """
 
-    def __init__(self, modules):
+    def __init__(self, modules: ExtractorModules) -> None:
         self.modules = modules
-        self.configs = {}
+        self.configs: Dict[str, Config] = {}
 
     @property
-    def rules(self):
+    def rules(self) -> Yara:
         """
         Bound Yara rules
         :rtype: :class:`malduck.yara.Yara`
@@ -126,14 +130,14 @@ class ExtractManager(object):
         return self.modules.rules
 
     @property
-    def extractors(self):
+    def extractors(self) -> List[Type[Extractor]]:
         """
         Bound extractor modules
         :rtype: List[Type[:class:`malduck.extractor.Extractor`]]
         """
         return self.modules.extractors
 
-    def on_error(self, exc, extractor):
+    def on_error(self, exc: Exception, extractor: Extractor) -> None:
         """
         Handler for all Exception's thrown by :py:meth:`Extractor.handle_yara`.
 
@@ -147,7 +151,9 @@ class ExtractManager(object):
         """
         self.on_extractor_error(exc, extractor, "handle_yara")
 
-    def on_extractor_error(self, exc, extractor, method_name):
+    def on_extractor_error(
+        self, exc: Exception, extractor: Extractor, method_name: str
+    ) -> None:
         """
         Handler for all Exception's thrown by extractor methods (including :py:meth:`Extractor.handle_yara`).
 
@@ -169,7 +175,7 @@ class ExtractManager(object):
             traceback.format_exc(),
         )
 
-    def push_file(self, filepath, base=0):
+    def push_file(self, filepath: str, base: int = 0) -> Optional[str]:
         """
         Pushes file for extraction. Config extractor entrypoint.
 
@@ -180,13 +186,11 @@ class ExtractManager(object):
         :return: Family name if ripped successfully and provided better configuration than previous files.
                  Returns None otherwise.
         """
-        from ..procmem import ProcessMemory
-
         log.debug("Started extraction of file %s:%x", filepath, base)
         with ProcessMemory.from_file(filepath, base=base) as p:
             return self.push_procmem(p, rip_binaries=True)
 
-    def push_config(self, family, config):
+    def push_config(self, family: str, config: Config) -> Optional[str]:
         config["family"] = family
         if family not in self.configs:
             self.configs[family] = config
@@ -199,8 +203,11 @@ class ExtractManager(object):
                 return family
             else:
                 log.debug("Config doesn't look better - ignoring.")
+        return None
 
-    def push_procmem(self, p, rip_binaries=False):
+    def push_procmem(
+        self, p: ProcessMemory, rip_binaries: bool = False
+    ) -> Optional[str]:
         """
         Pushes ProcessMemory object for extraction
 
@@ -218,13 +225,12 @@ class ExtractManager(object):
         matches = p.yarav(self.rules)
         if not matches:
             log.debug("No Yara matches.")
-            return
+            return None
 
-        binaries = [p]
+        binaries: List[Union[ProcessMemory, ProcessMemoryBinary]] = [p]
         if rip_binaries:
-            binaries += list(ProcessMemoryPE.load_binaries_from_memory(p)) + list(
-                ProcessMemoryELF.load_binaries_from_memory(p)
-            )
+            binaries += list(ProcessMemoryPE.load_binaries_from_memory(p))
+            binaries += list(ProcessMemoryELF.load_binaries_from_memory(p))
 
         def fmt_procmem(p):
             procmem_type = "IMG" if getattr(p, "is_image", False) else "DMP"
@@ -257,26 +263,28 @@ class ExtractManager(object):
         return ripped_family
 
     @property
-    def config(self):
+    def config(self) -> List[Config]:
         """
         Extracted configuration (list of configs for each extracted family)
         """
         return [config for family, config in self.configs.items()]
 
 
-class ProcmemExtractManager(object):
+class ProcmemExtractManager:
     """
     Single-dump extraction context (single family)
     """
 
-    def __init__(self, parent):
+    def __init__(self, parent: ExtractManager) -> None:
         #: Collected configuration so far (especially useful for "final" extractors)
-        self.collected_config = {}
-        self.globals = {}
+        self.collected_config: Config = {}
+        self.globals: Dict[str, Any] = {}
         self.parent = parent  #: Bound ExtractManager instance
         self.family = None  #: Matched family
 
-    def on_extractor_error(self, exc, extractor, method_name):
+    def on_extractor_error(
+        self, exc: Exception, extractor: Extractor, method_name: str
+    ) -> None:
         """
         Handler for all Exception's throwed by extractor methods.
 
@@ -289,7 +297,9 @@ class ProcmemExtractManager(object):
         """
         self.parent.on_extractor_error(exc, extractor, method_name)
 
-    def push_procmem(self, p, _matches=None):
+    def push_procmem(
+        self, p: ProcessMemory, _matches: Optional[YaraMatches] = None
+    ) -> None:
         """
         Pushes ProcessMemory object for extraction
 
@@ -310,7 +320,7 @@ class ProcmemExtractManager(object):
                     except Exception as exc:
                         self.parent.on_error(exc, extractor)
 
-    def push_config(self, config, extractor):
+    def push_config(self, config: Config, extractor: ExtractorBase) -> None:
         """
         Pushes new partial config
 
@@ -351,7 +361,7 @@ class ProcmemExtractManager(object):
             log.debug("%s tells it's %s", extractor.__class__.__name__, self.family)
 
     @property
-    def config(self):
+    def config(self) -> Config:
         """
         Returns collected config, but if family is not matched - returns empty dict.
         Family is not included in config itself, look at :py:attr:`ProcmemExtractManager.family`.

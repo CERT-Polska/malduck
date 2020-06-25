@@ -2,6 +2,9 @@
 # This file is part of Roach - https://github.com/jbremer/roach.
 # See the file 'docs/LICENSE.txt' for copying permission.
 
+import io
+from typing import Any, Optional
+
 from ..ints import UInt8, UInt16, UInt32
 from ..structure import Structure
 
@@ -24,12 +27,12 @@ class BLOBHEADER(Structure):
     ]
 
 
-class BaseBlob(object):
+class BaseBlob:
     def __init__(self) -> None:
         self.bitsize = 0
 
-    def parse(self, buf):
+    def parse(self, buf: io.BytesIO) -> Optional[int]:
         raise NotImplementedError
 
-    def export_key(self):
+    def export_key(self) -> Any:
         raise NotImplementedError

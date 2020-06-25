@@ -10,7 +10,7 @@ __all__ = ["aPLib", "aplib"]
 log = logging.getLogger(__name__)
 
 
-class aPLib(object):
+class aPLib:
     r"""
     aPLib decompression
 

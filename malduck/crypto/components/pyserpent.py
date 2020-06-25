@@ -106,21 +106,6 @@ class Serpent:
 
         return ciphertext
 
-    def get_name(self):
-        """Return the name of the cipher."""
-
-        return "Serpent"
-
-    def get_block_size(self):
-        """Get cipher block size in bytes."""
-
-        return 16
-
-    def get_key_size(self):
-        """Get cipher key size in bytes."""
-
-        return 32
-
 
 #
 # Private.
@@ -139,7 +124,7 @@ def rotl32(x: int, n: int) -> int:
     return ((x << n) & 0xFFFFFFFF) | (x >> (32 - n))
 
 
-def byteswap32(x):
+def byteswap32(x: int) -> int:
     return (
         ((x & 0xFF) << 24)
         | (((x >> 8) & 0xFF) << 16)
@@ -151,7 +136,7 @@ def byteswap32(x):
 def set_key(l_key: List[int], key: List[int], key_len: int) -> None:
     key_len *= 8
     if key_len > 256:
-        return False
+        return None
 
     i = 0
     lk = (key_len + 31) // 32
