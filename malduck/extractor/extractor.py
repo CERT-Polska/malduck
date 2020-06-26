@@ -46,7 +46,7 @@ class ExtractorMethod:
 
 
 class StringExtractorMethod(ExtractorMethod):
-    def __init__(self, method, string_name=None) -> None:
+    def __init__(self, method, string_name=None):
         super().__init__(method)
         self.string_name = string_name or method.__name__
 
@@ -294,7 +294,7 @@ class Extractor:
     family = None  #: Extracted malware family, automatically added to "family" key for strong extraction methods
     overrides = []  #: Family match overrides another match e.g. citadel overrides zeus
 
-    def __init__(self, parent) -> None:
+    def __init__(self, parent):
         self.parent = parent
 
     def push_procmem(self, procmem: ProcessMemory, **info):
