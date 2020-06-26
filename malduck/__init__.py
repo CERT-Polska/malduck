@@ -30,7 +30,7 @@ from .ints import (
     Int8,
 )
 
-from .pe import pe, pe2cuckoo
+from .pe import pe
 
 from .procmem import (
     procmem,
