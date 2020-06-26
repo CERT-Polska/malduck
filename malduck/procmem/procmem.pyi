@@ -28,7 +28,7 @@ from ..ints import IntType
 ProcessMemoryBuffer = Union[bytes, bytearray, mmap.mmap]
 T = TypeVar("T", bound="ProcessMemory")
 
-procmem: "ProcessMemory"
+procmem: Type["ProcessMemory"]
 
 class ProcessMemory:
     f: Optional[BinaryIO]

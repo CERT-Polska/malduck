@@ -10,8 +10,8 @@ class Weaky(Extractor):
     def weaky(self, p, hit):
         return {"weak": True}
 
-    @Extractor.extractor
     @Extractor.weak
+    @Extractor.extractor
     def weaky2(self, p, hit):
         return {"weaky": True}
 
@@ -20,5 +20,6 @@ class Weaky(Extractor):
         return True
 
     @Extractor.weak
+    @Extractor.extractor
     def nonsense_weak(self, p, hit):
         return True

@@ -34,6 +34,7 @@ def test_scan_ollydbg():
         " - OllyDbg is in Explorer's menu\n",
         " - OllyDbg is not in Explorer's menu"
     ]
+    assert "olly_is_not" in cfg["matches"]
 
 
 def test_apliebe():
