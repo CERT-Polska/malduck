@@ -4,7 +4,7 @@ import os
 import warnings
 from typing import Any, Dict, Optional, List, Type, Union
 
-from ..yara import Yara, YaraMatches, YaraStringOffsets
+from ..yara import Yara, YaraMatches, YaraRuleOffsets
 from ..procmem import ProcessMemory
 from .extractor import Extractor
 from .loaders import load_modules
@@ -239,8 +239,7 @@ class ExtractManager:
         def extract_config(procmem: ProcessMemory) -> Optional[str]:
             log.debug("%s - ripping...", fmt_procmem(procmem))
             extractor = ProcmemExtractManager(self)
-            matches.remap(procmem.p2v)
-            extractor.push_procmem(procmem, _matches=matches)
+            extractor.push_procmem(procmem, _matches=matches.remap(procmem.p2v))
             if extractor.family:
                 log.debug("%s - found %s!", fmt_procmem(procmem), extractor.family)
                 return self.push_config(extractor.family, extractor.config)
@@ -323,7 +322,7 @@ class ProcmemExtractManager:
                                 DeprecationWarning
                             )
                             getattr(extractor, "handle_yara")(
-                                p, YaraStringOffsets(matches[rule])
+                                p, YaraRuleOffsets(matches[rule])
                             )
                         else:
                             extractor.handle_match(

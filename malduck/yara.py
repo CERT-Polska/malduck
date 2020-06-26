@@ -1,6 +1,6 @@
 from collections import namedtuple, defaultdict
-from typing import Callable, Generic, Iterable, List, Union, Tuple, TypeVar, Dict, KeysView, Optional
-from typing_extensions import Protocol
+from typing import Callable, Generic, Iterable, List, Union, Tuple, TypeVar, Dict, KeysView, Optional, overload
+from typing_extensions import Protocol, Literal
 
 import enum
 import json
@@ -11,7 +11,7 @@ import textwrap
 import yara
 
 
-__all__ = ["Yara", "YaraString", "YaraRuleMatch", "YaraStringMatch", "YaraMatches"]
+__all__ = ["Yara", "YaraString", "YaraRuleMatch", "YaraStringMatch", "YaraMatches", "YaraMatch"]
 
 log = logging.getLogger(__name__)
 
@@ -30,16 +30,17 @@ class YaraRulesMatch(Protocol):
 
 
 class _Mapper(Generic[T]):
-    def __init__(self, elements: Dict[str, T]) -> None:
+    def __init__(self, elements: Dict[str, T], default: Optional[T] = None) -> None:
         self.elements = elements
+        self.default = default
 
     def keys(self) -> KeysView[str]:
         """List of matched string identifiers"""
         return self.elements.keys()
 
     def get(self, item) -> Optional[T]:
-        """Get matched string offsets or None if not matched"""
-        return self.elements.get(item)
+        """Get matched string offsets or default if not matched"""
+        return self.elements.get(item, self.default)
 
     def __bool__(self) -> bool:
         return bool(self.elements)
@@ -175,7 +176,13 @@ class Yara:
                 break
         return Yara(rule_paths=rule_paths)
 
-    def match(self, offset_mapper: Optional[OffsetMapper] = None, **kwargs) -> "YaraMatches":
+    @overload
+    def match(self, offset_mapper: Optional[OffsetMapper] = None, offsets_only: Literal[True] = True, **kwargs) -> "YaraOffsets": ...
+
+    @overload
+    def match(self, offset_mapper: Optional[OffsetMapper], offsets_only: Literal[False], **kwargs) -> "YaraMatches": ...
+
+    def match(self, offset_mapper=None, offsets_only=True, **kwargs):
         """
         Perform matching on file or data block
 
@@ -188,7 +195,8 @@ class Yara:
         :type offset_mapper: function
         :rtype: :class:`YaraMatches`
         """
-        return YaraMatches(self.rules.match(**kwargs), offset_mapper=offset_mapper)
+        matches = YaraMatches(self.rules.match(**kwargs), offset_mapper=offset_mapper)
+        return YaraOffsets(matches) if offsets_only else matches
 
 
 class YaraStringType(enum.IntEnum):
@@ -242,7 +250,7 @@ class YaraMatches(_Mapper["YaraRuleMatch"]):
     def _map_matches(
         self,
         matches: List[YaraRulesMatch],
-        offset_mapper: Optional[OffsetMapper] = None
+        offset_mapper: Optional[OffsetMapper]
     ) -> Dict[str, "YaraRuleMatch"]:
         mapped_matches = [
             (match, self._map_strings(match.strings, offset_mapper))
@@ -298,6 +306,17 @@ class YaraMatches(_Mapper["YaraRuleMatch"]):
         return YaraMatches(self._matches, offset_mapper=offset_mapper)
 
 
+class YaraOffsets(_Mapper["YaraRuleOffsets"]):
+    def __init__(self, matches: YaraMatches) -> None:
+        self._matches = matches
+        super().__init__(elements={
+            k: YaraRuleOffsets(v) for k, v in matches.elements.items()
+        })
+
+    def remap(self, offset_mapper: Optional[OffsetMapper] = None) -> "YaraOffsets":
+        return YaraOffsets(self._matches.remap(offset_mapper))
+
+
 YaraStringMatch = namedtuple('YaraStringMatch', ['identifier', 'hit', 'content'])
 
 
@@ -329,10 +348,14 @@ class YaraRuleMatch(_Mapper[List[YaraStringMatch]]):
         return [match.hit for match in self.elements.get(string, [])]
 
 
-class YaraStringOffsets(_Mapper[List[int]]):
+class YaraRuleOffsets(_Mapper[List[int]]):
     def __init__(self, rule_match: YaraRuleMatch) -> None:
         super().__init__(
             {identifier: [
                 match.hit for match in string_matches
-            ] for identifier, string_matches in rule_match.elements.items()}
+            ] for identifier, string_matches in rule_match.elements.items()},
+            default=[]
         )
+
+
+YaraMatch = YaraRuleOffsets
