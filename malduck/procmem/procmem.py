@@ -775,9 +775,8 @@ class ProcessMemory:
         rule = Yara(strings=YaraString(query, type=YaraString.HEX))
         match = yara_fn(rule, addr, length)
         if match:
-            return match.r.string
-        else:
-            return []
+            for string_match in match.r.string:
+                yield string_match.hit
 
     def findbytesp(self, query, offset=None, length=None):
         """
@@ -797,7 +796,7 @@ class ProcessMemory:
         :return: Iterator returning next offsets
         :rtype: Iterator[int]
         """
-        return iter(self._findbytes(self.yarap, query, offset, length))
+        return self._findbytes(self.yarap, query, offset, length)
 
     def findbytesv(self, query, addr=None, length=None):
         """
@@ -829,7 +828,7 @@ class ProcessMemory:
                 if hex(mem.readv(va, 5)) == "4aaabbccdd":
                     findings.append(va)
         """
-        return iter(self._findbytes(self.yarav, query, addr, length))
+        return self._findbytes(self.yarav, query, addr, length)
 
     def findmz(self, addr):
         """

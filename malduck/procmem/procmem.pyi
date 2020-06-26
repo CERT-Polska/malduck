@@ -216,7 +216,7 @@ class ProcessMemory:
         query: Union[str, bytes],
         addr: Optional[int],
         length: Optional[int],
-    ) -> List[int]: ...
+    ) -> Iterator[int]: ...
     def findbytesp(
         self,
         query: Union[str, bytes],

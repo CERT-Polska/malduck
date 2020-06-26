@@ -3,6 +3,7 @@ import inspect
 import logging
 
 from ..procmem import ProcessMemory, ProcessMemoryPE, ProcessMemoryELF
+from typing import List, cast
 
 log = logging.getLogger(__name__)
 
@@ -45,10 +46,16 @@ class ExtractorMethod:
             extractor.push_config(config)
 
 
-class StringExtractorMethod(ExtractorMethod):
+class StringOffsetExtractorMethod(ExtractorMethod):
     def __init__(self, method, string_name=None):
         super().__init__(method)
         self.string_name = string_name or method.__name__
+
+
+class StringExtractorMethod(ExtractorMethod):
+    def __init__(self, method, string_names=None):
+        super().__init__(method)
+        self.string_names = string_names or [method.__name__]
 
 
 class RuleExtractorMethod(ExtractorMethod):
@@ -290,7 +297,7 @@ class Extractor:
 
     """
 
-    yara_rules = ()  #: Names of Yara rules for which handle_yara is called
+    yara_rules = ()  #: Names of Yara rules for which handle_match is called
     family = None  #: Extracted malware family, automatically added to "family" key for strong extraction methods
     overrides = []  #: Family match overrides another match e.g. citadel overrides zeus
 
@@ -309,7 +316,7 @@ class Extractor:
 
     def push_config(self, config):
         """
-        Push partial config (used by :py:meth:`Extractor.handle_yara`)
+        Push partial config (used by :py:meth:`Extractor.handle_match`)
 
         :param config: Partial config element
         :type config: dict
@@ -374,33 +381,54 @@ class Extractor:
         """
         self.parent.on_extractor_error(exc, self, method_name)
 
-    def handle_yara(self, p, match):
+    def handle_match(self, p, match):
         """
         Override this if you don't want to use decorators and customize ripping process
         (e.g. yara-independent, brute-force techniques)
 
+        Called for each rule hit listed in Extractor.yara_rules
+
         :param p: ProcessMemory object
         :type p: :class:`malduck.procmem.ProcessMemory`
         :param match: Found yara matches for currently matched rule
-        :type match: :class:`malduck.yara.YaraMatch`
+        :type match: :class:`malduck.yara.YaraRuleMatch`
         """
-        # Call string-based extractors
-        for method_name, method in self._get_methods(StringExtractorMethod):
+        # Call offset-only string-based extractors
+        for method_name, method in self._get_methods(StringOffsetExtractorMethod):
             identifier = method.string_name
             if identifier not in match:
                 continue
-            for va in match[identifier]:
+            for string_match in match[identifier]:
                 try:
                     log.debug(
                         "Trying %s.%s for %s@%x",
                         self.__class__.__name__,
                         method_name,
                         identifier,
-                        va,
+                        string_match,
                     )
-                    method(self, p, va)
+                    method(self, p, string_match.hit)
                 except Exception as exc:
                     self.on_error(exc, method_name)
+
+        # Call string-based extractors
+        for method_name, method in self._get_methods(StringExtractorMethod):
+            identifiers = method.string_names
+            for identifier in identifiers:
+                if identifier not in match:
+                    continue
+                for string_match in match[identifier]:
+                    try:
+                        log.debug(
+                            "Trying %s.%s for %s@%x",
+                            self.__class__.__name__,
+                            method_name,
+                            identifier,
+                            string_match,
+                        )
+                        method(self, p, string_match.hit, string_match)
+                    except Exception as exc:
+                        self.on_error(exc, method_name)
 
         # Call rule-based extractors
         for method_name, method in self._get_methods(RuleExtractorMethod):
@@ -426,17 +454,36 @@ class Extractor:
         if callable(string_or_method):
             if isinstance(string_or_method, ExtractorMethod):
                 raise TypeError("@extractor decorator must be first")
-            return StringExtractorMethod(string_or_method)
+            return StringOffsetExtractorMethod(string_or_method)
         elif isinstance(string_or_method, str):
+            string = cast(str, string_or_method)
 
             def extractor_wrapper(method):
                 if isinstance(method, ExtractorMethod):
                     raise TypeError("@extractor decorator must be first")
-                return StringExtractorMethod(method, string_name=string_or_method)
+                return StringOffsetExtractorMethod(method, string_name=string)
 
             return extractor_wrapper
         else:
             raise TypeError("Expected string or callable argument")
+
+    @staticmethod
+    def string(*strings_or_method):
+        if callable(strings_or_method[0]) and len(strings_or_method) == 1:
+            method = strings_or_method[0]
+            if isinstance(method, ExtractorMethod):
+                raise TypeError("@extractor decorator must be first")
+            return StringExtractorMethod(method)
+        elif all(isinstance(string, str) for string in strings_or_method):
+            strings = cast(List[str], strings_or_method)
+
+            def extractor_wrapper(method):
+                if isinstance(method, ExtractorMethod):
+                    raise TypeError("@extractor decorator must be first")
+                return StringExtractorMethod(method, string_names=strings)
+            return extractor_wrapper
+        else:
+            raise TypeError("Expected strings or single callable argument")
 
     @staticmethod
     def rule(string_or_method):
@@ -445,11 +492,12 @@ class Extractor:
                 raise TypeError("@rule decorator must be first")
             return RuleExtractorMethod(string_or_method)
         elif isinstance(string_or_method, str):
+            string = cast(str, string_or_method)
 
             def extractor_wrapper(method):
                 if isinstance(method, ExtractorMethod):
                     raise TypeError("@rule decorator must be first")
-                return RuleExtractorMethod(method, rule_name=string_or_method)
+                return RuleExtractorMethod(method, rule_name=string)
 
             return extractor_wrapper
         else:

@@ -1,9 +1,10 @@
 import json
 import logging
 import os
+import warnings
 from typing import Any, Dict, Optional, List, Type, Union
 
-from ..yara import Yara, YaraMatches
+from ..yara import Yara, YaraMatches, YaraStringOffsets
 from ..procmem import ProcessMemory
 from .extractor import Extractor
 from .loaders import load_modules
@@ -316,7 +317,18 @@ class ProcmemExtractManager:
             for rule in extractor.yara_rules:
                 if rule in matches:
                     try:
-                        extractor.handle_yara(p, matches[rule])
+                        if hasattr(extractor, "handle_yara"):
+                            warnings.warn(
+                                "Extractor.handle_yara is deprecated, use Extractor.handle_match",
+                                DeprecationWarning
+                            )
+                            getattr(extractor, "handle_yara")(
+                                p, YaraStringOffsets(matches[rule])
+                            )
+                        else:
+                            extractor.handle_match(
+                                p, matches[rule]
+                            )
                     except Exception as exc:
                         self.parent.on_error(exc, extractor)
 

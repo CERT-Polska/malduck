@@ -1,5 +1,8 @@
-from __future__ import absolute_import
+from collections import namedtuple, defaultdict
+from typing import Callable, Generic, Iterable, List, Union, Tuple, TypeVar, Dict, KeysView, Optional
+from typing_extensions import Protocol
 
+import enum
 import json
 import logging
 import os
@@ -8,12 +11,56 @@ import textwrap
 import yara
 
 
-__all__ = ["Yara", "YaraString", "YaraMatch", "YaraMatches"]
+__all__ = ["Yara", "YaraString", "YaraRuleMatch", "YaraStringMatch", "YaraMatches"]
 
 log = logging.getLogger(__name__)
 
+T = TypeVar("T")
+OffsetMapper = Callable[[Optional[int], Optional[int]], Optional[int]]
 
-class Yara(object):
+YaraRulesString = Tuple[int, str, bytes]
+
+
+class YaraRulesMatch(Protocol):
+    meta: Dict[str, str]
+    namespace: str
+    rule: str
+    strings: List[YaraRulesString]
+    tags: List[str]
+
+
+class _Mapper(Generic[T]):
+    def __init__(self, elements: Dict[str, T]) -> None:
+        self.elements = elements
+
+    def keys(self) -> KeysView[str]:
+        """List of matched string identifiers"""
+        return self.elements.keys()
+
+    def get(self, item) -> Optional[T]:
+        """Get matched string offsets or None if not matched"""
+        return self.elements.get(item)
+
+    def __bool__(self) -> bool:
+        return bool(self.elements)
+
+    def __nonzero__(self) -> bool:
+        return self.__bool__()
+
+    def __contains__(self, item: str) -> bool:
+        return item in self.elements
+
+    def __getitem__(self, item: str) -> T:
+        return self.elements[item]
+
+    def __getattr__(self, item: str) -> T:
+        try:
+            return self[item]
+        except IndexError:
+            raise AttributeError()
+
+
+class Yara:
     """
     Represents Yara ruleset. Rules can be compiled from set of files or defined in code (single rule only).
 
@@ -63,8 +110,12 @@ class Yara(object):
     """
 
     def __init__(
-        self, rule_paths=None, name="r", strings=None, condition="any of them"
-    ):
+        self,
+        rule_paths: Optional[Dict[str, str]] = None,
+        name: str = "r",
+        strings: Union[str, "YaraString", Dict[str, Union[str, "YaraString"]], None] = None,
+        condition: str = "any of them"
+    ) -> None:
         if rule_paths:
             self.rules = yara.compile(filepaths=rule_paths)
             return
@@ -95,7 +146,7 @@ class Yara(object):
         self.rules = yara.compile(source=yara_source)
 
     @staticmethod
-    def from_dir(path, recursive=True, followlinks=True):
+    def from_dir(path: str, recursive: bool = True, followlinks: bool = True) -> "Yara":
         """
         Find rules (recursively) in specified path. Supported extensions: *.yar, *.yara
 
@@ -107,7 +158,7 @@ class Yara(object):
         :type followlinks: bool
         :rtype: :class:`Yara`
         """
-        rule_paths = {}
+        rule_paths: Dict[str, str] = {}
         for root, _, files in os.walk(path, followlinks=followlinks):
             for fname in files:
                 if not fname.endswith(".yar") and not fname.endswith(".yara"):
@@ -124,7 +175,7 @@ class Yara(object):
                 break
         return Yara(rule_paths=rule_paths)
 
-    def match(self, offset_mapper=None, **kwargs):
+    def match(self, offset_mapper: Optional[OffsetMapper] = None, **kwargs) -> "YaraMatches":
         """
         Perform matching on file or data block
 
@@ -140,7 +191,13 @@ class Yara(object):
         return YaraMatches(self.rules.match(**kwargs), offset_mapper=offset_mapper)
 
 
-class YaraString(object):
+class YaraStringType(enum.IntEnum):
+    TEXT = 0
+    HEX = 1
+    REGEX = 2
+
+
+class YaraString:
     """
     Formatter for Yara string patterns
 
@@ -150,22 +207,21 @@ class YaraString(object):
     :type type: :py:attr:`YaraString.TEXT` / :py:attr:`YaraString.HEX` / :py:attr:`YaraString.REGEX`
     :param modifiers: Yara string modifier flags
     """
+    TEXT = YaraStringType.TEXT
+    HEX = YaraStringType.HEX
+    REGEX = YaraStringType.REGEX
 
-    TEXT = 0  #: Text string ( `'value' => '"value"'` )
-    HEX = 1  #: Hexadecimal string ( `"aa bb cc dd" => '{ aa bb cc dd }'` )
-    REGEX = 2  #: Regex string ( `'value' => '/value/'` )
-
-    def __init__(self, value, type=TEXT, **modifiers):
+    def __init__(self, value: str, type: YaraStringType = YaraStringType.TEXT, **modifiers: bool):
         self.value = value
         self.type = type
         self.modifiers = [k for k, v in modifiers.items() if v is True]
 
-    def __str__(self):
-        if self.type == YaraString.TEXT:
+    def __str__(self) -> str:
+        if self.type == YaraStringType.TEXT:
             str_value = json.dumps(self.value)
-        elif self.type == YaraString.HEX:
+        elif self.type == YaraStringType.HEX:
             str_value = f"{{ {self.value} }}"
-        elif self.type == YaraString.REGEX:
+        elif self.type == YaraStringType.REGEX:
             str_regex = "\\/".join(self.value.split("/"))
             str_value = f"/{str_regex}/"
         else:
@@ -173,109 +229,110 @@ class YaraString(object):
         return str_value + "".join([" " + modifier for modifier in self.modifiers])
 
 
-class YaraMatches(object):
+class YaraMatches(_Mapper["YaraRuleMatch"]):
     """
-    Represented matching results. Returned by :py:meth:`Yara.match`.
+    Yara ruleset matches. Returned by :py:meth:`Yara.match`.
 
     Rules can be referenced by both attribute and index.
     """
+    def __init__(self, matches: List[YaraRulesMatch], offset_mapper: Optional[OffsetMapper] = None) -> None:
+        self._matches = matches
+        super().__init__(elements=self._map_matches(matches, offset_mapper))
 
-    def __init__(self, match_results, offset_mapper=None):
-        self.match_results = match_results
-        self.matched_rules = {}
-        self.remap(offset_mapper)
+    def _map_matches(
+        self,
+        matches: List[YaraRulesMatch],
+        offset_mapper: Optional[OffsetMapper] = None
+    ) -> Dict[str, "YaraRuleMatch"]:
+        mapped_matches = [
+            (match, self._map_strings(match.strings, offset_mapper))
+            for match in matches
+        ]
+        return {
+            match.rule: YaraRuleMatch(
+                match.rule,
+                strings,
+                match.meta,
+                match.namespace,
+                match.tags
+            )
+            for match, strings in mapped_matches
+            if strings
+        }
 
-    def remap(self, offset_mapper=None):
-        self.matched_rules = {}
-        for match in self.match_results:
-            yara_match = YaraMatch(match, offset_mapper=offset_mapper)
-            if yara_match:
-                self.matched_rules[match.rule] = yara_match
+    def _map_strings(
+        self,
+        strings: Iterable[YaraRulesString],
+        offset_mapper: Optional[OffsetMapper]
+    ) -> Dict[str, List["YaraStringMatch"]]:
+        mapped_strings = defaultdict(list)
+        for hit, identifier, content in strings:
+            # Get identifier without "$" and group identifier
+            real_ident, group_ident = self._parse_string_identifier(identifier)
+            # Map offset if offset_mapper is provided
+            if offset_mapper is not None:
+                _hit = offset_mapper(hit, len(content))
+                if _hit is None:
+                    # Ignore match for unmapped region
+                    continue
+                hit = _hit
+            # Register offset for full identifier
+            mapped_strings[real_ident].append(
+                YaraStringMatch(real_ident, hit, content)
+            )
+            # Register offset for grouped identifier
+            if real_ident != group_ident:
+                mapped_strings[group_ident].append(
+                    YaraStringMatch(real_ident, hit, content)
+                )
+        return mapped_strings
 
-    def keys(self):
-        """List of matched rule identifiers"""
-        return self.matched_rules.keys()
+    def _parse_string_identifier(self, identifier: str) -> Tuple[str, str]:
+        real_ident = identifier.lstrip("$")
+        # Add group identifiers ($str1, $str2 => "str")
+        match_ident = re.match(r"^\$(\w+?[a-zA-Z])_?(\d*)$", identifier)
+        group_ident = match_ident.group(1) if match_ident else real_ident
+        return real_ident, group_ident
 
-    def __bool__(self):
-        return bool(self.matched_rules)
-
-    def __nonzero__(self):
-        return self.__bool__()
-
-    def __contains__(self, item):
-        return item in self.matched_rules
-
-    def __getitem__(self, item):
-        return self.matched_rules[item]
-
-    def __getattr__(self, item):
-        try:
-            return self[item]
-        except IndexError:
-            raise AttributeError()
+    def remap(self, offset_mapper: Optional[OffsetMapper] = None) -> "YaraMatches":
+        return YaraMatches(self._matches, offset_mapper=offset_mapper)
 
 
-class YaraMatch(object):
+YaraStringMatch = namedtuple('YaraStringMatch', ['identifier', 'hit', 'content'])
+
+
+class YaraRuleMatch(_Mapper[List[YaraStringMatch]]):
     """
-    Represented matching results for rules. Returned by `YaraMatches.<rule>`.
+    Rule matches. Returned by `YaraMatches.<rule>`.
 
     Strings can be referenced by both attribute and index.
     """
 
-    def __init__(self, match, offset_mapper=None):
-        self.rule = self.name = match.rule
+    def __init__(
+        self,
+        rule: str,
+        strings: Dict[str, List[YaraStringMatch]],
+        meta: Dict[str, str],
+        namespace: str,
+        tags: List[str]
+    ) -> None:
+        self.rule = self.name = rule
+        self.meta = meta
+        self.namespace = namespace
+        self.tags = tags
+        super().__init__(elements={
+            k: sorted(v, key=lambda s: s.hit)
+            for k, v in strings.items()
+        })
 
-        self.offsets = {}
+    def get_offsets(self, string) -> List[int]:
+        return [match.hit for match in self.elements.get(string, [])]
 
-        for off, ident, buf in match.strings:
-            real_ident = ident.lstrip("$")
-            # Add group identifiers ($str1, $str2 => "str")
-            group_ident = re.match(r"^\$(\w+?[a-zA-Z])(\d*)$", ident)
-            if not group_ident:
-                group_ident = real_ident
-            else:
-                group_ident = group_ident.group(1)
 
-            # Map offset if offset_mapper is provided
-            if offset_mapper is not None:
-                off = offset_mapper(off, len(buf))
-                if off is None:
-                    # Ignore match for unmapped region
-                    continue
-
-            # Register offset for full identifier
-            if real_ident not in self.offsets:
-                self.offsets[real_ident] = []
-            self.offsets[real_ident].append(off)
-
-            # Register offset for grouped identifier
-            if real_ident != group_ident:
-                if group_ident not in self.offsets:
-                    self.offsets[group_ident] = []
-                self.offsets[group_ident].append(off)
-
-    def keys(self):
-        """List of matched string identifiers"""
-        return self.offsets.keys()
-
-    def get(self, item):
-        """Get matched string offsets or empty list if not matched"""
-        return self.offsets.get(item, [])
-
-    def __bool__(self):
-        return bool(self.offsets)
-
-    def __nonzero__(self):
-        return self.__bool__()
-
-    def __contains__(self, item):
-        return item in self.offsets
-
-    def __getitem__(self, item):
-        return self.offsets[item]
-
-    def __getattr__(self, item):
-        try:
-            return self[item]
-        except IndexError:
-            raise AttributeError()
+class YaraStringOffsets(_Mapper[List[int]]):
+    def __init__(self, rule_match: YaraRuleMatch) -> None:
+        super().__init__(
+            {identifier: [
+                match.hit for match in string_matches
+            ] for identifier, string_matches in rule_match.elements.items()}
+        )
