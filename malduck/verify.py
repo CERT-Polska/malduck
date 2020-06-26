@@ -32,15 +32,15 @@ URL_REGEX = (
 
 class Verify(object):
     @staticmethod
-    def ascii(s):
+    def ascii(s: bytes) -> bool:
         return bool(re.match(b"^[\\x20-\\x7f]*$", s, re.DOTALL))
 
     @staticmethod
-    def domain(s):
+    def domain(s: bytes) -> bool:
         return bool(re.match(DOMAIN_REGEX, s, re.DOTALL))
 
     @staticmethod
-    def url(s):
+    def url(s: bytes) -> bool:
         return bool(re.match(URL_REGEX, s, re.DOTALL))
 
 
