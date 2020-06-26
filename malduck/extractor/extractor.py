@@ -1,4 +1,5 @@
 import functools
+import inspect
 import logging
 
 from ..procmem import ProcessMemory, ProcessMemoryPE, ProcessMemoryELF
@@ -356,7 +357,9 @@ class Extractor:
     def _get_methods(self, method_type):
         return (
             (name, method)
-            for name, method in self.__class__.__dict__.items()
+            for name, method in inspect.getmembers(
+                self.__class__, predicate=lambda member: isinstance(member, method_type)
+            )
             if isinstance(method, method_type)
         )
 
@@ -427,7 +430,7 @@ class Extractor:
         elif isinstance(string_or_method, str):
 
             def extractor_wrapper(method):
-                if isinstance(string_or_method, ExtractorMethod):
+                if isinstance(method, ExtractorMethod):
                     raise TypeError("@extractor decorator must be first")
                 return StringExtractorMethod(method, string_name=string_or_method)
 
@@ -444,7 +447,7 @@ class Extractor:
         elif isinstance(string_or_method, str):
 
             def extractor_wrapper(method):
-                if isinstance(string_or_method, ExtractorMethod):
+                if isinstance(method, ExtractorMethod):
                     raise TypeError("@rule decorator must be first")
                 return RuleExtractorMethod(method, rule_name=string_or_method)
 
