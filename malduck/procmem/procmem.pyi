@@ -21,7 +21,7 @@ from ..extractor import ExtractorModules, ExtractManager
 
 from .region import Region
 from ..disasm import Instruction
-from ..yara import Yara, YaraMatches
+from ..yara import Yara, YaraRulesetMatch, YaraRulesetOffsets
 
 from ..ints import IntType
 
@@ -204,15 +204,81 @@ class ProcessMemory:
     def extract(
         self, modules: ExtractorModules = None, extract_manager: ExtractManager = None,
     ) -> Optional[List[Dict[str, Any]]]: ...
+    # yarap(ruleset)
+    # yarap(ruleset, offset)
+    # yarap(ruleset, offset, length)
+    # yarap(ruleset, offset, length, extended=False)
+    @overload
     def yarap(
-        self, ruleset: Yara, offset: Optional[int] = None, length: Optional[int] = None
-    ) -> YaraMatches: ...
+        self,
+        ruleset: Yara,
+        offset: Optional[int] = None,
+        length: Optional[int] = None,
+        extended: Literal[False] = False,
+    ) -> YaraRulesetOffsets: ...
+    # yarap(ruleset, offset, length, extended=True)
+    @overload
+    def yarap(
+        self,
+        ruleset: Yara,
+        offset: Optional[int],
+        length: Optional[int],
+        extended: Literal[True],
+    ) -> YaraRulesetMatch: ...
+    # yarap(ruleset, extended=True)
+    @overload
+    def yarap(self, ruleset: Yara, *, extended: Literal[True]) -> YaraRulesetMatch: ...
+    # yarap(ruleset, offset=0, extended=True)
+    # yarap(ruleset, 0, extended=True)
+    @overload
+    def yarap(
+        self, ruleset: Yara, offset: Optional[int], *, extended: Literal[True]
+    ) -> YaraRulesetMatch: ...
+    # yarap(ruleset, length=0, extended=True)
+    @overload
+    def yarap(
+        self, ruleset: Yara, *, length: Optional[int], extended: Literal[True]
+    ) -> YaraRulesetMatch: ...
+    # yarav(ruleset)
+    # yarav(ruleset, addr)
+    # yarav(ruleset, addr, length)
+    # yarav(ruleset, addr, length, extended=False)
+    @overload
     def yarav(
-        self, ruleset: Yara, addr: Optional[int] = None, length: Optional[int] = None
-    ) -> YaraMatches: ...
+        self,
+        ruleset: Yara,
+        addr: Optional[int] = None,
+        length: Optional[int] = None,
+        extended: Literal[False] = False,
+    ) -> YaraRulesetOffsets: ...
+    # yarav(ruleset, addr, length, extended=True)
+    @overload
+    def yarav(
+        self,
+        ruleset: Yara,
+        addr: Optional[int],
+        length: Optional[int],
+        extended: Literal[True],
+    ) -> YaraRulesetMatch: ...
+    # yarav(ruleset, extended=True)
+    @overload
+    def yarav(self, ruleset: Yara, *, extended: Literal[True]) -> YaraRulesetMatch: ...
+    # yarav(ruleset, addr=0, extended=True)
+    # yarav(ruleset, 0, extended=True)
+    @overload
+    def yarav(
+        self, ruleset: Yara, addr: Optional[int], *, extended: Literal[True]
+    ) -> YaraRulesetMatch: ...
+    # yarav(ruleset, length=0, extended=True)
+    @overload
+    def yarav(
+        self, ruleset: Yara, *, length: Optional[int], extended: Literal[True]
+    ) -> YaraRulesetMatch: ...
     def _findbytes(
         self,
-        yara_fn: Callable[[Yara, Optional[int], Optional[int]], YaraMatches],
+        yara_fn: Callable[
+            [Yara, Optional[int], Optional[int], Literal[True]], YaraRulesetMatch
+        ],
         query: Union[str, bytes],
         addr: Optional[int],
         length: Optional[int],

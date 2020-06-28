@@ -4,7 +4,7 @@ import os
 import warnings
 from typing import Any, Dict, Optional, List, Type, Union
 
-from ..yara import Yara, YaraMatches, YaraRuleOffsets
+from ..yara import Yara, YaraRuleOffsets, YaraRulesetMatch
 from ..procmem import ProcessMemory
 from .extractor import Extractor
 from .loaders import load_modules
@@ -222,7 +222,8 @@ class ExtractManager:
         from ..procmem import ProcessMemoryPE, ProcessMemoryELF
         from ..procmem.binmem import ProcessMemoryBinary
 
-        matches = p.yarav(self.rules)
+        matches = p.yarav(self.rules, extended=True)
+
         if not matches:
             log.debug("No Yara matches.")
             return None
@@ -298,17 +299,17 @@ class ProcmemExtractManager:
         self.parent.on_extractor_error(exc, extractor, method_name)
 
     def push_procmem(
-        self, p: ProcessMemory, _matches: Optional[YaraMatches] = None
+        self, p: ProcessMemory, _matches: Optional[YaraRulesetMatch] = None
     ) -> None:
         """
         Pushes ProcessMemory object for extraction
 
         :param p: ProcessMemory object
         :type p: :class:`malduck.procmem.ProcessMemory`
-        :param _matches: YaraMatches object (used internally)
-        :type _matches: :class:`malduck.yara.YaraMatches`
+        :param _matches: YaraRulesetMatch object (used internally)
+        :type _matches: :class:`malduck.yara.YaraRulesetMatch`
         """
-        matches = _matches or p.yarav(self.parent.rules)
+        matches = _matches or p.yarav(self.parent.rules, extended=True)
         # For each extractor...
         for ext_class in self.parent.extractors:
             extractor = ext_class(self)
@@ -319,15 +320,13 @@ class ProcmemExtractManager:
                         if hasattr(extractor, "handle_yara"):
                             warnings.warn(
                                 "Extractor.handle_yara is deprecated, use Extractor.handle_match",
-                                DeprecationWarning
+                                DeprecationWarning,
                             )
                             getattr(extractor, "handle_yara")(
                                 p, YaraRuleOffsets(matches[rule])
                             )
                         else:
-                            extractor.handle_match(
-                                p, matches[rule]
-                            )
+                            extractor.handle_match(p, matches[rule])
                     except Exception as exc:
                         self.parent.on_error(exc, extractor)
 

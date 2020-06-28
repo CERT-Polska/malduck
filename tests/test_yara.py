@@ -1,6 +1,6 @@
 import os
 
-from malduck import Yara, YaraString, YaraStringMatch
+from malduck import Yara, YaraString
 from malduck.procmem import Region, ProcessMemory
 
 
@@ -21,16 +21,16 @@ def test_yara_match():
     assert "r" in match.keys()
 
     assert sorted(match.r.keys()) == ["program", "program1"]
-    assert match.r.get_offsets("program") == [12]
-    assert match.r.get_offsets("program1") == [12]
+    assert match.r["program"] == [12]
+    assert match.r["program1"] == [12]
 
     match = yara.match(data=b"margorP\x90\x90\x90\xffProgram")
     assert match
     assert sorted(match.r.keys()) == ["program", "program2", "program3", "program4"]
-    assert sorted(match.r.get_offsets("program")) == [
-        match.r.program3[0].hit,
-        match.r.program4[0].hit,
-        match.r.program2[0].hit]
+    assert sorted(match.r["program"]) == [
+        match.r.program3[0],
+        match.r.program4[0],
+        match.r.program2[0]]
 
 
 def test_yara_escaping():
@@ -52,24 +52,12 @@ def test_yara_dirs_and_files():
     match = all_rules.match(filepath=os.path.join(local_path, "calc.exe"))
     # FourSectionPE doesn't have any strings
     assert sorted(match.keys()) == ["Calc"]
-    assert match.Calc.calc == [
-        YaraStringMatch(identifier='calc', hit=0xb996c, content=b'C\x00A\x00L\x00C\x00.\x00E\x00X\x00E\x00')
-    ]
+    assert match.Calc.calc == [0xb996c]
 
     match = all_rules.match(filepath=os.path.join(local_path, "dummy.dmp"))
     assert sorted(match.keys()) == ["DummyRoachRule"]
     assert sorted(match.DummyRoachRule.keys()) == ["region_bc", "region_bc1", "region_bc2"]
-    # Strings must be ordered by hits
-    assert match.DummyRoachRule.region_bc == [
-        YaraStringMatch(identifier='region_bc2',
-                        hit=0x1014,
-                        content=b'AAAA\x00\x10AA\x00\x00\x00\x00\x00 \x00\x00*\x00\x00\x00'
-                                b'+\x00\x00\x00\x02\x00\x00\x00BBBB'),
-        YaraStringMatch(identifier='region_bc1',
-                        hit=0x302c,
-                        content=b'BBBB\x00\x00BB\x00\x00\x00\x00\x00\x10\x00\x00\x00\x00'
-                                b'\x00\x00\x00\x00\x00\x00\x02\x00\x00\x00CCCC'),
-    ]
+    assert sorted(match.DummyRoachRule.region_bc) == [0x1014, 0x302c]
 
     match = inner_rules.match(filepath=os.path.join(local_path, "calc.exe"))
     assert match
@@ -113,11 +101,10 @@ def test_procmem_yara():
     assert matchv
     assert set(matchp.regions.keys()).difference(set(matchv.regions.keys())) == {"c_and_d"}
 
-    assert [matchv.regions.a_and_b[0].hit, matchv.regions.b_and_c[0].hit] == [0x400fc0, 0x401fc0]
-    assert matchv.regions.get_offsets("a_series") == list(range(0x400000, 0x401000 - 63))
-    assert matchv.regions.get_offsets("b_series") == list(range(0x401000, 0x402000 - 63))
-    assert matchv.regions.get_offsets("c_series") == list(range(0x402000, 0x403000 - 63))
-    assert matchv.regions.get_offsets("d_series") == list(range(0x410000, 0x411000 - 63))
+    assert [matchv.regions.a_and_b[0], matchv.regions.b_and_c[0]] == [0x400fc0, 0x401fc0]
+    assert matchv.regions.a_series == list(range(0x400000, 0x401000 - 63))
+    assert matchv.regions.b_series == list(range(0x401000, 0x402000 - 63))
+    assert matchv.regions.c_series == list(range(0x402000, 0x403000 - 63))
+    assert matchv.regions.d_series == list(range(0x410000, 0x411000 - 63))
     assert matchv.regions.get("a_series")
     assert not matchv.regions.get("e_series")
-

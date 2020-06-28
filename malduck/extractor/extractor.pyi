@@ -31,7 +31,9 @@ class _StringOffsetCallback(Protocol[T, U]):
     def __call__(cls, self: T, p: U, addr: int) -> Union[Config, bool, None]: ...
 
 class _StringCallback(Protocol[T, U]):
-    def __call__(cls, self: T, p: U, addr: int, match: YaraStringMatch) -> Union[Config, bool, None]: ...
+    def __call__(
+        cls, self: T, p: U, addr: int, match: YaraStringMatch
+    ) -> Union[Config, bool, None]: ...
 
 class _RuleCallback(Protocol[T, U]):
     def __call__(
@@ -46,12 +48,22 @@ class ExtractorMethod(Generic[T, U]):
     Represents registered extractor method
     """
 
-    method: Union[_StringOffsetCallback[T, U], _StringCallback[T, U], _RuleCallback[T, U], _FinalCallback[T, U]]
+    method: Union[
+        _StringOffsetCallback[T, U],
+        _StringCallback[T, U],
+        _RuleCallback[T, U],
+        _FinalCallback[T, U],
+    ]
     procmem_type: Type["ProcessMemory"]
     weak: bool
     def __init__(
         self,
-        method: Union[_StringOffsetCallback[T, U], _StringCallback[T, U], _RuleCallback[T, U], _FinalCallback[T, U]],
+        method: Union[
+            _StringOffsetCallback[T, U],
+            _StringCallback[T, U],
+            _RuleCallback[T, U],
+            _FinalCallback[T, U],
+        ],
     ) -> None: ...
     def __call__(self, extractor: T, procmem: U, *args, **kwargs) -> None: ...
 
@@ -110,7 +122,6 @@ class Extractor:
     def extractor(
         string_or_method: str,
     ) -> Callable[[_StringOffsetCallback[T, U]], StringOffsetExtractorMethod[T, U]]: ...
-
     @overload
     @staticmethod
     def string(
@@ -121,7 +132,6 @@ class Extractor:
     def string(
         *strings_or_method: str,
     ) -> Callable[[_StringCallback[T, U]], StringExtractorMethod[T, U]]: ...
-
     @overload
     @staticmethod
     def rule(string_or_method: _RuleCallback[T, U]) -> RuleExtractorMethod[T, U]: ...

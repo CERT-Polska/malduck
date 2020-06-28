@@ -481,6 +481,7 @@ class Extractor:
                 if isinstance(method, ExtractorMethod):
                     raise TypeError("@extractor decorator must be first")
                 return StringExtractorMethod(method, string_names=strings)
+
             return extractor_wrapper
         else:
             raise TypeError("Expected strings or single callable argument")
