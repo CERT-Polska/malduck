@@ -64,7 +64,7 @@ class Yara:
         self,
         offset_mapper: Optional[OffsetMapper] = None,
         extended: Literal[False] = False,
-        **kwargs
+        **kwargs,
     ) -> "YaraRulesetOffsets": ...
     # match(offset_mapper, extended=True, ...)
     @overload
