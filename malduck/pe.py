@@ -328,7 +328,7 @@ class PE(object):
                             e3.data.struct.OffsetToData, e3.data.struct.Size
                         )
 
-    def resource(self, name) -> Optional[bytes]:
+    def resource(self, name: Union[int, str, bytes]) -> Optional[bytes]:
         """
         Retrieves single resource by specified name or type
 
