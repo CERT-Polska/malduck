@@ -4,12 +4,12 @@
 
 import pefile
 
-from typing import Optional, TYPE_CHECKING
+from typing import Any, Iterator, Optional, Union, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .procmem import ProcessMemory
 
-__all__ = ["pe", "PE", "MemoryPEData", "FastPE", "pe2cuckoo"]
+__all__ = ["pe", "PE", "MemoryPEData", "FastPE"]
 
 
 class FastPE(pefile.PE):
@@ -66,7 +66,7 @@ class MemoryPEData:
             + self.memory.regions[-1].size
         )
 
-    def __getitem__(self, item):
+    def __getitem__(self, item: Any) -> object:
         if isinstance(item, slice):
             start = self.map_offset(item.start or 0)
             stop = self.map_offset(item.stop - 1)
@@ -92,57 +92,61 @@ class PE(object):
     :class:`ProcessMemory` instance.
     """
 
-    def __init__(self, data, fast_load=False):
+    def __init__(
+        self, data: Union["ProcessMemory", bytes], fast_load: bool = False
+    ) -> None:
         from .procmem import ProcessMemory
 
         if isinstance(data, ProcessMemory):
-            self.data = MemoryPEData(data, fast_load)
-            self.pe = self.data.pe
+            self.pe = MemoryPEData(data, fast_load).pe
         else:
-            self.data = data
             self.pe = FastPE(data=data, fast_load=fast_load)
 
     @property
-    def dos_header(self):
+    def data(self) -> bytes:
+        return self.pe.__data__
+
+    @property
+    def dos_header(self) -> Any:
         """Dos header"""
         return self.pe.DOS_HEADER
 
     @property
-    def nt_headers(self):
+    def nt_headers(self) -> Any:
         """NT headers"""
         return self.pe.NT_HEADERS
 
     @property
-    def file_header(self):
+    def file_header(self) -> Any:
         """File header"""
         return self.pe.FILE_HEADER
 
     @property
-    def optional_header(self):
+    def optional_header(self) -> Any:
         """Optional header"""
         return self.pe.OPTIONAL_HEADER
 
     @property
-    def sections(self):
+    def sections(self) -> list:
         """Sections"""
         return self.pe.sections
 
     @property
-    def is32bit(self):
+    def is32bit(self) -> Any:
         """
         Is it 32-bit file (PE)?
         """
         return self.optional_header.Magic == pefile.OPTIONAL_HEADER_MAGIC_PE
 
     @property
-    def is64bit(self):
+    def is64bit(self) -> Any:
         """
         Is it 64-bit file (PE+)?
         """
         return self.optional_header.Magic == pefile.OPTIONAL_HEADER_MAGIC_PE_PLUS
 
     @property
-    def headers_size(self):
+    def headers_size(self) -> int:
         """
         Estimated size of PE headers (first section offset).
         If there are no sections: returns 0x1000 or size of input if provided data are shorter than single page
@@ -153,7 +157,7 @@ class PE(object):
             else min(len(self.pe.__data__), 0x1000)
         )
 
-    def section(self, name):
+    def section(self, name: Union[str, bytes]) -> Any:
         """
         Get section by name
 
@@ -167,7 +171,7 @@ class PE(object):
             if section.Name.rstrip(b"\x00") == name:
                 return section
 
-    def directory(self, name):
+    def directory(self, name: str) -> Any:
         """
         Get pefile directory entry by identifier
 
@@ -178,10 +182,11 @@ class PE(object):
             pefile.DIRECTORY_ENTRY.get("IMAGE_DIRECTORY_ENTRY_" + name)
         ]
 
-    def structure(self, rva, format):
+    def structure(self, rva: int, format: Any) -> Any:
         """
         Get internal pefile Structure from specified rva
 
+        :param rva: Relative virtual address of structure
         :param format: :class:`pefile.Structure` format
                        (e.g. :py:attr:`pefile.PE.__IMAGE_LOAD_CONFIG_DIRECTORY64_format__`)
         :rtype: :class:`pefile.Structure`
@@ -190,7 +195,7 @@ class PE(object):
         structure.__unpack__(self.pe.get_data(rva, structure.sizeof()))
         return structure
 
-    def validate_import_names(self):
+    def validate_import_names(self) -> bool:
         """
         Returns True if the first 8 imported library entries have valid library names
         """
@@ -219,7 +224,7 @@ class PE(object):
         except pefile.PEFormatError:
             return False
 
-    def validate_resources(self):
+    def validate_resources(self) -> bool:
         """
         Returns True if first level of resource tree looks consistent
         """
@@ -254,7 +259,7 @@ class PE(object):
         except pefile.PEFormatError:
             return False
 
-    def validate_padding(self):
+    def validate_padding(self) -> bool:
         """
         Returns True if area between first non-bss section and first 4kB doesn't have only null-bytes
         """
@@ -283,7 +288,7 @@ class PE(object):
         except pefile.PEFormatError:
             return False
 
-    def resources(self, name):
+    def resources(self, name: Union[int, str, bytes]) -> Iterator[bytes]:
         """
         Finds resource objects by specified name or type
 
@@ -323,7 +328,7 @@ class PE(object):
                             e3.data.struct.OffsetToData, e3.data.struct.Size
                         )
 
-    def resource(self, name):
+    def resource(self, name: Union[int, str, bytes]) -> Optional[bytes]:
         """
         Retrieves single resource by specified name or type
 
@@ -334,15 +339,7 @@ class PE(object):
         try:
             return next(self.resources(name))
         except StopIteration:
-            pass
-
-
-def pe2cuckoo(data):
-    from .procmem import ProcessMemoryPE, CuckooProcessMemory
-
-    """Translate a PE file into a cuckoo-procmem file."""
-    m = ProcessMemoryPE(data, image=True)
-    return CuckooProcessMemory.from_memory(m).store()
+            return None
 
 
 pe = PE
