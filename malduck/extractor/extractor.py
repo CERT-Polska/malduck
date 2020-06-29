@@ -423,8 +423,8 @@ class Extractor:
                             "Trying %s.%s for %s@%x",
                             self.__class__.__name__,
                             method_name,
-                            identifier,
-                            string_match,
+                            string_match.identifier,
+                            string_match.hit,
                         )
                         method(self, p, string_match.hit, string_match)
                     except Exception as exc:
