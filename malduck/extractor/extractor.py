@@ -108,6 +108,13 @@ class Extractor:
                 if p.is_addr(hit):
                     return {'login_key': p.asciiz(hit)}
 
+    Decorated methods are always called in order:
+
+    - `@Extractor.extractor` methods
+    - `@Extractor.string` methods
+    - `@Extractor.rule` methods
+    - `@Extractor.final` methods
+
     .. py:decoratormethod:: Extractor.string
 
         Decorator for string-based extractor methods.

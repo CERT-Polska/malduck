@@ -97,7 +97,7 @@ class Yara:
             # ["mal1", "mal", "mal2"]
             print(match.MalwareRule.keys())
             if "mal" in match.MalwareRule:
-                # Note: Order of offsets for grouped is arbitrary
+                # Note: Order of offsets for grouped strings is undetermined
                 print("mal*", match.MalwareRule["mal"])
 
     :param rule_paths: Dictionary of {"namespace": "rule_path"}. See also :py:meth:`Yara.from_dir`.
