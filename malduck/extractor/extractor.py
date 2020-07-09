@@ -407,7 +407,7 @@ class Extractor:
                         identifier,
                         string_match,
                     )
-                    method(self, p, string_match.hit)
+                    method(self, p, string_match.offset)
                 except Exception as exc:
                     self.on_error(exc, method_name)
 
@@ -424,9 +424,9 @@ class Extractor:
                             self.__class__.__name__,
                             method_name,
                             string_match.identifier,
-                            string_match.hit,
+                            string_match.offset,
                         )
-                        method(self, p, string_match.hit, string_match)
+                        method(self, p, string_match.offset, string_match)
                     except Exception as exc:
                         self.on_error(exc, method_name)
 

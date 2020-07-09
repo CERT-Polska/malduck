@@ -793,7 +793,7 @@ class ProcessMemory:
         match = yara_fn(rule, addr, length, True)
         if match:
             for string_match in match.r.string:
-                yield string_match.hit
+                yield string_match.offset
 
     def findbytesp(self, query, offset=None, length=None):
         """

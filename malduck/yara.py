@@ -256,22 +256,22 @@ class YaraRulesetMatch(_Mapper):
 
     def _map_strings(self, strings, offset_mapper):
         mapped_strings = defaultdict(list)
-        for hit, identifier, content in strings:
+        for offset, identifier, content in strings:
             # Get identifier without "$" and group identifier
             real_ident, group_ident = self._parse_string_identifier(identifier)
             # Map offset if offset_mapper is provided
             if offset_mapper is not None:
-                _hit = offset_mapper(hit, len(content))
-                if _hit is None:
+                _offset = offset_mapper(offset, len(content))
+                if _offset is None:
                     # Ignore match for unmapped region
                     continue
-                hit = _hit
+                offset = _offset
             # Register offset for full identifier
-            mapped_strings[real_ident].append(YaraStringMatch(real_ident, hit, content))
+            mapped_strings[real_ident].append(YaraStringMatch(real_ident, offset, content))
             # Register offset for grouped identifier
             if real_ident != group_ident:
                 mapped_strings[group_ident].append(
-                    YaraStringMatch(real_ident, hit, content)
+                    YaraStringMatch(real_ident, offset, content)
                 )
         return mapped_strings
 
@@ -297,7 +297,7 @@ class YaraRulesetOffsets(_Mapper):
         return YaraRulesetOffsets(self._matches.remap(offset_mapper))
 
 
-YaraStringMatch = namedtuple("YaraStringMatch", ["identifier", "hit", "content"])
+YaraStringMatch = namedtuple("YaraStringMatch", ["identifier", "offset", "content"])
 
 
 class YaraRuleMatch(_Mapper):
@@ -313,11 +313,11 @@ class YaraRuleMatch(_Mapper):
         self.namespace = namespace
         self.tags = tags
         super().__init__(
-            elements={k: sorted(v, key=lambda s: s.hit) for k, v in strings.items()}
+            elements={k: sorted(v, key=lambda s: s.offset) for k, v in strings.items()}
         )
 
     def get_offsets(self, string):
-        return [match.hit for match in self.elements.get(string, [])]
+        return [match.offset for match in self.elements.get(string, [])]
 
 
 class YaraRuleOffsets(_Mapper):
@@ -325,7 +325,7 @@ class YaraRuleOffsets(_Mapper):
         self.rule = self.name = rule_match.rule
         super().__init__(
             {
-                identifier: [match.hit for match in string_matches]
+                identifier: [match.offset for match in string_matches]
                 for identifier, string_matches in rule_match.elements.items()
             },
             default=[],

@@ -120,7 +120,7 @@ class YaraRulesetOffsets(_Mapper["YaraRuleOffsets"]):
         self, offset_mapper: Optional[OffsetMapper] = None
     ) -> "YaraRulesetOffsets": ...
 
-YaraStringMatch = namedtuple("YaraStringMatch", ["identifier", "hit", "content"])
+YaraStringMatch = namedtuple("YaraStringMatch", ["identifier", "offset", "content"])
 
 class YaraRuleMatch(_Mapper[List[YaraStringMatch]]):
     rule: str
