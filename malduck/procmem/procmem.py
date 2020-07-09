@@ -790,7 +790,7 @@ class ProcessMemory:
             query = query.decode()
 
         rule = Yara(strings=YaraString(query, type=YaraString.HEX))
-        match = yara_fn(rule, addr, length, True)
+        match = yara_fn(rule, addr, length, extended=True)
         if match:
             for string_match in match.r.string:
                 yield string_match.offset

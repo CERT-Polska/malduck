@@ -3,7 +3,6 @@ import mmap
 from typing import (
     Any,
     BinaryIO,
-    Callable,
     Dict,
     Iterator,
     List,
@@ -15,7 +14,7 @@ from typing import (
     overload,
 )
 
-from typing_extensions import Literal
+from typing_extensions import Literal, Protocol
 
 from ..extractor import ExtractorModules, ExtractManager
 
@@ -29,6 +28,24 @@ ProcessMemoryBuffer = Union[bytes, bytearray, mmap.mmap]
 T = TypeVar("T", bound="ProcessMemory")
 
 procmem: Type["ProcessMemory"]
+
+class ProcessMemoryYaraCallback(Protocol):
+    @overload
+    def __call__(
+        self,
+        ruleset: Yara,
+        addr: Optional[int],
+        length: Optional[int],
+        extended: Literal[True],
+    ) -> YaraRulesetMatch: ...
+    @overload
+    def __call__(
+        self,
+        ruleset: Yara,
+        offset: Optional[int],
+        length: Optional[int],
+        extended: Literal[True],
+    ) -> YaraRulesetMatch: ...
 
 class ProcessMemory:
     f: Optional[BinaryIO]
@@ -276,9 +293,7 @@ class ProcessMemory:
     ) -> YaraRulesetMatch: ...
     def _findbytes(
         self,
-        yara_fn: Callable[
-            [Yara, Optional[int], Optional[int], Literal[True]], YaraRulesetMatch
-        ],
+        yara_fn: ProcessMemoryYaraCallback,
         query: Union[str, bytes],
         addr: Optional[int],
         length: Optional[int],
