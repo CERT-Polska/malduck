@@ -90,13 +90,13 @@ class Extractor:
             yara_rules = ("citadel",)
             overrides = ("zeus",)
 
-            @Extractor.extractor("briankerbs")
-            def citadel_found(self, p, addr):
+            @Extractor.string("briankerbs")
+            def citadel_found(self, p, addr, match):
                 log.info('[+] `Coded by Brian Krebs` str @ %X' % addr)
                 return True
 
-            @Extractor.extractor
-            def cit_login(self, p, addr):
+            @Extractor.string
+            def cit_login(self, p, addr, match):
                 log.info('[+] Found login_key xor @ %X' % addr)
                 hit = p.uint32v(addr + 4)
                 print(hex(hit))
@@ -108,7 +108,7 @@ class Extractor:
                 if p.is_addr(hit):
                     return {'login_key': p.asciiz(hit)}
 
-    .. py:decoratormethod:: Extractor.extractor
+    .. py:decoratormethod:: Extractor.string
 
         Decorator for string-based extractor methods.
         Method is called each time when string with the same identifier as method name has matched
@@ -122,22 +122,44 @@ class Extractor:
 
         .. code-block:: Python
 
-            @Extractor.extractor
-            def string_identifier(self, p: ProcessMemory, addr: int) -> Config:
+            @Extractor.string
+            def string_identifier(self, p: ProcessMemory, addr: int, match: YaraStringMatch) -> Config:
                 # p: ProcessMemory object that contains matched file/dump representation
                 # addr: Virtual address of matched string
                 # Called for each "$string_identifier" hit
                 ...
 
-        Extractor methods should return `dict` object with extracted part of configuration or bool/None indicating
-        a match or lack of it.
+        If you want to use same method for multiple different named strings, you can provide multiple identifiers
+        as `@Extractor.string` decorator argument
+
+        .. code-block::Python
+
+            @Extractor.string("xor_call", "mov_call")
+            def xxx_call(self, p: ProcessMemory, addr: int, match: YaraStringMatch) -> Config:
+                # This will be called for all $xor_call and $mov_call string hits
+                # You can determine which string triggered the hit via match.identifier
+                if match.identifier == "xor_call":
+                    ...
+
+        Extractor methods should return `dict` object with extracted part of configuration, `True` indicating
+        a match or `False`/`None` when family has not been matched.
 
         For strong methods: truthy values are transformed to `dict` with `{"family": self.family}` key.
 
-        :param string_or_method:
-            If method name doesn't match the string identifier
-            pass yara string identifier as decorator argument
-        :type string_or_method: str, optional
+        .. versionadded:: 4.0.0
+
+            Added `@Extractor.string` as extended version of `@Extractor.extractor`
+
+        :param strings_or_method:
+            If method name doesn't match the string identifier, pass yara string identifier as decorator argument.
+            Multiple strings are accepted
+        :type strings_or_method: *str, optional
+
+    .. py:decoratormethod:: Extractor.extractor
+
+        Simplified variant of `@Extractor.string`.
+
+        Doesn't accept multiple strings and passes only string offset to the extractor method.
 
         .. code-block:: Python
 
@@ -306,7 +328,7 @@ class Extractor:
 
     def push_procmem(self, procmem: ProcessMemory, **info):
         """
-        Push procmem object for further analysis
+        Push extracted procmem object for further analysis
 
         :param procmem: ProcessMemory object
         :type procmem: :class:`malduck.procmem.ProcessMemory`
@@ -386,7 +408,14 @@ class Extractor:
         Override this if you don't want to use decorators and customize ripping process
         (e.g. yara-independent, brute-force techniques)
 
-        Called for each rule hit listed in Extractor.yara_rules
+        Called for each rule hit listed in Extractor.yara_rules.
+
+        Overriding this method means that all Yara hits must be processed within this method.
+        Ripped configurations must be reported using :py:meth:`push_config` method.
+
+        .. versionadded: 4.0.0::
+
+            Use :py:meth:`handle_match` instead of deprecated :py:meth:`handle_yara`.
 
         :param p: ProcessMemory object
         :type p: :class:`malduck.procmem.ProcessMemory`

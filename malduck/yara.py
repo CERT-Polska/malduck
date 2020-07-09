@@ -267,7 +267,9 @@ class YaraRulesetMatch(_Mapper):
                     continue
                 offset = _offset
             # Register offset for full identifier
-            mapped_strings[real_ident].append(YaraStringMatch(real_ident, offset, content))
+            mapped_strings[real_ident].append(
+                YaraStringMatch(real_ident, offset, content)
+            )
             # Register offset for grouped identifier
             if real_ident != group_ident:
                 mapped_strings[group_ident].append(
