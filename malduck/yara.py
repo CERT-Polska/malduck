@@ -183,7 +183,10 @@ class Yara:
         :param offset_mapper: Offset mapping function. For unmapped region, should returned None.
                               Used by :py:meth:`malduck.procmem.ProcessMemory.yarav`
         :type offset_mapper: function
-        :rtype: :class:`YaraMatches`
+        :param extended: Returns extended information about matched strings and rules
+        :type extended: bool (optional, default False)
+        :rtype: :class:`malduck.yara.YaraRulesetOffsets` or :class:`malduck.yara.YaraRulesetMatches`
+                if extended is set to True
         """
         matches = YaraRulesetMatch(
             self.rules.match(**kwargs), offset_mapper=offset_mapper
