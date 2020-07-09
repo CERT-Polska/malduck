@@ -17,7 +17,7 @@ from typing import (
 from typing_extensions import Protocol
 
 from ..procmem import ProcessMemory, ProcessMemoryPE, ProcessMemoryELF
-from ..yara import YaraMatch
+from ..yara import YaraRuleMatch, YaraStringMatch
 
 from .extract_manager import ProcmemExtractManager
 
@@ -27,12 +27,17 @@ T = TypeVar("T", bound="Extractor", contravariant=True)
 U = TypeVar("U", bound=ProcessMemory, contravariant=True)
 V = TypeVar("V", bound="ExtractorMethod")
 
-class _StringCallback(Protocol[T, U]):
+class _StringOffsetCallback(Protocol[T, U]):
     def __call__(cls, self: T, p: U, addr: int) -> Union[Config, bool, None]: ...
+
+class _StringCallback(Protocol[T, U]):
+    def __call__(
+        cls, self: T, p: U, addr: int, match: YaraStringMatch
+    ) -> Union[Config, bool, None]: ...
 
 class _RuleCallback(Protocol[T, U]):
     def __call__(
-        cls, self: T, p: U, matches: YaraMatch
+        cls, self: T, p: U, match: YaraRuleMatch
     ) -> Union[Config, bool, None]: ...
 
 class _FinalCallback(Protocol[T, U]):
@@ -43,19 +48,36 @@ class ExtractorMethod(Generic[T, U]):
     Represents registered extractor method
     """
 
-    method: Union[_StringCallback[T, U], _RuleCallback[T, U], _FinalCallback[T, U]]
+    method: Union[
+        _StringOffsetCallback[T, U],
+        _StringCallback[T, U],
+        _RuleCallback[T, U],
+        _FinalCallback[T, U],
+    ]
     procmem_type: Type["ProcessMemory"]
     weak: bool
     def __init__(
         self,
-        method: Union[_StringCallback[T, U], _RuleCallback[T, U], _FinalCallback[T, U]],
+        method: Union[
+            _StringOffsetCallback[T, U],
+            _StringCallback[T, U],
+            _RuleCallback[T, U],
+            _FinalCallback[T, U],
+        ],
     ) -> None: ...
     def __call__(self, extractor: T, procmem: U, *args, **kwargs) -> None: ...
 
-class StringExtractorMethod(ExtractorMethod[T, U]):
+class StringOffsetExtractorMethod(ExtractorMethod[T, U]):
     string_name: str
     def __init__(
-        self, method: _StringCallback[T, U], string_name: Optional[str] = None
+        self, method: _StringOffsetCallback[T, U], string_name: Optional[str] = None
+    ) -> None:
+        super().__init__(method)
+
+class StringExtractorMethod(ExtractorMethod[T, U]):
+    string_names: List[str]
+    def __init__(
+        self, method: _StringCallback[T, U], string_names: Optional[List[str]] = None
     ) -> None:
         super().__init__(method)
 
@@ -88,17 +110,27 @@ class Extractor:
     def log(self) -> logging.Logger: ...
     def _get_methods(self, method_type: Type[V]) -> Iterator[Tuple[str, V]]: ...
     def on_error(self, exc: Exception, method_name: str) -> None: ...
-    def handle_yara(self, p: ProcessMemory, match: YaraMatch) -> None: ...
+    def handle_match(self, p: ProcessMemory, match: YaraRuleMatch) -> None: ...
     # Extractor method decorators
     @overload
     @staticmethod
     def extractor(
-        string_or_method: _StringCallback[T, U]
-    ) -> StringExtractorMethod[T, U]: ...
+        string_or_method: _StringOffsetCallback[T, U]
+    ) -> StringOffsetExtractorMethod[T, U]: ...
     @overload
     @staticmethod
     def extractor(
         string_or_method: str,
+    ) -> Callable[[_StringOffsetCallback[T, U]], StringOffsetExtractorMethod[T, U]]: ...
+    @overload
+    @staticmethod
+    def string(
+        *strings_or_method: _StringCallback[T, U]
+    ) -> StringExtractorMethod[T, U]: ...
+    @overload
+    @staticmethod
+    def string(
+        *strings_or_method: str,
     ) -> Callable[[_StringCallback[T, U]], StringExtractorMethod[T, U]]: ...
     @overload
     @staticmethod

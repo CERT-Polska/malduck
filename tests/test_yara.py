@@ -109,3 +109,26 @@ def test_procmem_yara():
     assert matchv.regions.get("a_series")
     assert not matchv.regions.get("e_series")
 
+
+def test_digit_group_yara():
+    local_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), "files", "yara")
+    ruleset = Yara.from_dir(local_path)
+
+    p = ProcessMemory(b"531digit_group_confirmed024")
+    match_all = p.yarap(ruleset, extended=True)["DigitGroup"]
+    match_suffix = p.yarap(ruleset, offset=3, extended=True)["DigitGroup"]
+    match_prefix = p.yarap(ruleset, length=24, extended=True)["DigitGroup"]
+
+    assert (
+        sorted(['grouped03', 'grouped_1', 'grouped_00', 'grouped2']) ==
+        sorted([match.identifier for match in match_all["grouped"]])
+    )
+    assert "ungrouped" not in match_all
+    assert (
+        sorted(['grouped_00', 'grouped2']) ==
+        sorted([match.identifier for match in match_suffix["grouped"]])
+    )
+    assert (
+        sorted(['grouped03', 'grouped_1']) ==
+        sorted([match.identifier for match in match_prefix["grouped"]])
+    )

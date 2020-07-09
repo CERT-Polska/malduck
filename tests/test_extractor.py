@@ -61,3 +61,22 @@ def test_weaky():
         "weak": True,
         "weaky": True
     }]
+
+
+def test_multirules():
+    modules = ExtractorModules("tests/files/modules")
+    multistring = procmem(b"FiRsT string fIrSt string"
+                          b"SeCoNd string sEcOnD string"
+                          b"ThIrD string tHiRd string")
+    assert multistring.extract(modules) == [{
+        'family': 'multistring',
+        'first': ['FiRsT string', 'fIrSt string', 'SeCoNd string', 'sEcOnD string'],
+        'third': ['ThIrD string']
+    }]
+
+    multistring_v2 = procmem(b"ThIrD stringa0a1b2b3c4c5d6d7e8e9FoUrTh string")
+    assert multistring_v2.extract(modules) == [{
+        'family': 'multistring_v2',
+        'matched': ['v2'],
+        'third': ['ThIrD string']
+    }]
