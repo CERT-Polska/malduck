@@ -693,7 +693,7 @@ class ProcessMemory:
             for entry in re.finditer(query, chunk, re.DOTALL):
                 yield chunk_addr + entry.start()
 
-    def disasmv(self, addr, size, x64=False, n=None):
+    def disasmv(self, addr, size=None, x64=False, n=None):
         """
         Disassembles code under specified address
 
