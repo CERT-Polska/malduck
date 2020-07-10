@@ -1,6 +1,5 @@
 import mmap
 import re
-import itertools
 
 from typing import BinaryIO, List, Optional, Union, cast
 
