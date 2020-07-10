@@ -397,7 +397,7 @@ class ProcessMemory:
 
         Used internally.
 
-        .. versionchanged: 3.0.0
+        .. versionchanged:: 3.0.0
 
             Contents of contiguous regions are merged into single string
 
@@ -697,7 +697,7 @@ class ProcessMemory:
         """
         Disassembles code under specified address
 
-        .. versionchanged :: 4.0.0
+        .. versionchanged:: 4.0.0
             Returns iterator instead of list of instructions
 
         :param addr: Virtual address
@@ -711,16 +711,11 @@ class ProcessMemory:
         :return: :class:`List[Instruction]`
         """
         if (not size and not count) or (size and count):
-            raise ValueError("procmem.disasmv needs either size or n to be set")
+            raise ValueError("procmem.disasmv needs either size or count to be set")
         if count:
             # Get the the maximum possible code size assuming maximum instruction size
             size = count * 15
-        instructions = disasm(self.readv(addr, size), addr, x64=x64)
-
-        if count:
-            return itertools.islice(instructions, count)
-        else:
-            return instructions
+        return disasm(data=self.readv(addr, size), addr=addr, x64=x64, count=count or 0)
 
     def extract(self, modules=None, extract_manager=None):
         """
