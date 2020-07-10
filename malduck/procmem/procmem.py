@@ -1,5 +1,6 @@
 import mmap
 import re
+import itertools
 
 from typing import BinaryIO, List, Optional, Union, cast
 
@@ -692,19 +693,34 @@ class ProcessMemory:
             for entry in re.finditer(query, chunk, re.DOTALL):
                 yield chunk_addr + entry.start()
 
-    def disasmv(self, addr, size, x64=False):
+    def disasmv(self, addr, size, x64=False, n=None):
         """
         Disassembles code under specified address
+
+        .. versionchanged :: 4.0.0
+            Returns iterator instead of list of instructions
 
         :param addr: Virtual address
         :type addr: int
         :param size: Size of disassembled buffer
-        :type size: int
+        :type size: int (optional)
+        :param size: Number of instructions to disassemble
+        :type size: int (optional)
         :param x64: Assembly is 64bit
         :type x64: bool (optional)
         :return: :class:`List[Instruction]`
         """
-        return disasm(self.readv(addr, size), addr, x64=x64)
+        if (not size and not n) or (addr and size):
+            raise ValueError("procmem.disasmv needs either size or n to be set")
+        if n:
+            # Get the the code blob assuming maximum instruction size
+            size = n * 15
+        instructions = disasm(self.readv(addr, size), addr, x64=x64)
+
+        if n:
+            return itertools.islice(instructions, n)
+        else:
+            return instructions
 
     def extract(self, modules=None, extract_manager=None):
         """
@@ -732,7 +748,7 @@ class ProcessMemory:
 
         If offset is None, looks for match from the beginning of memory
 
-        .. versionchanged:: 4.0.0:
+        .. versionchanged:: 4.0.0
 
             Added `extended` option which allows to get extended information about matched strings and rules.
             Default is False for backwards compatibility.
@@ -755,7 +771,7 @@ class ProcessMemory:
 
         If addr is None, looks for match from the beginning of memory
 
-        .. versionchanged:: 4.0.0:
+        .. versionchanged:: 4.0.0
 
             Added `extended` option which allows to get extended information about matched strings and rules.
             Default is False for backwards compatibility.
