@@ -222,7 +222,7 @@ class ProcessMemory:
         addr: int,
         size: Optional[int] = None,
         x64: bool = False,
-        n: Optional[int] = None,
+        count: Optional[int] = None,
     ) -> List[Instruction]: ...
     def extract(
         self, modules: ExtractorModules = None, extract_manager: ExtractManager = None,

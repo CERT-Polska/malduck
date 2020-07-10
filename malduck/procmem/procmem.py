@@ -693,7 +693,7 @@ class ProcessMemory:
             for entry in re.finditer(query, chunk, re.DOTALL):
                 yield chunk_addr + entry.start()
 
-    def disasmv(self, addr, size=None, x64=False, n=None):
+    def disasmv(self, addr, size=None, x64=False, count=None):
         """
         Disassembles code under specified address
 
@@ -704,21 +704,21 @@ class ProcessMemory:
         :type addr: int
         :param size: Size of disassembled buffer
         :type size: int (optional)
-        :param size: Number of instructions to disassemble
-        :type size: int (optional)
+        :param count: Number of instructions to disassemble
+        :type count: int (optional)
         :param x64: Assembly is 64bit
         :type x64: bool (optional)
         :return: :class:`List[Instruction]`
         """
-        if (not size and not n) or (size and n):
+        if (not size and not count) or (size and count):
             raise ValueError("procmem.disasmv needs either size or n to be set")
-        if n:
+        if count:
             # Get the the code blob assuming maximum instruction size
-            size = n * 15
+            size = count * 15
         instructions = disasm(self.readv(addr, size), addr, x64=x64)
 
-        if n:
-            return itertools.islice(instructions, n)
+        if count:
+            return itertools.islice(instructions, count)
         else:
             return instructions
 
