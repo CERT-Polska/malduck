@@ -710,7 +710,7 @@ class ProcessMemory:
         :type x64: bool (optional)
         :return: :class:`List[Instruction]`
         """
-        if (not size and not n) or (addr and size):
+        if (not size and not n) or (size and n):
             raise ValueError("procmem.disasmv needs either size or n to be set")
         if n:
             # Get the the code blob assuming maximum instruction size

@@ -61,9 +61,9 @@ class TestDisasm(object):
         assert insn7.op2 == (None, None, None, 0x400000)
 
     def test_equal(self):
-        assert disasm(b"hAAAA", 0)[0].mnem == "push"
-        assert disasm(b"hAAAA", 0)[0].op1.value == 0x41414141
-        assert disasm(b"hAAAA", 0) == disasm(b"hAAAA", 0)
+        assert next(disasm(b"hAAAA", 0)).mnem == "push"
+        assert next(disasm(b"hAAAA", 0)).op1.value == 0x41414141
+        assert list(disasm(b"hAAAA", 0)) == list(disasm(b"hAAAA", 0))
 
 
 class TestDisasm64bit(object):
@@ -149,7 +149,7 @@ class TestDisasm64bit(object):
         assert insn10.op2.reg == "rax"
 
     def test_equal(self):
-        assert disasm(b"hAAAA", 0)[0].mnem == "push"
-        assert disasm(b"hAAAA", 0)[0].op1.value == 0x41414141
-        assert disasm(b"hAAAA", 0) == disasm(b"hAAAA", 0)
-        assert disasm(b"hAAAA", 0) != disasm(b"hAAAB", 0)
+        assert next(disasm(b"hAAAA", 0)).mnem == "push"
+        assert next(disasm(b"hAAAA", 0)).op1.value == 0x41414141
+        assert list(disasm(b"hAAAA", 0)) == list(disasm(b"hAAAA", 0))
+        assert list(disasm(b"hAAAA", 0)) != list(disasm(b"hAAAB", 0))
