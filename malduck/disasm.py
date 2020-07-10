@@ -289,7 +289,7 @@ class Disassemble:
             capstone.CS_ARCH_X86, capstone.CS_MODE_64 if x64 else capstone.CS_MODE_32
         )
         cs.detail = True
-        for insn in cs.disasm(code=data, addr=addr, count=count):
+        for insn in cs.disasm(data, addr, count):
             yield Instruction.from_capstone(insn, x64=x64)
 
     __call__ = disassemble
