@@ -217,7 +217,13 @@ class ProcessMemory:
     def regexv(
         self, query: bytes, addr: Optional[int] = None, length: Optional[int] = None
     ) -> Iterator[int]: ...
-    def disasmv(self, addr: int, size: Optional[int] = None, x64: bool = False, n: Optional[int] = None) -> List[Instruction]: ...
+    def disasmv(
+        self,
+        addr: int,
+        size: Optional[int] = None,
+        x64: bool = False,
+        n: Optional[int] = None,
+    ) -> List[Instruction]: ...
     def extract(
         self, modules: ExtractorModules = None, extract_manager: ExtractManager = None,
     ) -> Optional[List[Dict[str, Any]]]: ...
