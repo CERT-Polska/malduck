@@ -13,7 +13,6 @@ Improvements
 * Searching for wildcarded byte sequences
 * Support for x64 disassembly
 * Fixed-precision integer types
-* Supported both Python 2.x and 3.x
 * Many improvements in ProcessMemory
 
 Usage

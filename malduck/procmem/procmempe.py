@@ -50,7 +50,7 @@ class ProcessMemoryPE(ProcessMemoryBinary):
         # Reset regions
         if self.mapped_memory:
             self.close()
-        self.memory = pe.data
+        self.memory = bytearray(pe.data)
         self.imgbase = pe.optional_header.ImageBase
 
         self.regions = [Region(self.imgbase, pe.headers_size, 0, 0, 0, 0)]
