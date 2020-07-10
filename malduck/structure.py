@@ -4,6 +4,8 @@
 
 import ctypes
 
+from typing import List, Tuple, Type
+
 from .ints import (
     IntTypeBase,
     MultipliedIntTypeBase,
@@ -33,7 +35,7 @@ mapping = {
 
 class Structure(object):
     _pack_ = 0
-    _fields_ = []
+    _fields_: List[Tuple[str, Type]] = []
 
     def __init__(self):
         self.subfields, fields = {}, []
@@ -93,4 +95,6 @@ class Structure(object):
         obj._values_ = obj.Klass.from_buffer_copy(buf)
         return obj
 
-    parse = from_buffer_copy
+    @classmethod
+    def parse(cls, buf):
+        return cls.from_buffer_copy(buf)
