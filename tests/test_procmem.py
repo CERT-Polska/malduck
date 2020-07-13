@@ -136,7 +136,7 @@ def test_cuckoomem_methods():
         assert list(buf.regexv(b" ", 0x401000)) == [0x401007, 0x401014]
         assert list(buf.regexv(b" ", 0x401000, 0x10)) == [0x401007]
         assert list(buf.regexv(b"test..h", 0x401000)) == [0x40100f]
-        assert buf.disasmv(0x401015, 6) == [
+        assert list(buf.disasmv(0x401015, 6)) == [
             insn("push", 0x41414141, addr=0x401015),
             insn("ret", addr=0x40101a),
         ]

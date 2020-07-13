@@ -5,7 +5,7 @@
 import collections
 from capstone import CsInsn
 from capstone.x86 import X86Op
-from typing import Any, List, Optional, Dict, Union
+from typing import Any, List, Optional, Dict, Union, Iterator
 
 __all__ = ["disasm", "insn", "Disassemble", "Instruction", "Operand", "Memory"]
 
@@ -260,10 +260,15 @@ class Disassemble:
             Operand.regs[getattr(capstone.x86, reg)] = reg.split("_")[2].lower()
 
     def disassemble(
-        self, data: bytes, addr: int, x64: bool = False
-    ) -> List[Instruction]:
+        self, data: bytes, addr: int, x64: bool = False, count: int = 0
+    ) -> Iterator[Instruction]:
         """
         Disassembles data from specific address
+
+        .. versionchanged :: 4.0.0
+
+            Returns iterator instead of list of instructions, accepts maximum
+            number of instructions to disassemble
 
         short: disasm
 
@@ -273,8 +278,10 @@ class Disassemble:
         :type addr: int
         :param x64: Disassemble in x86-64 mode?
         :type x64: bool (default=False)
-        :return: Returns list of instructions
-        :rtype: List[:class:`Instruction`]
+        :param count: Number of instructions to disassemble
+        :type count: int (default=0)
+        :return: Returns iterator of instructions
+        :rtype: Iterator[:class:`Instruction`]
         """
         import capstone
 
@@ -282,10 +289,8 @@ class Disassemble:
             capstone.CS_ARCH_X86, capstone.CS_MODE_64 if x64 else capstone.CS_MODE_32
         )
         cs.detail = True
-        ret = []
-        for insn in cs.disasm(data, addr):
-            ret.append(Instruction.from_capstone(insn, x64=x64))
-        return ret
+        for insn in cs.disasm(data, addr, count):
+            yield Instruction.from_capstone(insn, x64=x64)
 
     __call__ = disassemble
 
