@@ -160,7 +160,6 @@ __all__ = [
     "Int8",
     # pe
     "pe",
-    "pe2cuckoo",
     # procmem
     "procmem",
     "procmempe",
