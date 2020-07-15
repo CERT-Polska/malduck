@@ -106,8 +106,9 @@ Rabbit stream cipher.
     from malduck import rabbit
 
     key = b'a'*16
+    iv = b'b'*16
     plaintext = b'data'*16
-    ciphertext = rabbit(key, plaintext)
+    ciphertext = rabbit(key, iv, plaintext)
 
 .. autofunction:: malduck.rabbit
 
