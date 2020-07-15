@@ -106,8 +106,9 @@ Rabbit stream cipher.
     from malduck import rabbit
 
     key = b'a'*16
+    iv = b'b'*16
     plaintext = b'data'*16
-    ciphertext = rabbit(key, plaintext)
+    ciphertext = rabbit(key, iv, plaintext)
 
 .. autofunction:: malduck.rabbit
 
@@ -137,7 +138,7 @@ XOR "stream cipher".
 
     key = b'a'*16
     xored = b'data'*16
-    unxored = xor(key, xor)
+    unxored = xor(key, xored)
 
 .. autofunction:: malduck.xor
 
