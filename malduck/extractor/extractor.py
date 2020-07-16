@@ -441,7 +441,7 @@ class Extractor:
                         self.__class__.__name__,
                         method_name,
                         identifier,
-                        string_match,
+                        string_match.offset,
                     )
                     method(self, p, string_match.offset)
                 except Exception as exc:
