@@ -47,12 +47,13 @@ class ProcessMemoryPE(ProcessMemoryBinary):
     def _reload_as_image(self) -> None:
         # Load PE data from imgbase offset
         pe = self._pe_direct_load(fast_load=False)
-        # Reset regions
         if self.mapped_memory:
             self.close()
+            self.mapped_memory = None
         self.memory = bytearray(pe.data)
         self.imgbase = pe.optional_header.ImageBase
 
+        # Reset regions
         self.regions = [Region(self.imgbase, pe.headers_size, 0, 0, 0, 0)]
         # Load image sections
         for section in pe.sections:
