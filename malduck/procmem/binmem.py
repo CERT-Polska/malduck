@@ -1,8 +1,11 @@
+import logging
 from abc import ABCMeta, abstractmethod
 from typing import List, Iterator, Optional, Type, TypeVar
 
 from .region import Region
 from .procmem import ProcessMemory, ProcessMemoryBuffer
+
+log = logging.getLogger(__name__)
 
 T = TypeVar("T", bound="ProcessMemoryBinary")
 
@@ -49,6 +52,11 @@ class ProcessMemoryBinary(ProcessMemory, metaclass=ABCMeta):
                 self._image = self.__class__.from_memory(self, image=True)
             return self._image
         except Exception:
+            import traceback
+
+            log.debug(
+                "image construction throwed exception: %s", traceback.format_exc()
+            )
             return None
 
     @abstractmethod
