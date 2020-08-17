@@ -77,7 +77,7 @@ class ProcessMemory:
     """
 
     def __init__(self, buf, base=0, regions=None, **_):
-        self.f: Optional[BinaryIO] = None
+        self.opened_file: Optional[BinaryIO] = None
         self.mapped_memory: Optional[mmap.mmap] = None
         self.memory: Optional[bytearray] = None
 
@@ -118,26 +118,35 @@ class ProcessMemory:
 
     def close(self, copy=False):
         """
-        Closes opened files referenced by ProcessMemory object
+        Closes opened files referenced by ProcessMemory object owned by this object.
 
         If copy is False (default): invalidates the object.
 
         :param copy: Copy data into string before closing the mmap object (default: False)
         :type copy: bool
         """
-        if self.f is not None:
-            if self.mapped_memory is not None:
-                if copy:
-                    self.mapped_memory.seek(0)
-                    contents = self.mapped_memory.read()
-                    buf: Optional[bytearray] = bytearray(contents)
-                else:
-                    buf = None
-                self.mapped_memory.close()
-                self.mapped_memory = None
-                self.memory = buf
-            self.f.close()
-            self.f = None
+        if self.mapped_memory is None:
+            # Nothing to close
+            return
+
+        if copy:
+            # Get object contents from mapped_memory
+            self.mapped_memory.seek(0)
+            contents = self.mapped_memory.read()
+            buf: Optional[bytearray] = bytearray(contents)
+        else:
+            # Invalidate object
+            buf = None
+
+        # If self.opened_file is not None: mapped_memory is owned by this ProcessMemory object
+        # We should close all descriptors
+        if self.opened_file is not None:
+            self.mapped_memory.close()
+            self.opened_file.close()
+        # In both cases: nullify all references and set memory to buf
+        self.mapped_memory = None
+        self.opened_file = None
+        self.memory = buf
 
     @classmethod
     def from_file(cls, filename, **kwargs):
@@ -157,21 +166,21 @@ class ProcessMemory:
                 mem = p.readv(...)
                 ...
         """
-        f = open(filename, "rb")
+        file = open(filename, "rb")
         try:
             # Allow copy-on-write
             if hasattr(mmap, "ACCESS_COPY"):
-                m = mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_COPY)
+                m = mmap.mmap(file.fileno(), 0, access=mmap.ACCESS_COPY)
             else:
                 raise RuntimeError("mmap is not supported on your OS")
             memory = cls(m, **kwargs)
         except RuntimeError:
-            # Fallback to f.read()
-            memory = cls(f.read(), **kwargs)
-            f.close()
-            memory.f = None
+            # Fallback to file.read()
+            memory = cls(file.read(), **kwargs)
+            file.close()
+            memory.opened_file = None
         else:
-            memory.f = f
+            memory.opened_file = file
         return memory
 
     @classmethod
@@ -190,7 +199,6 @@ class ProcessMemory:
         copied = cls(
             memory.m, base=base or memory.imgbase, regions=memory.regions, **kwargs
         )
-        copied.f = memory.f
         return copied
 
     @property
