@@ -26,9 +26,6 @@ jobs:
     - name: Lint with flake8
       run: |
         flake8 malduck --count --max-line-length=88 --show-source --statistics
-    - name: Check black format
-      run: |
-        black malduck --target-version py36 --check --diff
     - name: Check types
       run: |
         mypy malduck
