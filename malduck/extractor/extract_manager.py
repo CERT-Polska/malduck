@@ -184,7 +184,7 @@ class ExtractManager:
         :param base: Memory dump base address
         :type base: int
         :return: Family name if ripped successfully and provided better configuration than previous files.
-                 Returns None otherwise.
+            Returns None otherwise.
         """
         log.debug("Started extraction of file %s:%x", filepath, base)
         with ProcessMemory.from_file(filepath, base=base) as p:
@@ -214,10 +214,10 @@ class ExtractManager:
         :param p: ProcessMemory object
         :type p: :class:`malduck.procmem.ProcessMemory`
         :param rip_binaries: Look for binaries (PE, ELF) in provided ProcessMemory and try to perform extraction using
-        specialized variants (ProcessMemoryPE, ProcessMemoryELF)
+            specialized variants (ProcessMemoryPE, ProcessMemoryELF)
         :type rip_binaries: bool (default: False)
         :return: Family name if ripped successfully and provided better configuration than previous procmems.
-                 Returns None otherwise.
+            Returns None otherwise.
         """
         from ..procmem import ProcessMemoryPE, ProcessMemoryELF
         from ..procmem.binmem import ProcessMemoryBinary
