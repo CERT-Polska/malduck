@@ -11,7 +11,19 @@ from ..yara import Yara, YaraString
 
 __all__ = ["ProcessMemory", "procmem"]
 
-ProcessMemoryBuffer = Union[bytes, bytearray, mmap.mmap]
+
+class MemoryBuffer:
+    def __setitem__(self, item, value):
+        raise NotImplementedError("__setitem__ not implemented")
+
+    def __getitem__(self, item):
+        raise NotImplementedError("__getitem__ not implemented")
+
+    def __len__(self):
+        raise NotImplementedError("__len__ not implemented")
+
+
+ProcessMemoryBuffer = Union[bytes, bytearray, mmap.mmap, MemoryBuffer]
 
 
 class ProcessMemory:
@@ -87,9 +99,11 @@ class ProcessMemory:
             self.memory = bytearray(buf)
         elif isinstance(buf, bytearray):
             self.memory = buf
+        elif isinstance(buf, MemoryBuffer):
+            self.memory = buf
         else:
             raise TypeError(
-                "Wrong buffer type - must be bytes, bytearray or mmap object"
+                "Wrong buffer type - must be bytes, bytearray, mmap object or MemoryBuffer"
             )
 
         self.imgbase = base
