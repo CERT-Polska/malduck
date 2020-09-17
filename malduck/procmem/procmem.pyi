@@ -24,6 +24,11 @@ from ..yara import Yara, YaraRulesetMatch, YaraRulesetOffsets
 
 from ..ints import IntType
 
+class MemoryBuffer(object):
+    def __setitem__(self, item: Union[int, slice], value: Union[int, slice]): ...
+    def __getitem__(self, item: Union[int, slice]): ...
+    def __len__(self) -> int: ...
+
 ProcessMemoryBuffer = Union[bytes, bytearray, mmap.mmap]
 T = TypeVar("T", bound="ProcessMemory")
 

@@ -1,4 +1,4 @@
-from .procmem import ProcessMemory
+from .procmem import ProcessMemory, MemoryBuffer
 from .region import Region
 
 try:
@@ -13,7 +13,7 @@ except ImportError:
 __all__ = ["IDAProcessMemory", "idamem"]
 
 
-class IDAVM(object):
+class IDAVM(MemoryBuffer):
     def __init__(self, idamem):
         self.idamem = idamem
 

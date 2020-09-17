@@ -1,4 +1,4 @@
-from .procmem import ProcessMemory, procmem
+from .procmem import ProcessMemory, procmem, MemoryBuffer
 from .procmempe import ProcessMemoryPE, procmempe
 from .procmemelf import ProcessMemoryELF, procmemelf
 from .cuckoomem import CuckooProcessMemory, cuckoomem
@@ -20,6 +20,7 @@ __all__ = [
     "procmem",
     "ProcessMemoryPE",
     "procmempe",
+    "MemoryBuffer",
     "ProcessMemoryELF",
     "procmemelf",
     "CuckooProcessMemory",
