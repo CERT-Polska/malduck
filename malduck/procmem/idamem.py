@@ -51,7 +51,20 @@ class IDAVM(MemoryBuffer):
 
 class IDAProcessMemory(ProcessMemory):
     """
-    ProcessMemory representation operating in IDAPython context [BETA]
+    ProcessMemory representation operating in IDAPython context
+
+    Short name: `idamem`
+
+    Initialize by creating the object within IDAPython context and then use like a
+    normal procmem object:
+
+    .. code-block:: python
+
+        from malduck import idamem, xor
+
+        ida = idamem()
+        decrypted_data = xor(b"KEYZ", ida.readv(0x0040D320, 128))
+        some_wide_string = ida.asciiz(0x402010).decode("utf-16")
     """
 
     def __init__(self):

@@ -160,7 +160,7 @@ class Extractor:
         :param strings_or_method:
             If method name doesn't match the string identifier, pass yara string identifier as decorator argument.
             Multiple strings are accepted
-        :type strings_or_method: *str, optional
+        :type strings_or_method: str, optional
 
     .. py:decoratormethod:: Extractor.extractor
 

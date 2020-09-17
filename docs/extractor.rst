@@ -19,7 +19,3 @@ Internally used classes and routines
 
 .. autoclass:: malduck.extractor.extract_manager.ProcmemExtractManager
     :members:
-.. autoclass:: malduck.extractor.extractor.ExtractorBase
-    :members:
-.. autoclass:: malduck.extractor.extractor.MetaExtractor
-    :members:
