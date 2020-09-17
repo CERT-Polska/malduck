@@ -55,7 +55,7 @@ class ProcessMemory:
 
     .. code-block:: python
 
-        from malduck import procmem
+        from malduck import procmem, procmempe
 
         with open("notepad.exe_400000.bin", "rb") as f:
             payload = f.read()
