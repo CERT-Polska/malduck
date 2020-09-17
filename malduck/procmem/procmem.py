@@ -12,7 +12,7 @@ from ..yara import Yara, YaraString
 __all__ = ["ProcessMemory", "procmem"]
 
 
-class MemoryBuffer(object):
+class MemoryBuffer:
     def __setitem__(self, item, value):
         raise NotImplementedError("__setitem__ not implemented")
 

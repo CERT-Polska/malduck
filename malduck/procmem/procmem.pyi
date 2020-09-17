@@ -29,7 +29,7 @@ class MemoryBuffer(object):
     def __getitem__(self, item: Union[int, slice]): ...
     def __len__(self) -> int: ...
 
-ProcessMemoryBuffer = Union[bytes, bytearray, mmap.mmap]
+ProcessMemoryBuffer = Union[bytes, bytearray, mmap.mmap, MemoryBuffer]
 T = TypeVar("T", bound="ProcessMemory")
 
 procmem: Type["ProcessMemory"]
