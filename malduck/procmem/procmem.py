@@ -33,7 +33,7 @@ class ProcessMemory:
     Short name: `procmem`
 
     :param buf: Object with memory contents
-    :type buf: bytes, mmap, memoryview or bytearray object
+    :type buf: bytes, mmap, memoryview, bytearray or MemoryBuffer object
     :param base: Virtual address of the region of interest (or beginning of buf when no regions provided)
     :type base: int, optional (default: 0)
     :param regions: Regions mapping. If set to None (default), buf is mapped into single-region with VA specified in
@@ -397,7 +397,7 @@ class ProcessMemory:
 
         .. warning::
 
-            Family of *p methods doesn't care about contiguity of regions.
+            Family of \\*p methods doesn't care about contiguity of regions.
 
             Use :py:meth:`p2v` and :py:meth:`readv` if you want to operate on contiguous regions only
 
@@ -480,7 +480,7 @@ class ProcessMemory:
 
         .. warning::
 
-           Family of *p methods doesn't care about contiguity of regions.
+           Family of \\*p methods doesn't care about contiguity of regions.
 
            Use :py:meth:`p2v` and :py:meth:`patchv` if you want to operate on contiguous regions only
 

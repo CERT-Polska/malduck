@@ -22,8 +22,7 @@ copyright = '2020, CERT Polska'
 author = 'CERT Polska'
 
 # The full version, including alpha/beta/rc tags
-release = '4.0.3'
-
+version = '4.0.3'
 
 # -- General configuration ---------------------------------------------------
 
@@ -32,8 +31,15 @@ release = '4.0.3'
 # ones.
 extensions = [
     'sphinx.ext.autodoc',
-    'sphinx.ext.viewcode'
+    'sphinx.ext.viewcode',
+    'sphinx_rtd_theme',
 ]
+
+html_theme_options = {
+    'display_version': True,
+}
+
+project = 'Malduck 🦆'
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -50,7 +56,7 @@ master_doc = 'index'
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'classic'
+html_theme = 'sphinx_rtd_theme'
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
