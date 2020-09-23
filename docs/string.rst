@@ -14,19 +14,19 @@ Supports most common string operations e.g.:
 * chunks: :py:func:`chunks_iter`, :py:func:`chunks`
 
 chunks/chunks_iter
--------------------
+------------------
 
 .. autofunction:: malduck.chunks_iter
 .. autofunction:: malduck.chunks
 
 asciiz/utf16z
---------------
+-------------
 
 .. autofunction:: malduck.asciiz
 .. autofunction:: malduck.utf16z
 
 enhex/unhex
-----------
+-----------
 .. autofunction:: malduck.enhex
 .. autofunction:: malduck.unhex
 
@@ -34,13 +34,13 @@ enhex/unhex
 .. autofunction:: malduck.base64
 
 Padding (null/pkcs7)
----------------------
+--------------------
 
 .. autofunction:: malduck.pad
 .. autofunction:: malduck.unpad
 
 Packing/unpacking (p64/p32/p16/p8, u64/u32/u16/u8, bigint)
------------------------------------------------------------
+----------------------------------------------------------
 
 .. autofunction:: malduck.uint64
 .. autofunction:: malduck.uint32

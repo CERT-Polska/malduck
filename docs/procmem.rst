@@ -1,10 +1,10 @@
 Memory model objects (procmem)
-==============================================
+==============================
 
 .. automodule:: malduck.procmem
 
 ProcessMemory (procmem)
-------------------------
+-----------------------
 
 .. autoclass:: malduck.procmem
 
@@ -15,7 +15,7 @@ ProcessMemory (procmem)
     :members:
 
 ProcessMemoryPE (procmempe)
-----------------------------
+---------------------------
 
 .. autoclass:: malduck.procmempe
 
@@ -23,7 +23,7 @@ ProcessMemoryPE (procmempe)
     :members:
 
 ProcessMemoryELF (procmemelf)
-----------------------------
+-----------------------------
 
 .. autoclass:: malduck.procmemelf
 
@@ -31,7 +31,7 @@ ProcessMemoryELF (procmemelf)
     :members:
 
 CuckooProcessMemory (cuckoomem)
----------------------------------
+-------------------------------
 
 .. autoclass:: malduck.cuckoomem
 
@@ -39,7 +39,7 @@ CuckooProcessMemory (cuckoomem)
     :members:
 
 IDAProcessMemory (idamem)
----------------------------------
+-------------------------
 
 .. autoclass:: malduck.idamem
 

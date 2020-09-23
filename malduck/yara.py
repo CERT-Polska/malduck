@@ -145,7 +145,7 @@ class Yara:
     @staticmethod
     def from_dir(path, recursive=True, followlinks=True):
         """
-        Find rules (recursively) in specified path. Supported extensions: *.yar, *.yara
+        Find rules (recursively) in specified path. Supported extensions: \*.yar, \*.yara
 
         :param path: Root path for searching
         :type path: str
