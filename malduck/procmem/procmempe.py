@@ -16,8 +16,39 @@ class ProcessMemoryPE(ProcessMemoryBinary):
 
     Short name: `procmempe`
 
-    PE files can be read directly using inherited :py:meth:`ProcessMemory.from_file` with `image` argument set
+    :param buf: A memory object containing the PE to be loaded
+    :type buf: bytes, mmap, memoryview, bytearray or :py:meth:`MemoryBuffer` object
+
+    :param base: Virtual address of the region of interest (or beginning of buf when no regions provided)
+    :type base: int, optional (default: 0)
+
+    :param image: The memory object is a dump of memory-mapped PE
+    :type image: bool, optional (default: False)
+
+    :param detect_image: Try to automatically detect if the input buffer is memory-mapped PE using some heuristics
+    :type detect_image: bool, optional (default: False)
+
+    File `memory_dump` contains a 64bit memory-aligned PE dumped from address `0x140000000`, in order to load it
+    into procmempe and access the `pe` field all we have to do is initialize a new object with the file data:
+
+    .. code-block:: python
+
+        from malduck import procmempe
+
+        with open("memory_dump", "rb") as f:
+            data = f.read()
+
+        pe_dump = procmempe(buf=data, base=0x140000000, image=True)
+        print(pe_dump.pe.is64bit)
+
+
+    PE files can also be read directly using inherited :py:meth:`ProcessMemory.from_file` with `image` argument set
     (look at :py:meth:`from_memory` method).
+
+    .. code-block:: python
+
+        pe_dump = procmempe.from_file("140000000_1d5bdc3dbe71a7bd", image=True)
+        print(pe_dump.pe.sections)
     """
 
     __magic__ = b"MZ"
