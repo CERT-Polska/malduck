@@ -397,7 +397,7 @@ class ProcessMemory:
 
         .. warning::
 
-            Family of \*p methods doesn't care about contiguity of regions.
+            Family of \\*p methods doesn't care about contiguity of regions.
 
             Use :py:meth:`p2v` and :py:meth:`readv` if you want to operate on contiguous regions only
 
@@ -480,7 +480,7 @@ class ProcessMemory:
 
         .. warning::
 
-           Family of \*p methods doesn't care about contiguity of regions.
+           Family of \\*p methods doesn't care about contiguity of regions.
 
            Use :py:meth:`p2v` and :py:meth:`patchv` if you want to operate on contiguous regions only
 
