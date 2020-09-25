@@ -2,7 +2,7 @@
 # This file is part of Roach - https://github.com/jbremer/roach.
 # See the file 'docs/LICENSE.txt' for copying permission.
 
-from malduck import aes, blowfish, des3, rc4, rsa, xor, base64, unhex, rabbit, p8, serpent
+from malduck import aes, blowfish, des3, rc4, rsa, xor, base64, unhex, rabbit, p8, serpent, chacha20, salsa20
 
 
 def test_aes():
@@ -63,6 +63,26 @@ def test_des():
     assert des3.cbc.encrypt(
         b"A"*8, b"B"*8, b"C"*16
     ) == b"\x1d\xed\xc37pV\x89S\xac\xaeT\xaf\xa1\xcfW\xa3"
+
+
+def test_chacha20():
+    assert chacha20.decrypt(
+        key=b"A"*32, data=b'P\xb6\x12W\xf4\xd7\x83|,\xea\x04n\xba\x08Kj', nonce=b"C"*8
+    ) == b"B"*16
+
+    assert chacha20.encrypt(
+        key=b"A"*32, data=b"B"*16, nonce=b"C"*8
+    ) == b'P\xb6\x12W\xf4\xd7\x83|,\xea\x04n\xba\x08Kj'
+
+
+def test_salsa20():
+    assert salsa20.decrypt(
+        key=b"A"*32, data=b'\x16\x0e\x8d\xe2\xef\x8d\xf1\xc0\xf1\x17\xdf3\xed\xc6\xb5y', nonce=b"C"*8
+    ) == b"B"*16
+
+    assert salsa20.encrypt(
+        key=b"A"*32, data=b"B"*16, nonce=b"C"*8
+    ) == b'\x16\x0e\x8d\xe2\xef\x8d\xf1\xc0\xf1\x17\xdf3\xed\xc6\xb5y'
 
 
 def test_rc4():
