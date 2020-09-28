@@ -14,7 +14,7 @@ class ChaCha20:
         :type key: bytes
         :param data: Buffer to be encrypted
         :type data: bytes
-        :param nonce: Initialization vector (8/12 bytes, defaults to `b"\\x00"*8` )
+        :param nonce: Initialization vector (8/12 bytes, defaults to `b"\\\\x00"*8` )
         :type nonce: bytes, optional
         :return: Encrypted data
         :rtype: bytes
@@ -31,7 +31,7 @@ class ChaCha20:
         :type key: bytes
         :param data: Buffer to be decrypted
         :type data: bytes
-        :param nonce: Initialization vector (8/12 bytes, defaults to `b"\\x00"*8` )
+        :param nonce: Initialization vector (8/12 bytes, defaults to `b"\\\\x00"*8` )
         :type nonce: bytes, optional
         :return: Decrypted data
         :rtype: bytes
