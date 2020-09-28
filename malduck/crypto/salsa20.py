@@ -21,7 +21,7 @@ class Salsa20:
         """
         if nonce is None:
             nonce = b"\x00" * 8
-        return Salsa20Cipher.new(key=key, nonce=nonce).encrypt(data, output=None)
+        return Salsa20Cipher.new(key=key, nonce=nonce).encrypt(data)
 
     def decrypt(self, key: bytes, data: bytes, nonce: Optional[bytes] = None) -> bytes:
         """
@@ -38,7 +38,7 @@ class Salsa20:
         """
         if nonce is None:
             nonce = b"\x00" * 8
-        return Salsa20Cipher.new(key=key, nonce=nonce).decrypt(data, output=None)
+        return Salsa20Cipher.new(key=key, nonce=nonce).decrypt(data)
 
 
 salsa20 = Salsa20()

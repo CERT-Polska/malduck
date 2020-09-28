@@ -6,7 +6,18 @@ from .bits import rol, ror, align, align_down
 
 from .compression import aplib, gzip, lznt1
 
-from .crypto import aes, blowfish, chacha20, des3, rabbit, rc4, rsa, salsa20, serpent, xor
+from .crypto import (
+    aes,
+    blowfish,
+    chacha20,
+    des3,
+    rabbit,
+    rc4,
+    rsa,
+    salsa20,
+    serpent,
+    xor,
+)
 
 from .disasm import disasm, insn
 

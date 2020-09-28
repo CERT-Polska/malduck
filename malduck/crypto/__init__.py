@@ -9,4 +9,15 @@ from .salsa20 import salsa20
 from .serpent import serpent
 from .xor import xor
 
-__all__ = ["aes", "blowfish", "chacha20", "des3", "rabbit", "rc4", "rsa", "salsa20", "serpent", "xor"]
+__all__ = [
+    "aes",
+    "blowfish",
+    "chacha20",
+    "des3",
+    "rabbit",
+    "rc4",
+    "rsa",
+    "salsa20",
+    "serpent",
+    "xor",
+]
