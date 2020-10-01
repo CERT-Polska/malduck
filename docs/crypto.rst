@@ -56,6 +56,25 @@ Supported modes: ECB.
 .. autofunction:: malduck.blowfish.ecb.encrypt
 .. autofunction:: malduck.blowfish.ecb.decrypt
 
+ChaCha20
+--------
+
+ChaCha20 stream cipher.
+
+Assumes empty nonce if none given.
+
+.. code-block:: python
+
+    from malduck import chacha20
+
+    key = b'chachaKeyHereNow' * 2
+    nonce = b'\x01\x02\x03\x04\x05\0x6\0x7'
+    plaintext = b'data'*16
+    ciphertext = chacha20.decrypt(key, plaintext, nonce)
+
+.. autofunction:: malduck.chacha20.encrypt
+.. autofunction:: malduck.chacha20.decrypt
+
 DES/DES3 (CBC only)
 -------------------
 
@@ -71,11 +90,31 @@ Supported modes: CBC.
 
     key = b'des3des3'
     iv = b'3des3des'
-    plaintext = b'data'*16
-    ciphertext = des3.cbc.decrypt(key, plaintext)
+    plaintext = b'data' * 16
+    ciphertext = des3.cbc.encrypt(key, plaintext)
 
 .. autofunction:: malduck.des3.cbc.encrypt
 .. autofunction:: malduck.des3.cbc.decrypt
+
+Salsa20
+--------
+
+Salsa20 stream cipher.
+
+Assumes empty nonce if none given.
+
+.. code-block:: python
+
+    from malduck import salsa20
+
+    key = b'salsaFTW' * 4
+    nonce = b'\x01\x02\x03\x04\x05\0x6\0x7'
+    plaintext = b'data' * 16
+    ciphertext = salsa20.decrypt(key, plaintext, nonce)
+
+.. autofunction:: malduck.salsa20.encrypt
+.. autofunction:: malduck.salsa20.decrypt
+
 
 Serpent (CBC only)
 ------------------

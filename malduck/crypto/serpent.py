@@ -14,7 +14,7 @@ class SerpentCbc:
         :type key: bytes
         :param data: Buffer to be encrypted
         :type data: bytes
-        :param iv: Initialization vector (defaults to `b"\x00" * 16`)
+        :param iv: Initialization vector (defaults to `b"\\\\x00" * 16`)
         :type iv: bytes, optional
         :return: Encrypted data
         :rtype: bytes
@@ -29,7 +29,7 @@ class SerpentCbc:
         :type key: bytes
         :param data: Buffer to be decrypted
         :type data: bytes
-        :param iv: Initialization vector (defaults to `b"\x00" * 16`)
+        :param iv: Initialization vector (defaults to `b"\\\\x00" * 16`)
         :type iv: bytes, optional
         :return: Decrypted data
         :rtype: bytes
