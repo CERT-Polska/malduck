@@ -64,7 +64,7 @@ class IDAProcessMemory(ProcessMemory):
 
         ida = idamem()
         decrypted_data = xor(b"KEYZ", ida.readv(0x0040D320, 128))
-        some_wide_string = ida.utf16z(0x402010).decode("utf-16")
+        some_wide_string = ida.utf16z(0x402010).decode("utf-8")
     """
 
     def __init__(self):
