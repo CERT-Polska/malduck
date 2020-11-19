@@ -8,6 +8,7 @@ from .compression import aplib, gzip, lznt1
 
 from .crypto import (
     aes,
+    camellia,
     blowfish,
     chacha20,
     des3,
@@ -135,6 +136,7 @@ __all__ = [
     "lznt1",
     # crypto
     "aes",
+    "camellia",
     "blowfish",
     "chacha20",
     "des3",
