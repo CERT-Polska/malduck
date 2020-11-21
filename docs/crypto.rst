@@ -56,6 +56,48 @@ Supported modes: ECB.
 .. autofunction:: malduck.blowfish.ecb.encrypt
 .. autofunction:: malduck.blowfish.ecb.decrypt
 
+Camellia
+--------------
+
+Camellia block cipher.
+
+Supported modes: ECB, CBC, CTR, CFB, OFB.
+
+.. code-block:: python
+
+    from malduck import camellia
+
+    key = b'A'*16
+    iv = b'B'*16
+    plaintext = b'data'*16
+    ciphertext = camellia.ecb.encrypt(key, iv, plaintext)
+
+
+Camellia-ECB mode
+~~~~~~~~~~~~
+.. autofunction:: malduck.camellia.ecb.encrypt
+.. autofunction:: malduck.camellia.ecb.decrypt
+
+Camellia-CBC mode
+~~~~~~~~~~~~
+.. autofunction:: malduck.camellia.cbc.encrypt
+.. autofunction:: malduck.camellia.cbc.decrypt
+
+Camellia-CTR mode
+~~~~~~~~~~~~
+.. autofunction:: malduck.camellia.ctr.encrypt
+.. autofunction:: malduck.camellia.ctr.decrypt
+
+Camellia-CFB mode
+~~~~~~~~~~~~
+.. autofunction:: malduck.camellia.cfb.encrypt
+.. autofunction:: malduck.camellia.cfb.decrypt
+
+Camellia-OFB mode
+~~~~~~~~~~~~
+.. autofunction:: malduck.camellia.ofb.encrypt
+.. autofunction:: malduck.camellia.ofb.decrypt
+
 ChaCha20
 --------
 

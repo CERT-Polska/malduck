@@ -25,7 +25,7 @@ class CamelliaCbc:
 
     def decrypt(self, key: bytes, iv: bytes, data: bytes) -> bytes:
         """
-        Decrypts buffer using AES algorithm in CBC mode.
+        Decrypts buffer using Camellia algorithm in CBC mode.
 
         :param key: Cryptographic key (128, 192 or 256 bits)
         :type key: bytes
@@ -63,7 +63,7 @@ class CamelliaCfb:
 
     def decrypt(self, key: bytes, iv: bytes, data: bytes) -> bytes:
         """
-        Decrypts buffer using AES algorithm in CFB mode.
+        Decrypts buffer using Camellia algorithm in CFB mode.
 
         :param key: Cryptographic key (128, 192 or 256 bits)
         :type key: bytes
@@ -101,7 +101,7 @@ class CamelliaOfb:
 
     def decrypt(self, key: bytes, iv: bytes, data: bytes) -> bytes:
         """
-        Decrypts buffer using AES algorithm in OFB mode.
+        Decrypts buffer using Camellia algorithm in OFB mode.
 
         :param key: Cryptographic key (128, 192 or 256 bits)
         :type key: bytes
