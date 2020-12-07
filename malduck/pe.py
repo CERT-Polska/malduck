@@ -308,6 +308,11 @@ class PE(object):
         def type_int(e1, e2, e3):
             return e1.id == type_id
 
+        # Broken PE files will not have this directory and it's better to return no value
+        # than to throw a meaningless exception
+        if not hasattr(self.pe, "DIRECTORY_ENTRY_RESOURCE"):
+            return
+
         if isinstance(name, str):
             name = name.encode()
 
