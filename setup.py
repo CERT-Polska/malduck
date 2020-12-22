@@ -7,6 +7,8 @@ setup(
     name="malduck",
     version="4.1.0",
     description="Malduck is your ducky companion in malware analysis journeys",
+    long_description=open("README.md").read(),
+    long_description_content_type="text/markdown",
     author="CERT Polska",
     author_email="info@cert.pl",
     packages=["malduck"],
