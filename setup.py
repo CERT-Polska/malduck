@@ -10,6 +10,7 @@ setup(
     author="CERT Polska",
     author_email="info@cert.pl",
     packages=["malduck"],
+    package_data={"malduck": ["py.typed"]},
     entry_points={
         "console_scripts": [
             "malduck = malduck.main:main",
