@@ -2,7 +2,22 @@
 # This file is part of Roach - https://github.com/jbremer/roach.
 # See the file 'docs/LICENSE.txt' for copying permission.
 
-from malduck import aes, blowfish, des3, rc4, rsa, xor, base64, unhex, rabbit, p8, serpent, chacha20, salsa20
+from malduck import (
+    aes,
+    camellia,
+    blowfish,
+    des3,
+    rc4,
+    rsa,
+    xor,
+    base64,
+    unhex,
+    rabbit,
+    p8,
+    serpent,
+    chacha20,
+    salsa20,
+)
 
 
 def test_aes():
@@ -43,6 +58,96 @@ def test_aes():
     assert aes.import_key(
         b"\x08\x02\x00\x00\x0ef\x00\x00\x10\x00\x00\x00" + b"A"*16
     ) == ("AES-128", b"A"*16)
+
+
+def test_camellia():
+
+    from binascii import unhexlify
+
+    #### ECB
+    # test data from https://tools.ietf.org/html/rfc3713
+
+    k = unhexlify("0123456789ABCDEFFEDCBA9876543210")
+    p = unhexlify("0123456789ABCDEFFEDCBA9876543210")
+    c = unhexlify("67673138549669730857065648EABE43")
+
+    assert camellia.ecb.encrypt(k, p) == c
+    assert camellia.ecb.decrypt(k, c) == p
+
+    k = unhexlify("0123456789ABCDEFFEDCBA98765432100011223344556677")
+    c = unhexlify("B4993401B3E996F84EE5CEE7D79B09B9")
+
+    assert camellia.ecb.encrypt(k, p) == c
+    assert camellia.ecb.decrypt(k, c) == p
+
+    k = unhexlify("0123456789ABCDEFFEDCBA987654321000112233445566778899AABBCCDDEEFF")
+    c = unhexlify("9ACC237DFF16D76C20EF7C919E3A7509")
+
+    assert camellia.ecb.encrypt(k, p) == c
+    assert camellia.ecb.decrypt(k, c) == p
+
+    #### CBC
+    # test data from https://github.com/openssl/openssl/blob/master/test/recipes/30-test_evp_data/evpciph_camellia.txt
+
+    k = unhexlify("2B7E151628AED2A6ABF7158809CF4F3C")
+    iv = unhexlify("000102030405060708090A0B0C0D0E0F")
+    p = unhexlify("6BC1BEE22E409F96E93D7E117393172A")
+    c = unhexlify("1607CF494B36BBF00DAEB0B503C831AB")
+
+    assert camellia.cbc.encrypt(k, iv, p) == c
+    assert camellia.cbc.decrypt(k, iv, c) == p
+
+    k = unhexlify("8E73B0F7DA0E6452C810F32B809079E562F8EAD2522C6B7B")
+    c = unhexlify("2A4830AB5AC4A1A2405955FD2195CF93")
+
+    assert camellia.cbc.decrypt(k, iv, c) == p
+    assert camellia.cbc.encrypt(k, iv, p) == c
+
+    k = unhexlify("603DEB1015CA71BE2B73AEF0857D77811F352C073B6108D72D9810A30914DFF4")
+    c = unhexlify("E6CFA35FC02B134A4D2C0B6737AC3EDA")
+
+    assert camellia.cbc.encrypt(k, iv, p) == c
+    assert camellia.cbc.decrypt(k, iv, c) == p
+
+    #### CFB
+
+    k = unhexlify("2B7E151628AED2A6ABF7158809CF4F3C")
+    c = unhexlify("14F7646187817EB586599146B82BD719")
+
+    assert camellia.cfb.encrypt(k, iv, p) == c
+    assert camellia.cfb.decrypt(k, iv, c) == p
+
+    k = unhexlify("8E73B0F7DA0E6452C810F32B809079E562F8EAD2522C6B7B")
+    c = unhexlify("C832BB9780677DAA82D9B6860DCD565E")
+
+    assert camellia.cfb.encrypt(k, iv, p) == c
+    assert camellia.cfb.decrypt(k, iv, c) == p
+
+    k = unhexlify("603DEB1015CA71BE2B73AEF0857D77811F352C073B6108D72D9810A30914DFF4")
+    c = unhexlify("CF6107BB0CEA7D7FB1BD31F5E7B06C93")
+
+    assert camellia.cfb.encrypt(k, iv, p) == c
+    assert camellia.cfb.decrypt(k, iv, c) == p
+
+    #### OFB
+
+    k = unhexlify("2B7E151628AED2A6ABF7158809CF4F3C")
+    c = unhexlify("14F7646187817EB586599146B82BD719")
+
+    assert camellia.ofb.encrypt(k, iv, p) == c
+    assert camellia.ofb.decrypt(k, iv, c) == p
+
+    k = unhexlify("8E73B0F7DA0E6452C810F32B809079E562F8EAD2522C6B7B")
+    c = unhexlify("C832BB9780677DAA82D9B6860DCD565E")
+
+    assert camellia.ofb.encrypt(k, iv, p) == c
+    assert camellia.ofb.decrypt(k, iv, c) == p
+
+    k = unhexlify("603DEB1015CA71BE2B73AEF0857D77811F352C073B6108D72D9810A30914DFF4")
+    c = unhexlify("CF6107BB0CEA7D7FB1BD31F5E7B06C93")
+
+    assert camellia.ofb.encrypt(k, iv, p) == c
+    assert camellia.ofb.decrypt(k, iv, c) == p
 
 
 def test_blowfish():
