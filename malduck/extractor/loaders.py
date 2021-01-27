@@ -3,15 +3,14 @@ import logging
 import pkgutil
 import sys
 
-from importlib.abc import FileLoader
-from importlib.machinery import FileFinder
+from importlib.abc import FileLoader, PathEntryFinder
 
 from typing import Callable, Optional, Any, Dict, cast
 
 log = logging.getLogger(__name__)
 
 
-def import_module_by_finder(finder: FileFinder, module_name: str) -> Any:
+def import_module_by_finder(finder: PathEntryFinder, module_name: str) -> Any:
     """
     Imports module from arbitrary path using importer returned by pkgutil.iter_modules
     """
@@ -57,7 +56,9 @@ def load_modules(
         if module_name in modules:
             log.warning("Module collision - %s overridden", module_name)
         try:
-            modules[module_name] = import_module_by_finder(finder, module_name)
+            modules[module_name] = import_module_by_finder(
+                cast(PathEntryFinder, finder), module_name
+            )
         except Exception as exc:
             if onerror:
                 onerror(exc, module_name)
