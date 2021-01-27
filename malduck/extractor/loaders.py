@@ -56,7 +56,9 @@ def load_modules(
         if module_name in modules:
             log.warning("Module collision - %s overridden", module_name)
         try:
-            modules[module_name] = import_module_by_finder(cast(PathEntryFinder, finder), module_name)
+            modules[module_name] = import_module_by_finder(
+                cast(PathEntryFinder, finder), module_name
+            )
         except Exception as exc:
             if onerror:
                 onerror(exc, module_name)
