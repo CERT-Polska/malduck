@@ -120,6 +120,11 @@ def test_bigint():
     assert bigint.unpack_be(b"ABCDE", 4) == 0x41424344
     assert bigint.pack_be(0x41424344, 8) == b"\x00\x00\x00\x00ABCD"
 
+    assert bigint.pack(1) == b"\x01"
+    assert bigint.pack_be(1) == b"\x01"
+    assert bigint.pack(1234) == b"\xd2\x04"
+    assert bigint.pack_be(1234) == b"\x04\xd2"
+
 
 def test_pack():
     assert pack(

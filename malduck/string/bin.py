@@ -1,6 +1,7 @@
 # Copyright (C) 2018 Jurriaan Bremer.
 # This file is part of Roach - https://github.com/jbremer/roach.
 # See the file 'docs/LICENSE.txt' for copying permission.
+import math
 import struct
 import warnings
 
@@ -89,10 +90,7 @@ class Bigint:
         :type size: bytes, optional
         :rtype: bytes
         """
-        packed = unhex(f"{other:x}")[::-1]
-        if size:
-            packed = packed[:size].ljust(size, b"\x00")
-        return packed
+        return self.pack_be(other, size)[::-1]
 
     def unpack_be(self, other: bytes, size: Optional[int] = None) -> int:
         """
@@ -123,10 +121,9 @@ class Bigint:
         :type size: bytes, optional
         :rtype: bytes
         """
-        packed = unhex(f"{other:x}")
-        if size:
-            packed = packed[:size].rjust(size, b"\x00")
-        return packed
+        if size is None:
+            size = math.ceil(other.bit_length() / 8)
+        return unhex(f"{other:0{size * 2}x}")
 
     def __call__(self, s, bitsize):
         warnings.warn(
