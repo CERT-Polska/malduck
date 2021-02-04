@@ -124,6 +124,8 @@ def test_bigint():
     assert bigint.pack_be(1) == b"\x01"
     assert bigint.pack(1234) == b"\xd2\x04"
     assert bigint.pack_be(1234) == b"\x04\xd2"
+    assert bigint.unpack(b"\xd2\x04") == 1234
+    assert bigint.unpack_be(b"\x04\xd2") == 1234
 
 
 def test_pack():
