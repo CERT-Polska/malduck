@@ -89,10 +89,9 @@ class Bigint:
         :type size: bytes, optional
         :rtype: bytes
         """
-        packed = unhex(f"{other:x}")[::-1]
-        if size:
-            packed = packed[:size].ljust(size, b"\x00")
-        return packed
+        if size is None:
+            size = (other.bit_length() + 7) // 8
+        return other.to_bytes(size, byteorder="little")
 
     def unpack_be(self, other: bytes, size: Optional[int] = None) -> int:
         """
@@ -123,10 +122,9 @@ class Bigint:
         :type size: bytes, optional
         :rtype: bytes
         """
-        packed = unhex(f"{other:x}")
-        if size:
-            packed = packed[:size].rjust(size, b"\x00")
-        return packed
+        if size is None:
+            size = (other.bit_length() + 7) // 8
+        return other.to_bytes(size, byteorder="big")
 
     def __call__(self, s, bitsize):
         warnings.warn(
