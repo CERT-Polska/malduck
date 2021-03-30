@@ -55,7 +55,7 @@ class ProcessMemoryBinary(ProcessMemory, metaclass=ABCMeta):
             import traceback
 
             log.debug(
-                "image construction throwed exception: %s", traceback.format_exc()
+                "image construction raised an exception: %s", traceback.format_exc()
             )
             return None
 

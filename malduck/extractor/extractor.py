@@ -401,11 +401,11 @@ class Extractor:
 
     def on_error(self, exc, method_name):
         """
-        Handler for all Exception's throwed by extractor methods.
+        Handler for all exceptions raised by extractor methods.
 
         :param exc: Exception object
         :type exc: :class:`Exception`
-        :param method_name: Name of method which throwed exception
+        :param method_name: Name of method which raised the exception
         :type method_name: str
         """
         self.parent.on_extractor_error(exc, self, method_name)

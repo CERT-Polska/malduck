@@ -97,13 +97,13 @@ class ExtractorModules:
 
     def on_error(self, exc: Exception, module_name: str) -> None:
         """
-        Handler for all Exception's throwed during module load
+        Handler for all exceptions raised during module load
 
         Override this method if you want to set your own error handler.
 
         :param exc: Exception object
         :type exc: :class:`Exception`
-        :param module_name: Name of module which throwed exception
+        :param module_name: Name of module which raised the exception
         :type module_name: str
         """
         log.warning("%s not loaded: %s", module_name, exc)
@@ -139,14 +139,14 @@ class ExtractManager:
 
     def on_error(self, exc: Exception, extractor: Extractor) -> None:
         """
-        Handler for all Exception's thrown by :py:meth:`Extractor.handle_yara`.
+        Handler for all exceptions raised by :py:meth:`Extractor.handle_yara`.
 
         .. deprecated:: 2.1.0
            Look at :py:meth:`ExtractManager.on_extractor_error` instead.
 
         :param exc: Exception object
         :type exc: :class:`Exception`
-        :param extractor: Extractor object which throwed exception
+        :param extractor: Extractor object which raised the exception
         :type extractor: :class:`malduck.extractor.Extractor`
         """
         self.on_extractor_error(exc, extractor, "handle_yara")
@@ -155,7 +155,7 @@ class ExtractManager:
         self, exc: Exception, extractor: Extractor, method_name: str
     ) -> None:
         """
-        Handler for all Exception's thrown by extractor methods (including :py:meth:`Extractor.handle_yara`).
+        Handler for all exceptions raised by extractor methods (including :py:meth:`Extractor.handle_yara`).
 
         Override this method if you want to set your own error handler.
 
@@ -163,13 +163,13 @@ class ExtractManager:
         :type exc: :class:`Exception`
         :param extractor: Extractor instance
         :type extractor: :class:`extractor.Extractor`
-        :param method_name: Name of method which throwed exception
+        :param method_name: Name of method which raised the exception
         :type method_name: str
         """
         import traceback
 
         log.warning(
-            "%s.%s throwed exception: %s",
+            "%s.%s raised an exception: %s",
             extractor.__class__.__name__,
             method_name,
             traceback.format_exc(),
@@ -287,13 +287,13 @@ class ProcmemExtractManager:
         self, exc: Exception, extractor: Extractor, method_name: str
     ) -> None:
         """
-        Handler for all Exception's throwed by extractor methods.
+        Handler for all exceptions raised by extractor methods.
 
         :param exc: Exception object
         :type exc: :class:`Exception`
         :param extractor: Extractor instance
         :type extractor: :class:`extractor.Extractor`
-        :param method_name: Name of method which throwed exception
+        :param method_name: Name of method which raised the exception
         :type method_name: str
         """
         self.parent.on_extractor_error(exc, extractor, method_name)
