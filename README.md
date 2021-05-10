@@ -57,7 +57,7 @@ def sdbm_hash(name: bytes) -> int:
     hh = 0
     for c in name:
         hh = DWORD(c) + (hh << 6) + (hh << 16) - hh
-    return hh
+    return int(hh)
 ```
 
 ### Extractor engine - module example
