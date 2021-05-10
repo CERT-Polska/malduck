@@ -36,7 +36,7 @@ from malduck import serpent
 key = b'a'*16
 iv = b'b'*16
 plaintext = b'data'*16
-ciphertext = serpent.cbc.encrypt(key, plaintext, iv=iv)
+ciphertext = serpent.cbc.encrypt(key, plaintext, iv)
 ```
 
 ### APLib decompression
@@ -56,6 +56,8 @@ from malduck import DWORD
 def sdbm_hash(name: bytes):
     hh = 0
     for c in name:
+        # operations on the DWORD type produce a dword, so a result
+        # is also a DWORD.
         hh = DWORD(c) + (hh << 6) + (hh << 16) - hh
     return hh
 ```
