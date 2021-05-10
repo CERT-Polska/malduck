@@ -59,7 +59,7 @@ def sdbm_hash(name: bytes) -> DWORD:
         # operations on the DWORD type produce a dword, so a result
         # is also a DWORD.
         hh = DWORD(c) + (hh << 6) + (hh << 16) - hh
-    return hh
+    return int(hh)
 ```
 
 ### Extractor engine - module example
