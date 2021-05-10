@@ -8,7 +8,7 @@ Malduck provides many improvements resulting from CERT.pl codebase, making scrip
 ## Features
 
 - **Cryptography** (AES, Blowfish, Camelie, ChaCha20, Serpent and many others)
-- **Compression algorithms** (aplib, gzip, inznt1 (RtlDecompressBuffer)
+- **Compression algorithms** (aPLib, gzip, LZNT1 (RtlDecompressBuffer))
 - **Memory model objects** (work on memory dumps, PE/ELF, raw files and IDA dumps with the same code)
 - **Extraction engine** (modular extraction framework for config extraction from files/dumps)
 - Fixed integer types (like Uint64) and bitwise utilities
@@ -53,7 +53,7 @@ aplib(b'T\x00he quick\xecb\x0erown\xcef\xaex\x80jumps\xed\xe4veur`t?lazy\xead\xf
 ```python
 from malduck import DWORD
 
-def sdbm_hash(name: bytes):
+def sdbm_hash(name: bytes) -> int:
     hh = 0
     for c in name:
         # operations on the DWORD type produce a dword, so a result
