@@ -53,7 +53,7 @@ aplib(b'T\x00he quick\xecb\x0erown\xcef\xaex\x80jumps\xed\xe4veur`t?lazy\xead\xf
 ```python
 from malduck import DWORD
 
-def sdbm_hash(name: bytes) -> DWORD:
+def sdbm_hash(name: bytes) -> int:
     hh = 0
     for c in name:
         # operations on the DWORD type produce a dword, so a result
