@@ -53,7 +53,7 @@ aplib(b'T\x00he quick\xecb\x0erown\xcef\xaex\x80jumps\xed\xe4veur`t?lazy\xead\xf
 ```python
 from malduck import DWORD
 
-def sdbm_hash(name: bytes):
+def sdbm_hash(name: bytes) -> int:
     hh = 0
     for c in name:
         hh = DWORD(c) + (hh << 6) + (hh << 16) - hh
