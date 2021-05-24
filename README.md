@@ -9,7 +9,7 @@ Malduck provides many improvements resulting from CERT.pl codebase, making scrip
 
 - **Cryptography** (AES, Blowfish, Camelie, ChaCha20, Serpent and many others)
 - **Compression algorithms** (aPLib, gzip, LZNT1 (RtlDecompressBuffer))
-- **Memory model objects** (work on memory dumps, PE/ELF, raw files and IDA dumps with the same code)
+- **Memory model objects** (work on memory dumps, PE/ELF, raw files and IDA dumps using the same code)
 - **Extraction engine** (modular extraction framework for config extraction from files/dumps)
 - Fixed integer types (like Uint64) and bitwise utilities
 - String operations (chunks, padding, packing/unpacking etc)
