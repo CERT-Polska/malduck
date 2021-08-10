@@ -9,7 +9,7 @@ import struct
 from binascii import crc32
 from io import BytesIO
 
-__all__ = ['APLib', 'decompress']
+__all__ = ['APLib']
 __version__ = '0.6'
 __author__ = 'Sandor Nemes'
 
@@ -136,7 +136,7 @@ class APLib(object):
 def main():
     # self-test
     data = b'T\x00he quick\xecb\x0erown\xcef\xaex\x80jumps\xed\xe4veur`t?lazy\xead\xfeg\xc0\x00'
-    assert decompress(data) == b'The quick brown fox jumps over the lazy dog'
+    assert APLib(data).depack() == b'The quick brown fox jumps over the lazy dog'
 
 
 if __name__ == '__main__':
