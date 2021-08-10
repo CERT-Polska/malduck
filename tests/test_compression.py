@@ -12,7 +12,6 @@ def test_aplib():
         base64("QVAzMhgAAAANAAAAvJpimwsAAACFEUoNaDhlbI5vIHducuxkAA==")
     ) == b"hello world"
     assert aplib(base64("aDhlbI5vIHducuxkAA==")) == b"hello world"
-
     assert aplib(base64("""
 QVAzMhgAAABGAAAAf+p8HwEAEAA5iu7QQacB19//yAF9ff/8hwHX3//IAX19//yHAdff/8gBfX3/
 /IcB19//yAF9ff/8hwHX3//IAX19//yHAdff/8gBXXf/2QqAAA==
@@ -21,9 +20,6 @@ QVAzMhgAAABGAAAAf+p8HwEAEAA5iu7QQacB19//yAF9ff/8hwHX3//IAX19//yHAdff/8gBfX3/
 QacB19//yAF9ff/8hwHX3//IAX19//yHAdff/8gBfX3//IcB19//yAF9ff/
 8hwHX3//IAX19//yH\nAdff/8gBXXf/2QqAAA==
 """)) == b"A"*1024*1024 + b"\n"
-
-    assert aplib(b"helloworld") is None
-    assert aplib(b"") is None
     assert (
         aplib(b'T\x00he quick\xecb\x0erown\xcef\xaex\x80jumps\xed\xe4veur`t?lazy\xead\xfeg\xc0\x00') ==
         b'The quick brown fox jumps over the lazy dog')

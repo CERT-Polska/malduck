@@ -5,18 +5,16 @@ Adapted from the original C source code from http://ibsensoftware.com/files/aPLi
 Approximately 20 times faster than other Python implementations.
 Compatible with both Python 2 and 3.
 """
-import struct
-from binascii import crc32
 from io import BytesIO
 
-__all__ = ['APLib']
-__version__ = '0.6'
-__author__ = 'Sandor Nemes'
+__all__ = ["APLib"]
+__version__ = "0.6"
+__author__ = "Sandor Nemes"
 
 
 class APLib(object):
 
-    __slots__ = 'source', 'destination', 'tag', 'bitcount', 'strict'
+    __slots__ = "source", "destination", "tag", "bitcount", "strict"
 
     def __init__(self, source: bytes, strict: bool = True) -> None:
         self.source = BytesIO(source)
@@ -126,7 +124,7 @@ class APLib(object):
 
         except (TypeError, IndexError):
             if self.strict:
-                raise RuntimeError('aPLib decompression error')
+                raise RuntimeError("aPLib decompression error")
 
         return bytes(self.destination)
 
@@ -135,8 +133,8 @@ class APLib(object):
 
 def main():
     # self-test
-    data = b'T\x00he quick\xecb\x0erown\xcef\xaex\x80jumps\xed\xe4veur`t?lazy\xead\xfeg\xc0\x00'
-    assert APLib(data).depack() == b'The quick brown fox jumps over the lazy dog'
+    data = b"T\x00he quick\xecb\x0erown\xcef\xaex\x80jumps\xed\xe4veur`t?lazy\xead\xfeg\xc0\x00"
+    assert APLib(data).depack() == b"The quick brown fox jumps over the lazy dog"
 
 
 if __name__ == '__main__':
