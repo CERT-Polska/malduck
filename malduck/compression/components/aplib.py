@@ -131,6 +131,7 @@ class APLib(object):
     def pack(self):
         raise NotImplementedError
 
+
 def main():
     # self-test
     data = b"T\x00he quick\xecb\x0erown\xcef\xaex\x80jumps\xed\xe4veur`t?lazy\xead\xfeg\xc0\x00"
