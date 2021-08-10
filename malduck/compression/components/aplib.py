@@ -39,7 +39,7 @@ class APLib(object):
 
         return bit
 
-    def getgamma(self):
+    def getgamma(self) -> int:
         result = 1
 
         # input gamma2-encoded bits
