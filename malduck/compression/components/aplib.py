@@ -25,7 +25,7 @@ class APLib(object):
         self.bitcount = 0
         self.strict = bool(strict)
 
-    def getbit(self):
+    def getbit(self) -> int:
         # check if tag is empty
         self.bitcount -= 1
         if self.bitcount < 0:
