@@ -50,7 +50,7 @@ class APLib(object):
 
         return result
 
-    def depack(self):
+    def depack(self) -> bytes:
         r0 = -1
         lwm = 0
         done = False
