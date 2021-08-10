@@ -9,3 +9,4 @@ build/
 malduck.egg-info/
 ven*/
 .mypy_cache/
+.DS_Store

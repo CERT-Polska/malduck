@@ -1,6 +1,7 @@
 from typing import Optional
+from binascii import crc32
 
-from .components.aplib import ap_depack
+from .components.aplib import APLib
 
 import logging
 import struct
@@ -30,16 +31,39 @@ class aPLib:
     :rtype: bytes
     """
 
-    def decompress(self, buf: bytes, headerless: bool = False) -> Optional[bytes]:
-        try:
-            # Trim header
-            if not headerless and buf.startswith(b"AP32"):
-                hdr_length = struct.unpack_from("<I", buf, 4)[0]
-                buf = buf[hdr_length:]
-            # Decompress aPLib
-            return bytes(ap_depack(buf))
-        except Exception:
-            return None
+    def decompress(self, buf: bytes, headerless: bool = True) -> Optional[bytes]:
+        packed_size = None
+        packed_crc = None
+        orig_size = None
+        orig_crc = None
+        strict = not headerless
+
+        if buf.startswith(b"AP32") and len(buf) >= 24:
+            # buf has an aPLib header
+            (
+                header_size,
+                packed_size,
+                packed_crc,
+                orig_size,
+                orig_crc,
+            ) = struct.unpack_from("=IIIII", buf, 4)
+            buf = buf[header_size : header_size + packed_size]
+
+        if strict:
+            if packed_size is not None and packed_size != len(buf):
+                raise RuntimeError("Packed buf size is incorrect")
+            if packed_crc is not None and packed_crc != crc32(buf):
+                raise RuntimeError("Packed buf checksum is incorrect")
+
+        result = APLib(buf, strict=strict).depack()
+
+        if strict:
+            if orig_size is not None and orig_size != len(result):
+                raise RuntimeError("Unpacked buf size is incorrect")
+            if orig_crc is not None and orig_crc != crc32(result):
+                raise RuntimeError("Unpacked buf checksum is incorrect")
+
+        return result
 
     __call__ = decompress
 

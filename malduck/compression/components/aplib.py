@@ -1,132 +1,142 @@
-# -*- coding: utf-8 -*-
-"""
-aplib.py by snemes from https://github.com/snemes/aplib
+#!/usr/bin/env python3
+"""A pure Python module for decompressing aPLib compressed data
 
-A pure Python module for decompressing aPLib compressed data.
 Adapted from the original C source code from http://ibsensoftware.com/files/aPLib-1.1.1.zip
-Approximately ~20 times faster than the other Python implementations.
+Approximately 20 times faster than other Python implementations.
+Compatible with both Python 2 and 3.
 """
 from io import BytesIO
 
-__all__ = ["ap_depack"]
-__version__ = "0.3"
+__all__ = ["APLib"]
+__version__ = "0.6"
 __author__ = "Sandor Nemes"
 
 
-class APDSTATE:
-    """internal data structure"""
+class APLib(object):
 
-    def __init__(self, source: bytes) -> None:
+    __slots__ = "source", "destination", "tag", "bitcount", "strict"
+
+    def __init__(self, source: bytes, strict: bool = True) -> None:
         self.source = BytesIO(source)
         self.destination = bytearray()
         self.tag = 0
         self.bitcount = 0
+        self.strict = bool(strict)
 
+    def getbit(self) -> int:
+        # check if tag is empty
+        self.bitcount -= 1
+        if self.bitcount < 0:
+            # load next tag
+            self.tag = ord(self.source.read(1))
+            self.bitcount = 7
 
-def ap_getbit(ud: APDSTATE) -> int:
-    # check if tag is empty
-    ud.bitcount -= 1
-    if ud.bitcount < 0:
-        # load next tag
-        ud.tag = ord(ud.source.read(1))
-        ud.bitcount = 7
+        # shift bit out of tag
+        bit = self.tag >> 7 & 1
+        self.tag <<= 1
 
-    # shift bit out of tag
-    bit = ud.tag >> 7 & 0x01
-    ud.tag <<= 1
+        return bit
 
-    return bit
+    def getgamma(self) -> int:
+        result = 1
 
+        # input gamma2-encoded bits
+        while True:
+            result = (result << 1) + self.getbit()
+            if not self.getbit():
+                break
 
-def ap_getgamma(ud: APDSTATE) -> int:
-    result = 1
+        return result
 
-    # input gamma2-encoded bits
-    while True:
-        result = (result << 1) + ap_getbit(ud)
-        if not ap_getbit(ud):
-            break
+    def depack(self) -> bytes:
+        r0 = -1
+        lwm = 0
+        done = False
 
-    return result
+        try:
 
+            # first byte verbatim
+            self.destination += self.source.read(1)
 
-def ap_depack(source: bytes) -> bytearray:
-    ud = APDSTATE(source)
+            # main decompression loop
+            while not done:
+                if self.getbit():
+                    if self.getbit():
+                        if self.getbit():
+                            offs = 0
+                            for _ in range(4):
+                                offs = (offs << 1) + self.getbit()
 
-    r0 = -1
-    lwm = 0
-    done = False
+                            if offs:
+                                self.destination.append(self.destination[-offs])
+                            else:
+                                self.destination.append(0)
 
-    # first byte verbatim
-    ud.destination += ud.source.read(1)
+                            lwm = 0
+                        else:
+                            offs = ord(self.source.read(1))
+                            length = 2 + (offs & 1)
+                            offs >>= 1
 
-    # main decompression loop
-    while not done:
-        if ap_getbit(ud):
-            if ap_getbit(ud):
-                if ap_getbit(ud):
-                    offs = 0
+                            if offs:
+                                for _ in range(length):
+                                    self.destination.append(self.destination[-offs])
+                            else:
+                                done = True
 
-                    for _ in range(4):
-                        offs = (offs << 1) + ap_getbit(ud)
-
-                    if offs:
-                        ud.destination.append(ud.destination[-offs])
+                            r0 = offs
+                            lwm = 1
                     else:
-                        ud.destination.append(0x00)
+                        offs = self.getgamma()
 
+                        if lwm == 0 and offs == 2:
+                            offs = r0
+                            length = self.getgamma()
+
+                            for _ in range(length):
+                                self.destination.append(self.destination[-offs])
+                        else:
+                            if lwm == 0:
+                                offs -= 3
+                            else:
+                                offs -= 2
+
+                            offs <<= 8
+                            offs += ord(self.source.read(1))
+                            length = self.getgamma()
+
+                            if offs >= 32000:
+                                length += 1
+                            if offs >= 1280:
+                                length += 1
+                            if offs < 128:
+                                length += 2
+
+                            for _ in range(length):
+                                self.destination.append(self.destination[-offs])
+
+                            r0 = offs
+
+                        lwm = 1
+                else:
+                    self.destination += self.source.read(1)
                     lwm = 0
-                else:
-                    offs = ord(ud.source.read(1))
 
-                    length = 2 + (offs & 0x0001)
+        except (TypeError, IndexError):
+            if self.strict:
+                raise RuntimeError("aPLib decompression error")
 
-                    offs >>= 1
+        return bytes(self.destination)
 
-                    if offs:
-                        for _ in range(length):
-                            ud.destination.append(ud.destination[-offs])
-                    else:
-                        done = True
+    def pack(self):
+        raise NotImplementedError
 
-                    r0 = offs
-                    lwm = 1
-            else:
-                offs = ap_getgamma(ud)
 
-                if lwm == 0 and offs == 2:
-                    offs = r0
+def main():
+    # self-test
+    data = b"T\x00he quick\xecb\x0erown\xcef\xaex\x80jumps\xed\xe4veur`t?lazy\xead\xfeg\xc0\x00"
+    assert APLib(data).depack() == b"The quick brown fox jumps over the lazy dog"
 
-                    length = ap_getgamma(ud)
 
-                    for _ in range(length):
-                        ud.destination.append(ud.destination[-offs])
-                else:
-                    if lwm == 0:
-                        offs -= 3
-                    else:
-                        offs -= 2
-
-                    offs <<= 8
-                    offs += ord(ud.source.read(1))
-
-                    length = ap_getgamma(ud)
-
-                    if offs >= 32000:
-                        length += 1
-                    if offs >= 1280:
-                        length += 1
-                    if offs < 128:
-                        length += 2
-
-                    for _ in range(length):
-                        ud.destination.append(ud.destination[-offs])
-
-                    r0 = offs
-
-                lwm = 1
-        else:
-            ud.destination += ud.source.read(1)
-            lwm = 0
-
-    return ud.destination
+if __name__ == "__main__":
+    main()
