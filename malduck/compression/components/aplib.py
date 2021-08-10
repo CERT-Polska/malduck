@@ -138,5 +138,5 @@ def main():
     assert APLib(data).depack() == b"The quick brown fox jumps over the lazy dog"
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
