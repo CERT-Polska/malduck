@@ -18,7 +18,7 @@ class APLib(object):
 
     __slots__ = 'source', 'destination', 'tag', 'bitcount', 'strict'
 
-    def __init__(self, source, strict=True):
+    def __init__(self, source: bytes, strict: bool = True) -> None:
         self.source = BytesIO(source)
         self.destination = bytearray()
         self.tag = 0
