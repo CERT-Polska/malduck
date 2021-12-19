@@ -4,6 +4,8 @@ import json
 import os
 
 from .procmem import ProcessMemoryPE
+from .pe import PE
+from pathlib import Path
 
 
 @click.group()
@@ -127,3 +129,28 @@ def extract(ctx, paths, base, analysis, modules):
                 extract_manager = ExtractManager(extractor_modules)
         if analysis:
             echo_config(extract_manager)
+
+
+@main.command("resources")
+@click.argument("filepath", type=click.Path(exists=True))
+@click.argument("outpath", type=click.Path())
+def extract_resources(filepath, outpath):
+    """Extract PE resources from an EXE into a directory"""
+    with open(filepath, "rb") as f:
+        pe = PE(data=f.read())
+
+    out_dir = Path(outpath)
+    out_dir.mkdir(exist_ok=True)
+
+    for e1, e2, e3 in pe.iterate_resources():
+        e1_name = e1.name.string.decode() if e1.name else e1.id
+        e2_name = e2.name.string.decode() if e2.name else e2.id
+        res_data = pe.pe.get_data(e3.data.struct.OffsetToData, e3.data.struct.Size)
+        out_name = f"{e1_name}-{e2_name}"
+
+        click.echo(f"Found resource {out_name} ({len(res_data)} bytes)")
+
+        # make sure there's no funny business
+        Path(out_dir).joinpath(out_dir / out_name).resolve().relative_to(
+            out_dir.resolve()
+        ).write_bytes(res_data)

@@ -4,7 +4,7 @@
 
 import pefile
 
-from typing import Any, Iterator, Optional, Union, TYPE_CHECKING
+from typing import Any, Iterator, Optional, Union, TYPE_CHECKING, Tuple
 
 if TYPE_CHECKING:
     from .procmem import ProcessMemory
@@ -288,6 +288,20 @@ class PE(object):
         except pefile.PEFormatError:
             return False
 
+    def iterate_resources(
+        self,
+    ) -> Iterator[
+        Tuple[
+            pefile.ResourceDirEntryData,
+            pefile.ResourceDirEntryData,
+            pefile.ResourceDirEntryData,
+        ]
+    ]:
+        for e1 in self.pe.DIRECTORY_ENTRY_RESOURCE.entries:
+            for e2 in e1.directory.entries:
+                for e3 in e2.directory.entries:
+                    yield (e1, e2, e3)
+
     def resources(self, name: Union[int, str, bytes]) -> Iterator[bytes]:
         """
         Finds resource objects by specified name or type
@@ -325,13 +339,11 @@ class PE(object):
         else:
             compare = name_int
 
-        for e1 in self.pe.DIRECTORY_ENTRY_RESOURCE.entries:
-            for e2 in e1.directory.entries:
-                for e3 in e2.directory.entries:
-                    if compare(e1, e2, e3):
-                        yield self.pe.get_data(
-                            e3.data.struct.OffsetToData, e3.data.struct.Size
-                        )
+        for e1, e2, e3 in self.iterate_resources():
+            if compare(e1, e2, e3):
+                yield self.pe.get_data(
+                    e3.data.struct.OffsetToData, e3.data.struct.Size
+                )
 
     def resource(self, name: Union[int, str, bytes]) -> Optional[bytes]:
         """
