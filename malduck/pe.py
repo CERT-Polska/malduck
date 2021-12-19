@@ -341,9 +341,7 @@ class PE(object):
 
         for e1, e2, e3 in self.iterate_resources():
             if compare(e1, e2, e3):
-                yield self.pe.get_data(
-                    e3.data.struct.OffsetToData, e3.data.struct.Size
-                )
+                yield self.pe.get_data(e3.data.struct.OffsetToData, e3.data.struct.Size)
 
     def resource(self, name: Union[int, str, bytes]) -> Optional[bytes]:
         """
