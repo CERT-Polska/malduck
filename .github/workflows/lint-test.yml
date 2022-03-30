@@ -10,14 +10,23 @@ on:
     branches: [ master ]
 
 jobs:
-  test:
+  lint:
     runs-on: ubuntu-latest
     steps:
       - uses: CERT-Polska/lint-python-action@v1
         with:
           source: malduck/
           python-version: 3.6
-          extra-requirements: "mypy-extensions==0.4.3 pytest==5.4.1"
+          extra-requirements: "mypy-extensions==0.4.3"
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python 3.6
+        uses: actions/setup-python@v2
+        with:
+            python-version: 3.6
+      - run: pip install .
+      - run: pip install pytest==5.4.1
       - name: Test with pytest
-        run: |
-          pytest
+        run: pytest
