@@ -5,9 +5,9 @@ from __future__ import absolute_import
 
 __all__ = ["gzip", "Gzip"]
 
-from gzip import GzipFile
 import io
 import zlib
+from gzip import GzipFile
 
 
 class Gzip:

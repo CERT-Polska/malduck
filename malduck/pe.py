@@ -2,9 +2,9 @@
 # This file is part of Roach - https://github.com/jbremer/roach.
 # See the file 'docs/LICENSE.txt' for copying permission.
 
-import pefile
+from typing import TYPE_CHECKING, Any, Iterator, Optional, Tuple, Union
 
-from typing import Any, Iterator, Optional, Union, TYPE_CHECKING, Tuple
+import pefile
 
 if TYPE_CHECKING:
     from .procmem import ProcessMemory

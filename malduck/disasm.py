@@ -3,9 +3,10 @@
 # See the file 'docs/LICENSE.txt' for copying permission.
 
 import collections
+from typing import Any, Dict, Iterator, List, Optional, Union
+
 from capstone import CsInsn
 from capstone.x86 import X86Op
-from typing import Any, List, Optional, Dict, Union, Iterator
 
 __all__ = ["disasm", "insn", "Disassemble", "Instruction", "Operand", "Memory"]
 

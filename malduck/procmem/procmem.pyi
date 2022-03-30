@@ -1,28 +1,14 @@
 import mmap
-
-from typing import (
-    Any,
-    BinaryIO,
-    Dict,
-    Iterator,
-    List,
-    Optional,
-    Tuple,
-    Type,
-    TypeVar,
-    Union,
-    overload,
-)
+from typing import (Any, BinaryIO, Dict, Iterator, List, Optional, Tuple, Type,
+                    TypeVar, Union, overload)
 
 from typing_extensions import Literal, Protocol
 
-from ..extractor import ExtractorModules, ExtractManager
-
-from .region import Region
 from ..disasm import Instruction
-from ..yara import Yara, YaraRulesetMatch, YaraRulesetOffsets
-
+from ..extractor import ExtractManager, ExtractorModules
 from ..ints import IntType
+from ..yara import Yara, YaraRulesetMatch, YaraRulesetOffsets
+from .region import Region
 
 class MemoryBuffer(object):
     def __setitem__(self, item: Union[int, slice], value: Union[int, slice]): ...

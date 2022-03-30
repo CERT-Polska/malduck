@@ -1,11 +1,12 @@
-import click
-import logging
 import json
+import logging
 import os
-
-from .procmem import ProcessMemoryPE
-from .pe import PE
 from pathlib import Path
+
+import click
+
+from .pe import PE
+from .procmem import ProcessMemoryPE
 
 
 @click.group()

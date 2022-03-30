@@ -3,7 +3,6 @@
 # See the file 'docs/LICENSE.txt' for copying permission.
 
 import struct
-
 from typing import Optional
 
 from ..bits import rol

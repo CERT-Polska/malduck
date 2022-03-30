@@ -1,17 +1,7 @@
 from abc import ABCMeta, abstractmethod
-from struct import pack, unpack_from, error
-from typing import (
-    Any,
-    Callable,
-    Generic,
-    Iterator,
-    Optional,
-    Union,
-    Tuple,
-    Type,
-    TypeVar,
-    cast,
-)
+from struct import error, pack, unpack_from
+from typing import (Any, Callable, Generic, Iterator, Optional, Tuple, Type,
+                    TypeVar, Union, cast)
 
 from .bits import rol
 

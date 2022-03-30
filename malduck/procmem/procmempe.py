@@ -1,11 +1,10 @@
 from typing import List, Optional
 
+from ..bits import align
+from ..pe import PE
 from .binmem import ProcessMemoryBinary
 from .procmem import ProcessMemoryBuffer
 from .region import Region
-
-from ..bits import align
-from ..pe import PE
 
 __all__ = ["ProcessMemoryPE", "procmempe"]
 

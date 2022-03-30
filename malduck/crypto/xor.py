@@ -1,5 +1,4 @@
 from itertools import cycle
-
 from typing import Union
 
 __all__ = ["xor"]

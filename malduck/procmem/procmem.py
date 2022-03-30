@@ -1,13 +1,13 @@
 import mmap
 import re
-
 from typing import BinaryIO, List, Optional, Union, cast
 
-from .region import Region, PAGE_EXECUTE_READWRITE
 from ..disasm import disasm
-from ..string.bin import uint8, uint16, uint32, uint64, int8, int16, int32, int64
+from ..string.bin import (int8, int16, int32, int64, uint8, uint16, uint32,
+                          uint64)
 from ..string.ops import utf16z
 from ..yara import Yara, YaraString
+from .region import PAGE_EXECUTE_READWRITE, Region
 
 __all__ = ["ProcessMemory", "procmem"]
 
