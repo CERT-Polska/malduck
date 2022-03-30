@@ -230,7 +230,9 @@ class ProcessMemory:
         count: Optional[int] = None,
     ) -> Iterator[Instruction]: ...
     def extract(
-        self, modules: ExtractorModules = None, extract_manager: ExtractManager = None,
+        self,
+        modules: ExtractorModules = None,
+        extract_manager: ExtractManager = None,
     ) -> Optional[List[Dict[str, Any]]]: ...
     # yarap(ruleset)
     # yarap(ruleset, offset)

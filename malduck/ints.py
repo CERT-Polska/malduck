@@ -68,14 +68,14 @@ class MetaIntType(type):
         """
         Mask for potentially overflowing operations
         """
-        return (2 ** cls.bits) - 1
+        return (2**cls.bits) - 1
 
     @property
     def invert_mask(cls) -> int:
         """
         Mask for sign bit
         """
-        return (2 ** cls.bits) >> 1
+        return (2**cls.bits) >> 1
 
     def __mul__(cls: Type[T], multiplier: int) -> Type[MultipliedIntTypeBase[T]]:  # type: ignore
         # mypy doesn't know how to deal with metaclasses
