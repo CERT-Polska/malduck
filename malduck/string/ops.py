@@ -4,8 +4,7 @@
 
 import binascii
 from base64 import b64decode, b64encode
-from typing import (Iterator, List, Optional, Sequence, Tuple, TypeVar, Union,
-                    cast)
+from typing import Iterator, List, Optional, Sequence, Tuple, TypeVar, Union, cast
 
 __all__ = [
     "asciiz",

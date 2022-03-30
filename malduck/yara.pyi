@@ -1,7 +1,19 @@
 import enum
 from collections import namedtuple
-from typing import (Any, Callable, Dict, Generic, Iterable, KeysView, List,
-                    Optional, Tuple, TypeVar, Union, overload)
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Generic,
+    Iterable,
+    KeysView,
+    List,
+    Optional,
+    Tuple,
+    TypeVar,
+    Union,
+    overload,
+)
 
 from typing_extensions import Literal, Protocol
 

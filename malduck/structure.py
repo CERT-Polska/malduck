@@ -5,8 +5,18 @@
 import ctypes
 from typing import List, Tuple, Type
 
-from .ints import (Int8, Int16, Int32, Int64, IntTypeBase,
-                   MultipliedIntTypeBase, UInt8, UInt16, UInt32, UInt64)
+from .ints import (
+    Int8,
+    Int16,
+    Int32,
+    Int64,
+    IntTypeBase,
+    MultipliedIntTypeBase,
+    UInt8,
+    UInt16,
+    UInt32,
+    UInt64,
+)
 
 __all__ = ["Structure"]
 

@@ -1,6 +1,17 @@
 import mmap
-from typing import (Any, BinaryIO, Dict, Iterator, List, Optional, Tuple, Type,
-                    TypeVar, Union, overload)
+from typing import (
+    Any,
+    BinaryIO,
+    Dict,
+    Iterator,
+    List,
+    Optional,
+    Tuple,
+    Type,
+    TypeVar,
+    Union,
+    overload,
+)
 
 from typing_extensions import Literal, Protocol
 

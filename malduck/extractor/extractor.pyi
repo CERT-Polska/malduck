@@ -1,6 +1,18 @@
 import logging
-from typing import (Any, Callable, Dict, Generic, Iterator, List, Optional,
-                    Tuple, Type, TypeVar, Union, overload)
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    Generic,
+    Iterator,
+    List,
+    Optional,
+    Tuple,
+    Type,
+    TypeVar,
+    Union,
+    overload,
+)
 
 from typing_extensions import Protocol
 
