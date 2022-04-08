@@ -2,10 +2,8 @@ import importlib.util
 import logging
 import pkgutil
 import sys
-
 from importlib.abc import FileLoader, PathEntryFinder
-
-from typing import Callable, Optional, Any, Dict, cast
+from typing import Any, Callable, Dict, Optional, cast
 
 log = logging.getLogger(__name__)
 

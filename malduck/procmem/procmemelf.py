@@ -1,8 +1,8 @@
+import io
+from typing import List, Optional
+
 import elftools
 import elftools.elf.elffile
-import io
-
-from typing import List, Optional
 
 from .binmem import ProcessMemoryBinary
 from .procmem import ProcessMemoryBuffer

@@ -3,9 +3,10 @@
 # See the file 'docs/LICENSE.txt' for copying permission.
 
 import collections
+from typing import Any, Dict, Iterator, List, Optional, Union
+
 from capstone import CsInsn
 from capstone.x86 import X86Op
-from typing import Any, List, Optional, Dict, Union, Iterator
 
 __all__ = ["disasm", "insn", "Disassemble", "Instruction", "Operand", "Memory"]
 
@@ -120,9 +121,9 @@ class Operand:
     def __str__(self) -> str:
         if self.is_imm:
             if self.x64:
-                return "0x%016x" % (int(self.value) % 2 ** 64)
+                return "0x%016x" % (int(self.value) % 2**64)
             else:
-                return "0x%08x" % (int(self.value) % 2 ** 32)
+                return "0x%08x" % (int(self.value) % 2**32)
         elif self.is_reg:
             return str(self.reg)
         elif self.is_mem:
@@ -134,7 +135,7 @@ class Operand:
             if m.index:
                 s.append("%d*%s" % (m.scale, m.index))
             if m.disp:
-                s.append("0x%08x" % (m.disp % 2 ** 32))
+                s.append("0x%08x" % (m.disp % 2**32))
             return "%s [%s]" % (m.size, "+".join(s))
         else:
             raise Exception("Invalid Operand type")

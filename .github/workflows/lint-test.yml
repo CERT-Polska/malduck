@@ -10,31 +10,23 @@ on:
     branches: [ master ]
 
 jobs:
-  build:
+  lint:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python 3.6
-      uses: actions/setup-python@v2
-      with:
-        python-version: 3.6
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install flake8==3.8.3 pytest==5.4.1 black==19.10b0 mypy==0.800 mypy-extensions==0.4.3
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-    - name: Lint with flake8
-      run: |
-        flake8 malduck --count --max-line-length=88 --show-source --statistics
-    - name: Check black format
-      run: |
-        black malduck --target-version py36 --check --diff
-    - name: Check types
-      run: |
-        mypy malduck
-    - name: Install
-      run: |
-        python setup.py install
-    - name: Test with pytest
-      run: |
-        pytest
+      - uses: CERT-Polska/lint-python-action@v1
+        with:
+          source: malduck/
+          python-version: 3.6
+          extra-requirements: "mypy-extensions==0.4.3"
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python 3.6
+        uses: actions/setup-python@v2
+        with:
+            python-version: 3.6
+      - run: pip install .
+      - run: pip install pytest==5.4.1
+      - name: Test with pytest
+        run: pytest

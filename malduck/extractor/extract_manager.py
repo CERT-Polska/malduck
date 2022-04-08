@@ -2,10 +2,10 @@ import json
 import logging
 import os
 import warnings
-from typing import Any, Dict, Optional, List, Type, Union
+from typing import Any, Dict, List, Optional, Type, Union
 
-from ..yara import Yara, YaraRuleOffsets, YaraRulesetMatch
 from ..procmem import ProcessMemory
+from ..yara import Yara, YaraRuleOffsets, YaraRulesetMatch
 from .extractor import Extractor
 from .loaders import load_modules
 
@@ -219,7 +219,7 @@ class ExtractManager:
         :return: Family name if ripped successfully and provided better configuration than previous procmems.
             Returns None otherwise.
         """
-        from ..procmem import ProcessMemoryPE, ProcessMemoryELF
+        from ..procmem import ProcessMemoryELF, ProcessMemoryPE
         from ..procmem.binmem import ProcessMemoryBinary
 
         matches = p.yarav(self.rules, extended=True)

@@ -1,12 +1,12 @@
-from collections import namedtuple, defaultdict
-from typing import Callable, Dict, Optional, Tuple, TypeVar
-
 import enum
 import json
 import logging
 import os
 import re
 import textwrap
+from collections import defaultdict, namedtuple
+from typing import Callable, Dict, Optional, Tuple, TypeVar
+
 import yara
 
 __all__ = [

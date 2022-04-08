@@ -1,6 +1,6 @@
 from typing import Optional
-from Cryptodome.Cipher import ChaCha20 as ChaCha20Cipher
 
+from Cryptodome.Cipher import ChaCha20 as ChaCha20Cipher
 
 __all__ = ["chacha20"]
 

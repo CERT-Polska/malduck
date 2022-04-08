@@ -1,6 +1,6 @@
 from typing import Optional
 
-from .components.pyserpent import serpent_cbc_encrypt, serpent_cbc_decrypt
+from .components.pyserpent import serpent_cbc_decrypt, serpent_cbc_encrypt
 
 __all__ = ["serpent"]
 

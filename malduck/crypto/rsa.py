@@ -3,14 +3,14 @@
 # See the file 'docs/LICENSE.txt' for copying permission.
 
 import io
+from io import BytesIO
+from itertools import takewhile
+from typing import Optional, cast
 
 from Cryptodome.PublicKey import RSA as RSA_
-from itertools import takewhile
 
+from ..string.bin import bigint, uint32
 from .winhdr import BLOBHEADER, BaseBlob
-from ..string.bin import uint32, bigint
-from io import BytesIO
-from typing import Optional, cast
 
 __all__ = ["PublicKeyBlob", "PrivateKeyBlob", "RSA", "rsa"]
 

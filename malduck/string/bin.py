@@ -3,11 +3,10 @@
 # See the file 'docs/LICENSE.txt' for copying permission.
 import struct
 import warnings
-
 from typing import Optional
 
+from ..ints import Int8, Int16, Int32, Int64, UInt8, UInt16, UInt32, UInt64
 from ..string.ops import Padding, enhex, unhex
-from ..ints import UInt8, UInt16, UInt32, UInt64, Int8, Int16, Int32, Int64
 
 __all__ = [
     "uint64",

@@ -28,9 +28,8 @@ https://github.com/libyal/reviveit/
 https://github.com/sleuthkit/sleuthkit/blob/develop/tsk/fs/ntfs.c
 """
 import array
-from io import BytesIO
-
 import struct
+from io import BytesIO
 
 __all__ = ["decompress_data"]
 

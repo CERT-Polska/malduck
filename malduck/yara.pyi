@@ -1,21 +1,21 @@
+import enum
 from collections import namedtuple
 from typing import (
     Any,
     Callable,
+    Dict,
     Generic,
     Iterable,
+    KeysView,
     List,
-    Union,
+    Optional,
     Tuple,
     TypeVar,
-    Dict,
-    KeysView,
-    Optional,
+    Union,
     overload,
 )
-from typing_extensions import Protocol, Literal
 
-import enum
+from typing_extensions import Literal, Protocol
 
 T = TypeVar("T")
 OffsetMapper = Callable[[Optional[int], Optional[int]], Optional[int]]

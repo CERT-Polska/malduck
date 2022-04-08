@@ -1,9 +1,9 @@
 import logging
 from abc import ABCMeta, abstractmethod
-from typing import List, Iterator, Optional, Type, TypeVar
+from typing import Iterator, List, Optional, Type, TypeVar
 
-from .region import Region
 from .procmem import ProcessMemory, ProcessMemoryBuffer
+from .region import Region
 
 log = logging.getLogger(__name__)
 

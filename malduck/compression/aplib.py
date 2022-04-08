@@ -1,10 +1,9 @@
-from typing import Optional
-from binascii import crc32
-
-from .components.aplib import APLib
-
 import logging
 import struct
+from binascii import crc32
+from typing import Optional
+
+from .components.aplib import APLib
 
 __all__ = ["aPLib", "aplib"]
 

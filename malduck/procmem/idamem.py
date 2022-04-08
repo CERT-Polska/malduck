@@ -1,10 +1,10 @@
-from .procmem import ProcessMemory, MemoryBuffer
+from .procmem import MemoryBuffer, ProcessMemory
 from .region import Region
 
 try:
+    import ida_bytes
     import idautils
     import idc
-    import ida_bytes
 
     IDAPYTHON = 1
 except ImportError:
