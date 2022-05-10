@@ -1,24 +1,23 @@
 import logging
-
 from typing import (
     Any,
     Callable,
     Dict,
     Generic,
-    List,
     Iterator,
+    List,
     Optional,
-    Union,
     Tuple,
     Type,
     TypeVar,
+    Union,
     overload,
 )
+
 from typing_extensions import Protocol
 
-from ..procmem import ProcessMemory, ProcessMemoryPE, ProcessMemoryELF
+from ..procmem import ProcessMemory, ProcessMemoryELF, ProcessMemoryPE
 from ..yara import YaraRuleMatch, YaraStringMatch
-
 from .extract_manager import ProcmemExtractManager
 
 Config = Dict[str, Any]

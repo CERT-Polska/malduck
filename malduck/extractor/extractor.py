@@ -1,9 +1,9 @@
 import functools
 import inspect
 import logging
-
-from ..procmem import ProcessMemory, ProcessMemoryPE, ProcessMemoryELF
 from typing import List, cast
+
+from ..procmem import ProcessMemory, ProcessMemoryELF, ProcessMemoryPE
 
 log = logging.getLogger(__name__)
 

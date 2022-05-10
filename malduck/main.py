@@ -1,11 +1,12 @@
-import click
-import logging
 import json
+import logging
 import os
-
-from .procmem import ProcessMemoryPE
-from .pe import PE
 from pathlib import Path
+
+import click
+
+from .pe import PE
+from .procmem import ProcessMemoryPE
 
 
 @click.group()
@@ -119,7 +120,8 @@ def extract(ctx, paths, base, analysis, modules):
         else:
             files = []
             click.echo(
-                f"[!] Symbolic links are not supported, {path} ignored.", err=True,
+                f"[!] Symbolic links are not supported, {path} ignored.",
+                err=True,
             )
 
         for file_path in sorted(files):
@@ -148,9 +150,8 @@ def extract_resources(filepath, outpath):
         res_data = pe.pe.get_data(e3.data.struct.OffsetToData, e3.data.struct.Size)
         out_name = f"{e1_name}-{e2_name}"
 
-        click.echo(f"Found resource {out_name} ({len(res_data)} bytes)")
-
         # make sure there's no funny business
-        Path(out_dir).joinpath(out_dir / out_name).resolve().relative_to(
-            out_dir.resolve()
-        ).write_bytes(res_data)
+        out_path = out_dir / (Path(out_name).name)
+        click.echo(f"Saving resource {out_name} ({len(res_data)} bytes) to {out_path}")
+
+        out_path.write_bytes(res_data)

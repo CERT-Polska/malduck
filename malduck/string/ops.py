@@ -2,10 +2,9 @@
 # This file is part of Roach - https://github.com/jbremer/roach.
 # See the file 'docs/LICENSE.txt' for copying permission.
 
-from base64 import b64decode, b64encode
-from typing import Iterator, List, Optional, Sequence, Union, Tuple, TypeVar, cast
-
 import binascii
+from base64 import b64decode, b64encode
+from typing import Iterator, List, Optional, Sequence, Tuple, TypeVar, Union, cast
 
 __all__ = [
     "asciiz",

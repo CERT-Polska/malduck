@@ -5,7 +5,7 @@ except ImportError:
 
 setup(
     name="malduck",
-    version="4.1.0",
+    version="4.2.0",
     description="Malduck is your ducky companion in malware analysis journeys",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",

@@ -1,6 +1,6 @@
 from typing import Optional
-from Cryptodome.Cipher import Salsa20 as Salsa20Cipher
 
+from Cryptodome.Cipher import Salsa20 as Salsa20Cipher
 
 __all__ = ["salsa20"]
 

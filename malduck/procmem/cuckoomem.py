@@ -1,5 +1,4 @@
 import struct
-
 from typing import Optional
 
 from .procmem import ProcessMemory, ProcessMemoryBuffer

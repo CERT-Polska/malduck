@@ -3,19 +3,18 @@
 # See the file 'docs/LICENSE.txt' for copying permission.
 
 import ctypes
-
 from typing import List, Tuple, Type
 
 from .ints import (
+    Int8,
+    Int16,
+    Int32,
+    Int64,
     IntTypeBase,
     MultipliedIntTypeBase,
-    Int8,
     UInt8,
-    Int16,
     UInt16,
-    Int32,
     UInt32,
-    Int64,
     UInt64,
 )
 

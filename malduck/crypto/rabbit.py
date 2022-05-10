@@ -3,7 +3,6 @@
 # See the file 'docs/LICENSE.txt' for copying permission.
 
 import struct
-
 from typing import Optional
 
 from ..bits import rol
@@ -128,10 +127,10 @@ class Rabbit:
             self.next_state(self.ctx.w)
             x[0], x[1] = self.ctx.w.x[0], self.ctx.w.x[2]
             x[2], x[3] = self.ctx.w.x[4], self.ctx.w.x[6]
-            x[0] ^= (self.ctx.w.x[5] >> 16) ^ (self.ctx.w.x[3] << 16) % 2 ** 32
-            x[1] ^= (self.ctx.w.x[7] >> 16) ^ (self.ctx.w.x[5] << 16) % 2 ** 32
-            x[2] ^= (self.ctx.w.x[1] >> 16) ^ (self.ctx.w.x[7] << 16) % 2 ** 32
-            x[3] ^= (self.ctx.w.x[3] >> 16) ^ (self.ctx.w.x[1] << 16) % 2 ** 32
+            x[0] ^= (self.ctx.w.x[5] >> 16) ^ (self.ctx.w.x[3] << 16) % 2**32
+            x[1] ^= (self.ctx.w.x[7] >> 16) ^ (self.ctx.w.x[5] << 16) % 2**32
+            x[2] ^= (self.ctx.w.x[1] >> 16) ^ (self.ctx.w.x[7] << 16) % 2**32
+            x[3] ^= (self.ctx.w.x[3] >> 16) ^ (self.ctx.w.x[1] << 16) % 2**32
             ret.append(xor(struct.pack("IIII", *x), msg[off : off + 16]))
         return b"".join(ret)
 

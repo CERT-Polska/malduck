@@ -1,6 +1,5 @@
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 
-
 __all__ = ["camellia"]
 
 

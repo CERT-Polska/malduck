@@ -1,19 +1,18 @@
-from .procmem import ProcessMemory, procmem, MemoryBuffer
-from .procmempe import ProcessMemoryPE, procmempe
-from .procmemdnpe import ProcessMemoryDnPE, procmemdnpe
-from .procmemelf import ProcessMemoryELF, procmemelf
 from .cuckoomem import CuckooProcessMemory, cuckoomem
 from .idamem import IDAProcessMemory, idamem
-
+from .procmem import MemoryBuffer, ProcessMemory, procmem
+from .procmemelf import ProcessMemoryELF, procmemelf
+from .procmempe import ProcessMemoryPE, procmempe
+from .procmemdnpe import ProcessMemoryDnPE, procmemdnpe
 from .region import (
-    Region,
-    PAGE_READONLY,
-    PAGE_READWRITE,
-    PAGE_WRITECOPY,
     PAGE_EXECUTE,
     PAGE_EXECUTE_READ,
     PAGE_EXECUTE_READWRITE,
     PAGE_EXECUTE_WRITECOPY,
+    PAGE_READONLY,
+    PAGE_READWRITE,
+    PAGE_WRITECOPY,
+    Region,
 )
 
 __all__ = [

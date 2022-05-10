@@ -3,13 +3,12 @@
 # See the file 'docs/LICENSE.txt' for copying permission.
 
 import io
-
 from typing import Optional, Tuple
 
 from Cryptodome.Cipher import AES as AESCipher
 
-from .winhdr import BLOBHEADER, BaseBlob
 from ..string.bin import uint32
+from .winhdr import BLOBHEADER, BaseBlob
 
 __all__ = ["PlaintextKeyBlob", "aes"]
 

@@ -3,7 +3,8 @@
 # See the file 'docs/LICENSE.txt' for copying permission.
 from typing import cast
 
-from Cryptodome.Cipher import DES, DES3 as DES3Cipher
+from Cryptodome.Cipher import DES
+from Cryptodome.Cipher import DES3 as DES3Cipher
 from Cryptodome.Cipher._mode_cbc import CbcMode
 
 __all__ = ["des3"]
