@@ -1,5 +1,6 @@
 from .procmem import ProcessMemory, procmem, MemoryBuffer
 from .procmempe import ProcessMemoryPE, procmempe
+from .procmemdnpe import ProcessMemoryDnPE, procmemdnpe
 from .procmemelf import ProcessMemoryELF, procmemelf
 from .cuckoomem import CuckooProcessMemory, cuckoomem
 from .idamem import IDAProcessMemory, idamem
@@ -20,6 +21,8 @@ __all__ = [
     "procmem",
     "ProcessMemoryPE",
     "procmempe",
+    "ProcessMemoryDnPE",
+    "procmemdnpe",
     "MemoryBuffer",
     "ProcessMemoryELF",
     "procmemelf",
