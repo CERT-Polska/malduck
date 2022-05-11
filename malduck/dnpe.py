@@ -1,6 +1,6 @@
 import dnfile
 
-from typing import Union, Optional, List
+from typing import Union, Optional, Iterator, List
 
 from .procmem import ProcessMemory
 from .pe import MemoryPEData, PE
@@ -29,38 +29,56 @@ class DnPE(PE):
             self.pe = dnfile.dnPE(data=data, fast_load=fast_load)
 
     @property
-    def us(self) -> dnfile.stream.UserStringHeap:
-        return self.pe.net.metadata.streams.get(b"#US", None)
+    def dn_metadata(self) -> Optional[dnfile.stream.MetaDataTables]:
+        return self.pe.net.metadata
 
-    def us_string(self, offset: int) -> Optional[dnfile.stream.UserString]:
-        if not self.us or self.us.sizeof() == 0:
+    @property
+    def dn_strings(self) -> Optional[dnfile.stream.StringsHeap]:
+        return self.pe.net.strings
+
+    @property
+    def dn_user_strings(self) -> Optional[dnfile.stream.UserStringHeap]:
+        return self.pe.net.user_strings
+
+    @property
+    def dn_guid(self) -> Optional[dnfile.stream.GuidHeap]:
+        return self.pe.net.guids
+
+    @property
+    def dn_mdtables(self) -> Optional[dnfile.stream.MetaDataTables]:
+        return self.pe.net.mdtables
+
+    @property
+    def dn_resources(self) -> List:
+        return self.pe.net.resources
+
+    @property
+    def dn_flags(self) -> Optional[dnfile.ClrStruct.Flags]:
+        return self.pe.net.flags
+
+    def dn_user_string(self, index: int, encoding='utf-16') -> Optional[dnfile.stream.UserString]:
+        if not self.dn_user_strings or self.dn_user_strings.sizeof() == 0:
             return None
 
-        if offset > self.us.sizeof():
-            return None
-
-        buffer, read_length = self.us.get_with_size(offset)
         try:
-            us_string = dnfile.stream.UserString(buffer)
+            us_string = self.dn_user_strings.get_us(index, encoding=encoding)
         except UnicodeDecodeError:
             return None
 
         return us_string
 
-    def us_strings(self) -> Optional[List[dnfile.stream.UserString]]:
-        if not self.us or self.us.sizeof() == 0:
-            return None
+    def dn_iterate_resources(self) -> Iterator:
+        for resource in self.dn_resources:
+            if isinstance(resource.data, bytes):
+                yield resource
 
-        strings = []
-        offset = 1
-        while offset < self.us.sizeof():
-            us_string = self.us_string(offset)
-            if not us_string:
-                break
+            elif isinstance(resource.data, dnfile.resource.ResourceSet):
+                if not resource.data.entries:
+                    continue
 
-            strings.append(us_string)
-
-        return strings
+                for entry in resource.data.entries:
+                    if entry.data:
+                        yield entry.data
 
 
 dnpe = DnPE
