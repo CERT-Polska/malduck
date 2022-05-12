@@ -53,7 +53,7 @@ class DnPE(PE):
         return self.pe.net.resources
 
     @property
-    def dn_flags(self) -> Optional[dnfile.ClrStruct.Flags]:
+    def dn_flags(self) -> Optional:
         return self.pe.net.flags
 
     def dn_user_string(self, index: int, encoding='utf-16') -> Optional[dnfile.stream.UserString]:
