@@ -47,9 +47,9 @@ from .procmem import (
     cuckoomem,
     idamem,
     procmem,
+    procmemdnpe,
     procmemelf,
     procmempe,
-    procmemdnpe,
 )
 from .string import (
     asciiz,

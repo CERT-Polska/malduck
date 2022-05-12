@@ -1,10 +1,9 @@
+from typing import Iterator, List, Optional, Union, Any
+
 import dnfile
 
-from typing import Union, Optional, Iterator, List
-
+from .pe import PE, MemoryPEData
 from .procmem import ProcessMemory
-from .pe import MemoryPEData, PE
-
 
 __all__ = ["dnpe", "DnPE", "MemoryDnPEData"]
 
@@ -53,10 +52,12 @@ class DnPE(PE):
         return self.pe.net.resources
 
     @property
-    def dn_flags(self) -> Optional:
+    def dn_flags(self) -> Any:
         return self.pe.net.flags
 
-    def dn_user_string(self, index: int, encoding='utf-16') -> Optional[dnfile.stream.UserString]:
+    def dn_user_string(
+        self, index: int, encoding="utf-16"
+    ) -> Optional[dnfile.stream.UserString]:
         if not self.dn_user_strings or self.dn_user_strings.sizeof() == 0:
             return None
 

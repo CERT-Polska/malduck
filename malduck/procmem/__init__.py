@@ -1,9 +1,9 @@
 from .cuckoomem import CuckooProcessMemory, cuckoomem
 from .idamem import IDAProcessMemory, idamem
 from .procmem import MemoryBuffer, ProcessMemory, procmem
+from .procmemdnpe import ProcessMemoryDnPE, procmemdnpe
 from .procmemelf import ProcessMemoryELF, procmemelf
 from .procmempe import ProcessMemoryPE, procmempe
-from .procmemdnpe import ProcessMemoryDnPE, procmemdnpe
 from .region import (
     PAGE_EXECUTE,
     PAGE_EXECUTE_READ,

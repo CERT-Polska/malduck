@@ -1,10 +1,9 @@
-from typing import Optional, List
-
-from .region import Region
-from .binmem import ProcessMemoryBuffer
-from .procmempe import ProcessMemoryPE
+from typing import List, Optional
 
 from ..dnpe import DnPE
+from .binmem import ProcessMemoryBuffer
+from .procmempe import ProcessMemoryPE
+from .region import Region
 
 __all__ = ["ProcessMemoryDnPE", "procmemdnpe"]
 
