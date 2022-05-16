@@ -1,4 +1,4 @@
-from typing import Iterator, List, Optional, Union, Any
+from typing import Any, Iterator, List, Optional, Union
 
 import dnfile
 
