@@ -7,7 +7,7 @@ import struct
 import tempfile
 import pytest
 
-from malduck import procmem, procmempe, cuckoomem, pad, pe, insn, PAGE_READWRITE, enhex
+from malduck import procmem, procmempe, procmemdnpe, cuckoomem, pad, pe, insn, PAGE_READWRITE, enhex
 from malduck.procmem import Region
 
 
@@ -263,3 +263,12 @@ def test_procmempe_image_sections():
 
     with procmempe.from_file("tests/files/96emptysections.exe.bin") as p:
         assert p.readv(0x2000, 8) == b"\x68\x28\x20\x40\x00\xe8\x0e\x00"
+
+
+def test_procmemdnpe():
+    with procmemdnpe.from_file("tests/files/dn_hello.exe", image=True) as p:
+        assert p is not None
+        assert p.pe is not None
+        assert p.pe.dn_metadata.struct.Version == b'v4.0.30319\x00\x00'
+        assert p.pe.dn_metadata.struct.NumberOfStreams == len(p.pe.dn_metadata.streams)
+

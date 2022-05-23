@@ -47,6 +47,7 @@ from .procmem import (
     cuckoomem,
     idamem,
     procmem,
+    procmemdnpe,
     procmemelf,
     procmempe,
 )
@@ -166,6 +167,7 @@ __all__ = [
     # procmem
     "procmem",
     "procmempe",
+    "procmemdnpe",
     "procmemelf",
     "cuckoomem",
     "idamem",
