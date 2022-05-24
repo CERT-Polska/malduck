@@ -113,6 +113,14 @@ def test_multi_unpack():
     assert (Int64 * 3).unpack(b"\x11\x22\x33\x44\xff\xff\xff\xff\x00\x00\x00\x00") is None
 
 
+def test_fixed():
+    assert type(UInt32.unpack(b'A'*16)) is UInt32
+    assert type(UInt32.unpack(b'A'*16, fixed=False)) is int
+
+    assert type((UInt32*4).unpack(b'A'*16)[0]) is UInt32
+    assert type((UInt32*4).unpack(b'A'*16, fixed=False)[0]) is int  
+
+
 def test_unpack_from():
     assert UInt32.unpack(b"\xAA\xAA\xF0\x0F\xF0\x0B\xAA", offset=2) == u32(b"\xF0\x0F\xF0\x0B")
     assert UInt32.unpack(b"\xAA\xAA\xF0\x0F\xF0\x0B", offset=2) == u32(b"\xF0\x0F\xF0\x0B")
