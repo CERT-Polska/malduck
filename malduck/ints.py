@@ -5,7 +5,6 @@ from typing import (
     Callable,
     Generic,
     Iterator,
-    Optional,
     Tuple,
     Type,
     TypeVar,
