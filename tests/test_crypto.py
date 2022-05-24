@@ -170,6 +170,24 @@ def test_des():
     ) == b"\x1d\xed\xc37pV\x89S\xac\xaeT\xaf\xa1\xcfW\xa3"
 
 
+def test_des3():
+    assert des3.cbc.decrypt(
+        b"1"*8+b"3"*8+b"5"*8, b"B"*8, b'\xca\x8fVk\x11\xed"\x9c\xe7^T\x1c\xce\xae`\xee'
+    ) == b"C"*16
+
+    assert des3.cbc.encrypt(
+        b"1"*8+b"3"*8+b"5"*8,  b"B"*8, b"C"*16
+    ) == b'\xca\x8fVk\x11\xed"\x9c\xe7^T\x1c\xce\xae`\xee'
+
+    assert des3.ecb.decrypt(
+        b"1"*8+b"3"*8+b"5"*8, b'\xd4\x12\x80\xbaW\xd8g\xee\xd4\x12\x80\xbaW\xd8g\xee'
+    ) == b"C"*16
+
+    assert des3.ecb.encrypt(
+        b"1"*8+b"3"*8+b"5"*8, b"C"*16
+    ) == b'\xd4\x12\x80\xbaW\xd8g\xee\xd4\x12\x80\xbaW\xd8g\xee'
+
+
 def test_chacha20():
     assert chacha20.decrypt(
         key=b"A"*32, data=b'P\xb6\x12W\xf4\xd7\x83|,\xea\x04n\xba\x08Kj', nonce=b"C"*8
