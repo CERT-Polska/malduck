@@ -8,7 +8,6 @@ from Cryptodome.Cipher import DES3 as DES3Cipher
 from Cryptodome.Cipher._mode_cbc import CbcMode
 from Cryptodome.Cipher._mode_ecb import EcbMode
 
-
 __all__ = ["des3"]
 
 
