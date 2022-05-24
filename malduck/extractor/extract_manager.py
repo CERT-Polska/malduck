@@ -104,7 +104,6 @@ class ExtractorModules:
                     f"The extractor engine couldn't import any Extractors from module {module_name}. Make sure the Extractor class is imported into __init__.py",
                 )
 
-
     def on_error(self, exc: Exception, module_name: str) -> None:
         """
         Handler for all exceptions raised during module load
@@ -325,7 +324,9 @@ class ProcmemExtractManager:
             extractor = ext_class(self)
 
             if type(extractor.yara_rules) is str:
-                raise TypeError(f'"{extractor.__class__.__name__}.yara_rules" cannot be a string, convert it into a list of strings')
+                raise TypeError(
+                    f'"{extractor.__class__.__name__}.yara_rules" cannot be a string, convert it into a list of strings'
+                )
 
             # For each rule identifier in extractor.yara_rules...
             for rule in extractor.yara_rules:
