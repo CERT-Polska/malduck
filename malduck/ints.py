@@ -1,17 +1,6 @@
 from abc import ABCMeta, abstractmethod
 from struct import error, pack, unpack_from
-from typing import (
-    Any,
-    Callable,
-    Generic,
-    Iterator,
-    Optional,
-    Tuple,
-    Type,
-    TypeVar,
-    Union,
-    cast,
-)
+from typing import Any, Callable, Generic, Iterator, Tuple, Type, TypeVar, Union, cast
 
 from .bits import rol
 
@@ -49,7 +38,9 @@ class MultipliedIntTypeBase(IntTypeBase, Generic[T], metaclass=ABCMeta):
 
     @staticmethod
     @abstractmethod
-    def unpack(other: bytes, offset: int = 0) -> Optional[Tuple[T, ...]]:
+    def unpack(
+        other: bytes, offset: int = 0, foxed: bool = False
+    ) -> Union[Tuple[T, ...], int, None]:
         raise NotImplementedError()
 
 
@@ -87,7 +78,9 @@ class MetaIntType(type):
             mul = multiplier
 
             @staticmethod
-            def unpack(other: bytes, offset: int = 0) -> Optional[Tuple[T, ...]]:
+            def unpack(
+                other: bytes, offset: int = 0, fixed: bool = True
+            ) -> Union[Tuple[T, ...], int, None]:
                 """
                 Unpacks multiple values from provided buffer
                 :param other: Buffer object containing value to unpack
@@ -99,6 +92,10 @@ class MetaIntType(type):
                     ret = unpack_from(fmt, other, offset=offset)
                 except error:
                     return None
+
+                if not fixed:
+                    return tuple(ret)
+
                 ints: Iterator[T] = map(cls, ret)
                 return tuple(ints)
 
