@@ -49,7 +49,9 @@ class MultipliedIntTypeBase(IntTypeBase, Generic[T], metaclass=ABCMeta):
 
     @staticmethod
     @abstractmethod
-    def unpack(other: bytes, offset: int = 0, foxed: bool = False) -> Union[Tuple[T, ...], int, None]:
+    def unpack(
+        other: bytes, offset: int = 0, foxed: bool = False
+    ) -> Union[Tuple[T, ...], int, None]:
         raise NotImplementedError()
 
 
@@ -87,7 +89,9 @@ class MetaIntType(type):
             mul = multiplier
 
             @staticmethod
-            def unpack(other: bytes, offset: int = 0, fixed: bool = True) -> Union[Tuple[T, ...], int, None]:
+            def unpack(
+                other: bytes, offset: int = 0, fixed: bool = True
+            ) -> Union[Tuple[T, ...], int, None]:
                 """
                 Unpacks multiple values from provided buffer
                 :param other: Buffer object containing value to unpack
