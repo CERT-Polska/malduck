@@ -9,34 +9,7 @@ import pefile
 if TYPE_CHECKING:
     from .procmem import ProcessMemory
 
-__all__ = ["pe", "PE", "MemoryPEData", "FastPE"]
-
-
-class FastPE(pefile.PE):
-    def set_bytes_at_offset(self, offset, data):
-        """
-        Overwrite the bytes at the given file offset with the given string.
-
-        Return True if successful, False otherwise. It can fail if the
-        offset is outside the file's boundaries.
-
-        Remove after merge of https://github.com/erocarrera/pefile/pull/266
-        """
-
-        if not isinstance(data, bytes):
-            raise TypeError("data should be of type: bytes")
-
-        if 0 <= offset < len(self.__data__):
-            if isinstance(self.__data__, bytearray):
-                self.__data__[offset : offset + len(data)] = data
-            else:
-                self.__data__ = (
-                    self.__data__[:offset] + data + self.__data__[offset + len(data) :]
-                )
-        else:
-            return False
-
-        return True
+__all__ = ["pe", "PE", "MemoryPEData"]
 
 
 class MemoryPEData:
@@ -49,7 +22,7 @@ class MemoryPEData:
     def __init__(self, memory: "ProcessMemory", fast_load: bool) -> None:
         self.memory = memory
         # Preload headers
-        self.pe = FastPE(data=self, fast_load=True)
+        self.pe = pefile.PE(data=self, fast_load=True)
         # Perform full_load if needed
         if not fast_load:
             self.pe.full_load()
@@ -100,7 +73,7 @@ class PE(object):
         if isinstance(data, ProcessMemory):
             self.pe = MemoryPEData(data, fast_load).pe
         else:
-            self.pe = FastPE(data=data, fast_load=fast_load)
+            self.pe = pefile.PE(data=data, fast_load=fast_load)
 
     @property
     def data(self) -> bytes:
