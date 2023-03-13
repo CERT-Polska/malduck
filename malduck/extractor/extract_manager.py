@@ -184,6 +184,26 @@ class ExtractManager:
             traceback.format_exc(),
         )
 
+    def extract_file(self, filepath: str, base: int = 0) -> Optional[str]:
+        log.debug("Started extraction of file %s:%x", filepath, base)
+        with ProcessMemory.from_file(filepath, base=base) as p:
+            return self.extract_procmem(p)
+
+    def match_procmem(self, p: ProcessMemory) -> YaraRulesetMatch:
+        return p.yarav(self.rules, extended=True)
+
+    def carve_procmem(self, p: ProcessMemory):
+        from ..procmem import ProcessMemoryELF, ProcessMemoryPE
+
+        binaries = []
+        for binclass in [ProcessMemoryPE, ProcessMemoryELF]:
+            binaries += list(binclass.load_binaries_from_memory(p))
+        return binaries
+
+    def extract_procmem(self, p: ProcessMemory):
+        matches = self.match_procmem(p)
+
+
     def push_file(self, filepath: str, base: int = 0) -> Optional[str]:
         """
         Pushes file for extraction. Config extractor entrypoint.
