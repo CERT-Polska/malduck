@@ -1,3 +1,11 @@
+"""
+Abstract interface for string-based rule matching
+
+Based on yara-python objects for compatibility
+but can be used for other purposes if needed
+"""
+
+import abc
 from typing import Dict, List, Optional, Callable
 import dataclasses
 
@@ -62,6 +70,7 @@ class RuleMatches:
                 mapped_matches.append(mapped_match)
         return RuleMatches(mapped_matches)
 
-class RuleMatcher:
+class RuleMatcher(abc.ABC):
+    @abc.abstractmethod
     def match(self, filepath=None, data=None) -> RuleMatches:
         raise NotImplementedError
