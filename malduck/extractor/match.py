@@ -1,36 +1,47 @@
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Callable
 import dataclasses
+
+@dataclasses.dataclass
+class RuleStringMatch:
+    identifier: str
+    offset: int
+    content: bytes
+
+    def __len__(self) -> int:
+        return len(self.content)
+
+RuleStringMapper = Callable[[RuleStringMatch], Optional[RuleStringMatch]]
 
 @dataclasses.dataclass
 class RuleMatch:
     rule: str
-    matches: Dict[str, List[int]]
+    strings: Dict[str, List[RuleStringMatch]]
     namespace: Optional[str] = None
     meta: Optional[Dict[str, str]] = None
     tags: List[str] = dataclasses.field(default_factory=list)
 
     @property
-    def name(self):
+    def name(self) -> str:
         return self.rule
 
     @property
-    def elements(self):
-        # emit string matches
-        return self.matches
+    def elements(self) -> Dict[str, List[RuleStringMatch]]:
+        return self.strings
 
-    def remap(self, mapper) -> Optional["RuleMatch"]:
-        mapped_matches = {}
-        for identifier, offsets in self.matches.items():
-            mapped_offsets = sorted(
-                filter(lambda off: off is not None, [mapper(off) for off in offsets])
+    def remap(self, mapper: RuleStringMapper) -> Optional["RuleMatch"]:
+        mapped_strings = {}
+        for identifier, string_matches in self.strings.items():
+            mapped_string_matches = sorted(
+                filter(lambda s: s is not None, [mapper(s) for s in string_matches]),
+                key=lambda s: s.offset
             )
-            if mapped_offsets:
-                mapped_matches[identifier] = mapped_offsets
+            if mapped_string_matches:
+                mapped_strings[identifier] = mapped_string_matches
 
-        if mapped_matches:
+        if mapped_strings:
             return RuleMatch(
                 rule=self.rule,
-                matches=mapped_matches,
+                strings=mapped_strings,
                 namespace=self.namespace,
                 meta=self.meta,
                 tags=self.tags
@@ -40,10 +51,10 @@ class RuleMatch:
 
 
 class RuleMatches:
-    def __init__(self, matches):
+    def __init__(self, matches: List[RuleMatch]) -> None:
         self.matches = matches
 
-    def remap(self, mapper) -> "RuleMatches":
+    def remap(self, mapper: RuleStringMapper) -> "RuleMatches":
         mapped_matches = []
         for match in self.matches:
             mapped_match = match.remap(mapper)
