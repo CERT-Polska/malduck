@@ -733,7 +733,7 @@ class ProcessMemory:
         if (not size and not count) or (size and count):
             raise ValueError("procmem.disasmv needs either size or count to be set")
         if count:
-            # Get the the maximum possible code size assuming maximum instruction size
+            # Get the maximum possible code size assuming maximum instruction size
             size = count * 15
         return disasm(data=self.readv(addr, size), addr=addr, x64=x64, count=count or 0)
 

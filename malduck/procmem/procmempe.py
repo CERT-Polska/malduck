@@ -21,10 +21,10 @@ class ProcessMemoryPE(ProcessMemoryBinary):
     :param base: Virtual address of the region of interest (or beginning of buf when no regions provided)
     :type base: int, optional (default: 0)
 
-    :param image: The memory object is a dump of memory-mapped PE
+    :param image: The memory object is a dump of file-aligned PE file (e.g. EXE file contents)
     :type image: bool, optional (default: False)
 
-    :param detect_image: Try to automatically detect if the input buffer is memory-mapped PE using some heuristics
+    :param detect_image: Try to automatically detect if the input buffer is PE file using some heuristics
     :type detect_image: bool, optional (default: False)
 
     File `memory_dump` contains a 64bit memory-aligned PE dumped from address `0x140000000`, in order to load it

@@ -329,6 +329,7 @@ class Extractor:
     yara_rules = ()  #: Names of Yara rules for which handle_match is called
     family = None  #: Extracted malware family, automatically added to "family" key for strong extraction methods
     overrides = []  #: Family match overrides another match e.g. citadel overrides zeus
+    inline_rules = []  #: Inline Yara rules that will be used for matching
 
     def __init__(self, parent):
         self.parent = parent
@@ -359,7 +360,7 @@ class Extractor:
 
         :rtype: bool
         """
-        return self.parent.family is not None
+        return "family" in self.collected_config
 
     @property
     def collected_config(self):
@@ -368,7 +369,7 @@ class Extractor:
 
         :rtype: dict
         """
-        return self.parent.collected_config
+        return self.parent.configs.get(self.family, {})
 
     @property
     def globals(self):
