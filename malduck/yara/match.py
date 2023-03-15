@@ -1,8 +1,10 @@
-from typing import List
+from typing import TYPE_CHECKING, List
 
 from ..match import RuleMatcher, RuleStringMatch
-from ..procmem import ProcessMemory
 from .rules import Yara
+
+if TYPE_CHECKING:
+    from ..procmem import ProcessMemory
 
 
 class YaraMatcher(RuleMatcher):
@@ -10,7 +12,7 @@ class YaraMatcher(RuleMatcher):
         self.rules = rules
 
     def match(
-        self, procmem: ProcessMemory, offset=0, length=None
+        self, procmem: "ProcessMemory", offset=0, length=None
     ) -> List[RuleStringMatch]:
         yara_matches = self.rules.match(data=procmem.readp(offset, length))
         return [
