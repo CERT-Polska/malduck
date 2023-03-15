@@ -1,13 +1,18 @@
 import logging
 from collections import UserDict
-from typing import Any, Dict
+from typing import TYPE_CHECKING, Any, Dict
 
 log = logging.getLogger(__name__)
 
 Config = Dict[str, Any]
 
+if TYPE_CHECKING:
+    ConfigSetDict = UserDict[str, Config]
+else:
+    ConfigSetDict = UserDict
 
-class ConfigSet(UserDict[str, Config]):
+
+class ConfigSet(ConfigSetDict):
     def push_partial_config(self, config: Config, family: str) -> None:
         """
         Pushes partial config part from extractor module to collection
