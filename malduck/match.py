@@ -6,18 +6,25 @@ but can be used for other purposes if needed
 """
 
 import abc
-from typing import Optional, Callable, Sequence, Mapping, TypeVar, List
 import dataclasses
+import typing
 from collections import defaultdict
+from typing import Callable, List, Mapping, Optional, Sequence, TypeVar
 
-from .procmem import ProcessMemory
+if typing.TYPE_CHECKING:
+    from .procmem import ProcessMemory
 
 T = TypeVar("T")
-def aggregate(collection: Sequence[T], keyfunc: Callable[[T], str]) -> Mapping[str, Sequence[T]]:
+
+
+def aggregate(
+    collection: Sequence[T], keyfunc: Callable[[T], str]
+) -> Mapping[str, Sequence[T]]:
     mapping = defaultdict(list)
     for el in collection:
         mapping[keyfunc(el)].append(el)
     return dict(mapping)
+
 
 @dataclasses.dataclass(frozen=True)
 class RuleStringMatch:
@@ -32,10 +39,12 @@ class RuleStringMatch:
     def __len__(self) -> int:
         return len(self.content)
 
-    def set_offset(self, offset: int) -> "RuleStringMatch":
+    def replace_offset(self, offset: int) -> "RuleStringMatch":
         return dataclasses.replace(self, offset=offset)
 
+
 RuleStringMapper = Callable[[RuleStringMatch], Optional[RuleStringMatch]]
+
 
 @dataclasses.dataclass(frozen=True)
 class RuleMatch:
@@ -61,24 +70,26 @@ class RuleMatch:
 
 
 class RuleMatches:
-    def __init__(self, string_matches: Sequence[RuleStringMatch], mapper: Optional[RuleStringMapper] = None) -> None:
+    def __init__(self, string_matches: Sequence[RuleStringMatch]) -> None:
         self._string_matches = string_matches
-        self._elements = self._map_elements(string_matches, mapper)
+        self._elements = self._map_elements(string_matches)
 
-    def _map_elements(self, matches: Sequence[RuleStringMatch], mapper: Optional[RuleStringMapper]):
-        if mapper:
-            mapped_matches = [mapper(match) for match in matches]
-            matches = [match for match in mapped_matches if match is not None]
-
+    def _map_elements(self, matches: Sequence[RuleStringMatch]):
         rules = aggregate(matches, lambda m: m.rule)
         return {
-            rule: RuleMatch(rule=rule,
-                            strings=aggregate(strings, lambda s: s.identifier),
-                            namespace=strings[0].namespace,
-                            meta=strings[0].meta,
-                            tags=strings[0].tags)
+            rule: RuleMatch(
+                rule=rule,
+                strings=aggregate(strings, lambda s: s.identifier),
+                namespace=strings[0].namespace,
+                meta=strings[0].meta,
+                tags=strings[0].tags,
+            )
             for rule, strings in rules.items()
         }
+
+    @property
+    def string_matches(self):
+        return self._string_matches
 
     @property
     def elements(self):
@@ -91,9 +102,32 @@ class RuleMatches:
         return self._elements[item]
 
     def remap(self, mapper: RuleStringMapper) -> "RuleMatches":
-        return RuleMatches(self._string_matches, mapper)
+        mapped_matches = [mapper(match) for match in self._string_matches]
+        matches = [match for match in mapped_matches if match is not None]
+        return RuleMatches(matches)
+
+    def p2v(
+        self,
+        procmem: "ProcessMemory",
+        addr: Optional[int] = None,
+        length: Optional[int] = None,
+    ) -> "RuleMatches":
+        _addr = procmem.regions[0].addr if addr is None else addr
+        _length = procmem.regions[-1].end - _addr if length is None else length
+
+        def mapper(match: RuleStringMatch) -> Optional[RuleStringMatch]:
+            ptr = procmem.p2v(match.offset, len(match))
+            if ptr is not None and _addr <= ptr < _addr + _length:
+                return match.replace_offset(ptr)
+            else:
+                return None
+
+        return self.remap(mapper)
+
 
 class RuleMatcher(abc.ABC):
     @abc.abstractmethod
-    def match(self, procmem: ProcessMemory) -> List[RuleStringMatch]:
+    def match(
+        self, procmem: "ProcessMemory", offset: int = 0, length: Optional[int] = None
+    ) -> List[RuleStringMatch]:
         raise NotImplementedError

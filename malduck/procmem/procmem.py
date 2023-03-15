@@ -3,9 +3,10 @@ import re
 from typing import BinaryIO, List, Optional, Union, cast
 
 from ..disasm import disasm
+from ..match import RuleMatches
 from ..string.bin import int8, int16, int32, int64, uint8, uint16, uint32, uint64
 from ..string.ops import utf16z
-from ..yara import Yara, YaraString
+from ..yara import Yara, YaraMatcher, YaraString
 from .region import PAGE_EXECUTE_READWRITE, Region
 
 __all__ = ["ProcessMemory", "procmem"]
@@ -226,6 +227,9 @@ class ProcessMemory:
             return len(self.memory)
         else:
             return 0
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}(DMP:{self.imgbase:x})"
 
     def iter_regions(
         self, addr=None, offset=None, length=None, contiguous=False, trim=False
@@ -754,10 +758,10 @@ class ProcessMemory:
             if modules is None:
                 modules = ExtractorModules()
             extract_manager = ExtractManager(modules)
-        extract_manager.push_procmem(self)
-        return extract_manager.config
+        extract_manager.extract_procmem(self)
+        return extract_manager.configs
 
-    def yarap(self, ruleset, offset=None, length=None, extended=False):
+    def yarap(self, ruleset, offset=0, length=None):
         """
         Perform yara matching (non-region-wise)
 
@@ -771,16 +775,15 @@ class ProcessMemory:
         :param ruleset: Yara object with loaded yara rules
         :type ruleset: :class:`malduck.yara.Yara`
         :param offset: Offset in buffer where searching starts
-        :type offset: int (optional)
+        :type offset: int (default: 0)
         :param length: Length of searched area
         :type length: int (optional)
-        :param extended: Returns extended information about matched strings and rules
-        :type extended: bool (optional, default False)
         :rtype: :class:`malduck.yara.YaraMatches`
         """
-        return ruleset.match(extended=extended, data=self.readp(offset or 0, length))
+        matches = YaraMatcher(ruleset).match(self, offset, length)
+        return RuleMatches(matches)
 
-    def yarav(self, ruleset, addr=None, length=None, extended=False):
+    def yarav(self, ruleset, addr=None, length=None):
         """
         Perform yara matching (region-wise)
 
@@ -797,34 +800,20 @@ class ProcessMemory:
         :type addr: int (optional)
         :param length: Length of searched area
         :type length: int (optional)
-        :param extended: Returns extended information about matched strings and rules
-        :type extended: bool (optional, default False)
         :rtype: :class:`malduck.yara.YaraRulesetOffsets` or :class:`malduck.yara.YaraRulesetMatches`
                 if extended is set to True
         """
-        if addr is None:
-            addr = self.regions[0].addr
-        if length is None:
-            length = self.regions[-1].end - addr
-
-        def map_offset(off, len):
-            ptr = self.p2v(off, len)
-            if ptr is not None and addr <= ptr < addr + length:
-                return ptr
-
-        return ruleset.match(
-            offset_mapper=map_offset, extended=extended, data=self.readp(0)
-        )
+        matches = YaraMatcher(ruleset).match(self)
+        return RuleMatches(matches).p2v(self, addr=addr, length=length)
 
     def _findbytes(self, yara_fn, query, addr, length):
         if isinstance(query, bytes):
             query = query.decode()
 
         rule = Yara(strings=YaraString(query, type=YaraString.HEX))
-        match = yara_fn(rule, addr, length, extended=True)
-        if match:
-            for string_match in match.r.string:
-                yield string_match.offset
+        matches = yara_fn(rule, addr, length, extended=True)
+        for match in matches.string_matches:
+            yield match.offset
 
     def findbytesp(self, query, offset=None, length=None):
         """

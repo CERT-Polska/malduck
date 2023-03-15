@@ -1,80 +1,33 @@
-from collections import defaultdict
 import json
 import logging
 import os
 import warnings
-from typing import Any, Dict, List, Optional, Type, Union, Mapping, Sequence
+from collections import defaultdict
+from typing import (
+    Any,
+    DefaultDict,
+    Dict,
+    List,
+    Mapping,
+    Optional,
+    Sequence,
+    Type,
+    Union,
+)
 
-from ..procmem import ProcessMemory
-from ..yara import YaraMatcher, Yara
-from ..match import RuleMatcher, RuleMatches, RuleStringMapper
+from ..match import RuleMatcher, RuleMatches
+from ..procmem import ProcessMemory, ProcessMemoryELF, ProcessMemoryPE
+from ..procmem.binmem import ProcessMemoryBinary
+from ..yara import Yara, YaraMatcher, YaraRule
+from .config import ConfigSet, encode_for_json, sanitize_config
 from .extractor import Extractor
 from .loaders import load_modules
-from ..procmem import ProcessMemoryELF, ProcessMemoryPE
-from ..procmem.binmem import ProcessMemoryBinary
 
 log = logging.getLogger(__name__)
 
 Config = Dict[str, Any]
 
 __all__ = ["ExtractManager", "ExtractorModules"]
-
-
-def is_config_better(base_config: Config, new_config: Config) -> bool:
-    """
-    Checks whether new config looks more reliable than base.
-    Currently just checking the amount of non-empty keys.
-    """
-    base = [(k, v) for k, v in base_config.items() if v]
-    new = [(k, v) for k, v in new_config.items() if v]
-    return len(new) > len(base)
-
-
-def encode_for_json(data: Any) -> Any:
-    if isinstance(data, bytes):
-        return data.decode()
-    elif isinstance(data, list) or isinstance(data, tuple):
-        return [encode_for_json(item) for item in data]
-    elif isinstance(data, dict):
-        return {key: encode_for_json(value) for key, value in data.items()}
-    else:
-        return data
-
-
-def sanitize_config(config: Config) -> Config:
-    """
-    Sanitize static configuration by removing empty strings/collections
-
-    :param config: Configuration to sanitize
-    :return: Sanitized configuration
-    """
-    return {k: v for k, v in config.items() if v in [0, False] or v}
-
-
-def merge_configs(base_config: Config, new_config: Config) -> Config:
-    """
-    Merge static configurations.
-
-    :param base_config: Base configuration
-    :param new_config: Changes to apply
-    :return: Merged configuration
-    """
-    config = dict(base_config)
-    for k, v in new_config.items():
-        if k not in config:
-            config[k] = v
-        elif config[k] == v:
-            continue
-        elif isinstance(config[k], list):
-            for el in v:
-                if el not in config[k]:
-                    config[k] = config[k] + [el]
-        else:
-            raise RuntimeError(
-                f"Extractor tries to override '{config[k]}' "
-                f"value of '{k}' with '{v}'"
-            )
-    return config
 
 
 class ExtractorModules:
@@ -106,20 +59,24 @@ class ExtractorModules:
                     f"Make sure the Extractor class is imported into __init__.py",
                 )
 
-        self.family_overrides = defaultdict(list)
+        self.family_overrides: DefaultDict[str, List[str]] = defaultdict(list)
 
         for extractor in self.extractors:
+            if extractor.family is None:
+                continue
             for override in extractor.overrides:
                 self.family_overrides[override].append(extractor.family)
 
-        self.inline_rules = []
+        self.inline_rules: List[Union[str, YaraRule]] = []
 
         for extractor in self.extractors:
             self.inline_rules = self.inline_rules + extractor.inline_rules
 
         if self.inline_rules:
             # If there are any inline rules: include them in Yara object
-            self.rules = Yara(compiled_rules=self.rules.rulesets, rules=self.inline_rules)
+            self.rules = Yara(
+                compiled_rules=self.rules.rulesets, rules=self.inline_rules
+            )
 
     def on_error(self, exc: Exception, module_name: str) -> None:
         """
@@ -145,12 +102,11 @@ class ExtractManager:
 
     def __init__(self, modules: ExtractorModules) -> None:
         self.modules = modules
-        self.configs: Dict[str, Config] = {}
-        self.matchers: List[RuleMatcher] = [
-            YaraMatcher(rules=self.modules.rules)
-        ]
+        self.configs = ConfigSet()
+        self.matchers: List[RuleMatcher] = [YaraMatcher(rules=self.modules.rules)]
         self.binary_classes: List[Type[ProcessMemoryBinary]] = [
-            ProcessMemoryPE, ProcessMemoryELF
+            ProcessMemoryPE,
+            ProcessMemoryELF,
         ]
 
     @property
@@ -171,7 +127,11 @@ class ExtractManager:
 
     @property
     def family_overrides(self) -> Mapping[str, Sequence[str]]:
-        return self.modules.family_overrides
+        return dict(self.modules.family_overrides)
+
+    @property
+    def final_configs(self):
+        return dict(self.configs)
 
     def on_error(self, exc: Exception, extractor: Extractor) -> None:
         """
@@ -211,15 +171,14 @@ class ExtractManager:
             traceback.format_exc(),
         )
 
-    def extract_file(self, filepath: str, base: int = 0) -> Optional[str]:
+    def extract_file(self, filepath: str, base: int = 0) -> ConfigSet:
         log.debug("Started extraction of file %s:%x", filepath, base)
         with ProcessMemory.from_file(filepath, base=base) as p:
             return self.extract_procmem(p)
 
-    def match_procmem(self, p: ProcessMemory, mapper: Optional[RuleStringMapper] = None) -> RuleMatches:
+    def match_procmem(self, p: ProcessMemory) -> RuleMatches:
         return RuleMatches(
-            [match for matcher in self.matchers for match in matcher.match(p)],
-            mapper=mapper
+            [match for matcher in self.matchers for match in matcher.match(p)]
         )
 
     def carve_procmem(self, p: ProcessMemory) -> List[ProcessMemoryBinary]:
@@ -228,29 +187,40 @@ class ExtractManager:
             binaries += list(binclass.load_binaries_from_memory(p))
         return binaries
 
-    def _extract_config(self, p: ProcessMemory, matches: RuleMatches):
+    def _extract_config(
+        self, p: ProcessMemory, matches: RuleMatches, configs: ConfigSet
+    ) -> ConfigSet:
+        log.debug("%s - ripping...", repr(p))
         manager = ProcmemExtractManager(parent=self)
-        mapped_matches = matches.remap(...)  # todo
-        manager.push_procmem(binary, mapped_matches)
-        # todo: filter out weak configs
-        # todo: log what was found:
-        # - found XXX
-        # - no luck
-        manager.configs
-        # todo: handle overrides
-        # todo: aggregate config with general collection
+        va_matches = matches.p2v(p)
+        manager.push_procmem(p, va_matches)
+        final_configs = manager.configs.filter_final_configs()
+        families_found = final_configs.keys()
+        if families_found:
+            log.debug("%s - found %s!", repr(p), ", ".join(families_found))
+        else:
+            log.debug("%s - no luck.", repr(p))
+            pass
+        return configs.merge_config_sets(final_configs)
 
     def extract_procmem(self, p: ProcessMemory):
         matches = self.match_procmem(p)
         binaries = self.carve_procmem(p)
+        configs = ConfigSet()
 
-        self._extract_config(p, matches)
-
+        configs = self._extract_config(p, matches, configs)
         for binary in binaries:
-            self._extract_config(binary, matches)
+            configs = self._extract_config(binary, matches, configs)
             # image mode
-            self._extract_config(binary.image, matches)
-        # return config
+            binary_image = binary.image
+            if binary_image:
+                configs = self._extract_config(binary_image, matches, configs)
+
+        # Aggregate config with general collection
+        self.configs = self.configs.merge_config_sets(configs)
+        return configs
+        # todo: handle overrides
+
 
 class ProcmemExtractManager:
     """
@@ -259,7 +229,7 @@ class ProcmemExtractManager:
 
     def __init__(self, parent: ExtractManager) -> None:
         #: Collected configuration so far
-        self.configs: Dict[str, Config] = {}
+        self.configs: ConfigSet = ConfigSet()
         self.globals: Dict[str, Any] = {}
         self.parent = parent  #: Bound ExtractManager instance
 
@@ -289,7 +259,7 @@ class ProcmemExtractManager:
         :param _matches: YaraRulesetMatch object (used internally)
         :type _matches: :class:`malduck.yara.YaraRulesetMatch`
         """
-        matches = _matches or self.parent.match_procmem(p, mapper=...) # todo
+        matches = _matches or self.parent.match_procmem(p).p2v(p)
 
         # For each extractor...
         for ext_class in self.parent.extractors:
@@ -298,7 +268,7 @@ class ProcmemExtractManager:
             if type(extractor.yara_rules) is str:
                 raise TypeError(
                     f'"{extractor.__class__.__name__}.yara_rules" cannot be a string, '
-                    f'convert it into a list of strings'
+                    f"convert it into a list of strings"
                 )
 
             # For each rule identifier in extractor.yara_rules...
@@ -344,12 +314,13 @@ class ProcmemExtractManager:
         # But we still need to track the origin to merge configs accordingly
         family = config.get("family", extractor.family)
         if not family:
-            raise RuntimeError("Family must be set at least on Extractor level to push configs")
+            raise RuntimeError(
+                "Family must be set at least on Extractor level to push configs"
+            )
 
         if "family" in config:
-            log.debug("%s tells it's %s", extractor.__class__.__name__, config["family"])
+            log.debug(
+                "%s tells it's %s", extractor.__class__.__name__, config["family"]
+            )
 
-        if family not in self.configs:
-            self.configs[family] = config
-        else:
-            self.configs[family] = merge_configs(self.configs[family], config)
+        self.configs.push_partial_config(config, family)

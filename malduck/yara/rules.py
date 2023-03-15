@@ -3,10 +3,12 @@ import json
 import logging
 import os
 import textwrap
+from typing import Dict, List, Optional, Union
+
 import yara
-from typing import Union, Dict, Optional, List
 
 log = logging.getLogger(__name__)
+
 
 class YaraStringType(enum.IntEnum):
     TEXT = 0
@@ -46,12 +48,13 @@ class YaraString:
             raise ValueError(f"Unknown YaraString type: {self.type}")
         return str_value + "".join([" " + modifier for modifier in self.modifiers])
 
+
 class YaraRule:
     def __init__(
         self,
         name: str = "r",
         strings: Union[str, YaraString, Dict[str, Union[str, YaraString]]] = "",
-        condition: str = "any of them"
+        condition: str = "any of them",
     ) -> None:
         if not strings:
             raise ValueError("No strings specified")
@@ -73,10 +76,12 @@ class YaraRule:
                 condition:
                     {condition}
             }}
-        """)
+        """
+        )
 
     def __str__(self) -> str:
         return self.source
+
 
 class Yara:
     """
@@ -126,14 +131,17 @@ class Yara:
     :param condition: Yara rule condition (default: "any of them")
     :type condition: str
     """
+
     def __init__(
         self,
         rule_paths: Optional[Dict[str, str]] = None,
         rules: Optional[List[Union[str, YaraRule]]] = None,
         compiled_rules: Optional[List[yara.Rules]] = None,
         name: str = "r",
-        strings: Optional[Union[str, YaraString, Dict[str, Union[str, YaraString]]]] = None,
-        condition: str = "any of them"
+        strings: Optional[
+            Union[str, YaraString, Dict[str, Union[str, YaraString]]]
+        ] = None,
+        condition: str = "any of them",
     ) -> None:
         self.rulesets = compiled_rules or []
 
@@ -142,10 +150,14 @@ class Yara:
 
         _source_rules = rules or []
         if strings is not None:
-            _source_rules.append(YaraRule(name=name, strings=strings, condition=condition))
+            _source_rules.append(
+                YaraRule(name=name, strings=strings, condition=condition)
+            )
 
         if _source_rules:
-            self.rulesets.append(yara.compile(source="\n".join(map(str, _source_rules))))
+            self.rulesets.append(
+                yara.compile(source="\n".join(map(str, _source_rules)))
+            )
 
     @staticmethod
     def from_dir(path: str, recursive: bool = True, followlinks: bool = True) -> "Yara":
@@ -178,8 +190,4 @@ class Yara:
         return Yara(rule_paths=rule_paths)
 
     def match(self, **kwargs) -> List[yara.Match]:
-        return [
-            match
-            for rules in self.rulesets
-            for match in rules.match(**kwargs)
-        ]
+        return [match for rules in self.rulesets for match in rules.match(**kwargs)]

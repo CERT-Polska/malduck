@@ -33,6 +33,10 @@ class ProcessMemoryBinary(ProcessMemory, metaclass=ABCMeta):
         if image:
             self._reload_as_image()
 
+    def __repr__(self):
+        mode = "IMG" if self.is_image else "DMP"
+        return f"{self.__class__.__name__}({mode}:{self.imgbase:x})"
+
     @abstractmethod
     def _reload_as_image(self) -> None:
         """
