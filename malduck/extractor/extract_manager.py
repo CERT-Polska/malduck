@@ -338,7 +338,7 @@ class ProcmemExtractManager:
                                 DeprecationWarning,
                             )
                             getattr(extractor, "handle_yara")(
-                                p, matches[rule].get_offset_mapping()
+                                p, matches.get_ruleset_offsets()[rule]
                             )
                         else:
                             extractor.handle_match(p, matches[rule])
