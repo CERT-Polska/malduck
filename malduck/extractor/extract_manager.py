@@ -5,7 +5,7 @@ import warnings
 from typing import Any, Dict, List, Optional, Type, Union
 
 from ..procmem import ProcessMemory
-from ..yara import Yara, YaraRuleOffsets, YaraRulesetMatch
+from ..yara import RulesetMatch, Yara
 from .extractor import Extractor
 from .loaders import load_modules
 
@@ -308,15 +308,15 @@ class ProcmemExtractManager:
         self.parent.on_extractor_error(exc, extractor, method_name)
 
     def push_procmem(
-        self, p: ProcessMemory, _matches: Optional[YaraRulesetMatch] = None
+        self, p: ProcessMemory, _matches: Optional[RulesetMatch] = None
     ) -> None:
         """
         Pushes ProcessMemory object for extraction
 
         :param p: ProcessMemory object
         :type p: :class:`malduck.procmem.ProcessMemory`
-        :param _matches: YaraRulesetMatch object (used internally)
-        :type _matches: :class:`malduck.yara.YaraRulesetMatch`
+        :param _matches: RulesetMatch object (used internally)
+        :type _matches: :class:`malduck.yara.RulesetMatch`
         """
         matches = _matches or p.yarav(self.parent.rules, extended=True)
         # For each extractor...
@@ -338,7 +338,7 @@ class ProcmemExtractManager:
                                 DeprecationWarning,
                             )
                             getattr(extractor, "handle_yara")(
-                                p, YaraRuleOffsets(matches[rule])
+                                p, matches[rule].get_offset_mapping()
                             )
                         else:
                             extractor.handle_match(p, matches[rule])

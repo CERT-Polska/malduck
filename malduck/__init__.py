@@ -111,7 +111,7 @@ from .string import (
 )
 from .structure import Structure
 from .verify import verify
-from .yara import Yara, YaraString, YaraStringMatch
+from .yara import Yara, YaraString
 
 __all__ = [
     # bits
@@ -240,7 +240,6 @@ __all__ = [
     # verify
     "verify",
     # yara
-    "YaraStringMatch",
     "YaraString",
     "Yara",
 ]
