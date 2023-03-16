@@ -35,17 +35,17 @@ class StringMatch:
 
     @property
     def groups(self) -> Sequence[str]:
-        match = re.match(r"^\$?((\w+?)_?\d*)$", self.identifier)
+        match = re.match(r"^((\w+?)_?\d*)$", self.identifier)
         if match:
             if match.group(1) != match.group(2):
-                # $str1 => str1, str
+                # str1 => str1, str
                 return [match.group(1), match.group(2)]
             else:
-                # $str => str
+                # str => str
                 return [match.group(1)]
         else:
             # failsafe for non-standard names
-            return [self.identifier.lstrip("$")]
+            return [self.identifier]
 
 
 # This should be typing.Self but it's available only for Python >=3.11
