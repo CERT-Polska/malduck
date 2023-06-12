@@ -268,7 +268,7 @@ class YaraRulesetMatch(_Mapper):
             else:
                 offsets = [x.offset for x in yara_string.instances]
                 identifier = yara_string.identifier
-                contents = [x.matched_data for x  in yara_string.instances]
+                contents = [x.matched_data for x in yara_string.instances]
 
             # Get identifier without "$" and group identifier
             real_ident, group_ident = self._parse_string_identifier(identifier)
