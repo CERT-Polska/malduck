@@ -3,7 +3,7 @@ pefile>=2022.5.30
 pyelftools
 pycryptodomex>=3.8.2
 capstone>=4.0.1
-yara-python==4.2.3
+yara-python
 typing-extensions>=3.7.4.2
 cryptography>=3.1
 dnfile==0.11.0
