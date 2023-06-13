@@ -166,8 +166,7 @@ class IntType(int, IntTypeBase, metaclass=MetaIntType):
         value = int(value) & cls.mask
         if cls.signed:
             value |= -(value & cls.invert_mask)
-        construct = cast(Callable[[MetaIntType, Any], IntType], int.__new__)
-        return construct(cls, value)
+        return int.__new__(cls, value)
 
     def __add__(self, other: Any) -> "IntType":
         res = super().__add__(other)
