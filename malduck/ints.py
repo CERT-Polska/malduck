@@ -166,7 +166,7 @@ class IntType(int, IntTypeBase, metaclass=MetaIntType):
         value = int(value) & cls.mask
         if cls.signed:
             value |= -(value & cls.invert_mask)
-        return int.__new__(cls, value)
+        return int.__new__(cls, value)  # type: ignore
 
     def __add__(self, other: Any) -> "IntType":
         res = super().__add__(other)
