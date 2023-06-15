@@ -2,6 +2,7 @@ import functools
 import inspect
 import logging
 from typing import List, cast
+from hashlib import sha256
 
 from ..procmem import ProcessMemory, ProcessMemoryELF, ProcessMemoryPE
 
@@ -329,6 +330,7 @@ class Extractor:
     yara_rules = ()  #: Names of Yara rules for which handle_match is called
     family = None  #: Extracted malware family, automatically added to "family" key for strong extraction methods
     overrides = []  #: Family match overrides another match e.g. citadel overrides zeus
+    files = {}
 
     def __init__(self, parent):
         self.parent = parent
@@ -352,6 +354,15 @@ class Extractor:
         """
         return self.parent.push_config(config, self)
 
+    def push_file(self, data: bytes, filename=''):
+        """
+        Push file to files object
+        """
+        self.files[sha256(data).hexdigest()] = {
+            'filename': filename,
+            'data': data
+        }
+
     @property
     def matched(self):
         """
@@ -360,6 +371,14 @@ class Extractor:
         :rtype: bool
         """
         return self.parent.family is not None
+
+    @property
+    def collected_files(self):
+        """
+        Shows collected files so far (useful in "final" extractors)
+        :rtype: dict
+        """
+        return self.parent.files
 
     @property
     def collected_config(self):
