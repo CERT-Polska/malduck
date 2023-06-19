@@ -20,7 +20,7 @@ from typing_extensions import Literal, Protocol
 T = TypeVar("T")
 OffsetMapper = Callable[[Optional[int], Optional[int]], Optional[int]]
 
-YaraRulesString = Tuple[int, str, bytes]
+YaraRulesString = Union[Tuple[int, str, bytes], Any]
 
 class YaraRulesMatch(Protocol):
     meta: Dict[str, str]

@@ -259,25 +259,37 @@ class YaraRulesetMatch(_Mapper):
 
     def _map_strings(self, strings, offset_mapper):
         mapped_strings = defaultdict(list)
-        for offset, identifier, content in strings:
+        for yara_string in strings:
+            # yara-python 4.3.0 broke compatibilty and started returning a StringMatch object
+            if type(yara_string) is tuple:
+                offsets = [yara_string[0]]
+                identifier = yara_string[1]
+                contents = [yara_string[2]]
+            else:
+                offsets = [x.offset for x in yara_string.instances]
+                identifier = yara_string.identifier
+                contents = [x.matched_data for x in yara_string.instances]
+
             # Get identifier without "$" and group identifier
             real_ident, group_ident = self._parse_string_identifier(identifier)
-            # Map offset if offset_mapper is provided
-            if offset_mapper is not None:
-                _offset = offset_mapper(offset, len(content))
-                if _offset is None:
-                    # Ignore match for unmapped region
-                    continue
-                offset = _offset
-            # Register offset for full identifier
-            mapped_strings[real_ident].append(
-                YaraStringMatch(real_ident, offset, content)
-            )
-            # Register offset for grouped identifier
-            if real_ident != group_ident:
-                mapped_strings[group_ident].append(
+
+            for offset, content in zip(offsets, contents):
+                # Map offset if offset_mapper is provided
+                if offset_mapper is not None:
+                    _offset = offset_mapper(offset, len(content))
+                    if _offset is None:
+                        # Ignore match for unmapped region
+                        continue
+                    offset = _offset
+                # Register offset for full identifier
+                mapped_strings[real_ident].append(
                     YaraStringMatch(real_ident, offset, content)
                 )
+                # Register offset for grouped identifier
+                if real_ident != group_ident:
+                    mapped_strings[group_ident].append(
+                        YaraStringMatch(real_ident, offset, content)
+                    )
         return mapped_strings
 
     def _parse_string_identifier(self, identifier):
