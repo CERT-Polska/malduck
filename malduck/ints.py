@@ -1,6 +1,6 @@
 from abc import ABCMeta, abstractmethod
 from struct import error, pack, unpack_from
-from typing import Any, Callable, Generic, Iterator, Tuple, Type, TypeVar, Union, cast
+from typing import Any, Generic, Iterator, Tuple, Type, TypeVar, Union
 
 from .bits import rol
 
@@ -166,8 +166,7 @@ class IntType(int, IntTypeBase, metaclass=MetaIntType):
         value = int(value) & cls.mask
         if cls.signed:
             value |= -(value & cls.invert_mask)
-        construct = cast(Callable[[MetaIntType, Any], IntType], int.__new__)
-        return construct(cls, value)
+        return int.__new__(cls, value)  # type: ignore
 
     def __add__(self, other: Any) -> "IntType":
         res = super().__add__(other)
