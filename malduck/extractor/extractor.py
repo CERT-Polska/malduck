@@ -358,7 +358,7 @@ class Extractor:
         """
         Push file to files object
         """
-        self.files[sha256(data).hexdigest()] = {
+        self.parent.files[sha256(data).hexdigest()] = {
             'filename': filename,
             'data': data
         }
