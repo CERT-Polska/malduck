@@ -291,7 +291,7 @@ class ProcmemExtractManager:
         self.globals: Dict[str, Any] = {}
         self.parent = parent  #: Bound ExtractManager instance
         self.family = None  #: Matched family
-        self.files = {}
+        self.files: Dict[str, Dict] = {}
 
     def on_extractor_error(
         self, exc: Exception, extractor: Extractor, method_name: str

@@ -1,8 +1,8 @@
 import functools
 import inspect
 import logging
-from typing import List, cast
 from hashlib import sha256
+from typing import List, cast
 
 from ..procmem import ProcessMemory, ProcessMemoryELF, ProcessMemoryPE
 
@@ -354,13 +354,13 @@ class Extractor:
         """
         return self.parent.push_config(config, self)
 
-    def push_file(self, data: bytes, filename=''):
+    def push_file(self, data: bytes, filename=""):
         """
         Push file to files object
         """
         self.parent.files[sha256(data).hexdigest()] = {
-            'filename': filename,
-            'data': data
+            "filename": filename,
+            "data": data,
         }
 
     @property
