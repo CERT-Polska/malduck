@@ -1,121 +1,24 @@
 import json
 import logging
-import os
 import warnings
-from typing import Any, Dict, List, Optional, Type, Union
+from typing import Any, Dict, List, Optional, Type
 
-from ..procmem import ProcessMemory
+from ..procmem import ProcessMemory, ProcessMemoryELF, ProcessMemoryPE
+from ..procmem.binmem import ProcessMemoryBinary
 from ..yara import Yara, YaraRuleOffsets, YaraRulesetMatch
+from .config_utils import (
+    Config,
+    apply_config_part,
+    encode_for_json,
+    is_config_better,
+    sanitize_config,
+)
 from .extractor import Extractor
-from .loaders import load_modules
+from .modules import ExtractorModules
 
 log = logging.getLogger(__name__)
 
-Config = Dict[str, Any]
-
-__all__ = ["ExtractManager", "ExtractorModules"]
-
-
-def is_config_better(base_config: Config, new_config: Config) -> bool:
-    """
-    Checks whether new config looks more reliable than base.
-    Currently just checking the amount of non-empty keys.
-    """
-    base = [(k, v) for k, v in base_config.items() if v]
-    new = [(k, v) for k, v in new_config.items() if v]
-    return len(new) > len(base)
-
-
-def encode_for_json(data: Any) -> Any:
-    if isinstance(data, bytes):
-        return data.decode()
-    elif isinstance(data, list) or isinstance(data, tuple):
-        return [encode_for_json(item) for item in data]
-    elif isinstance(data, dict):
-        return {key: encode_for_json(value) for key, value in data.items()}
-    else:
-        return data
-
-
-def sanitize_config(config: Config) -> Config:
-    """
-    Sanitize static configuration by removing empty strings/collections
-
-    :param config: Configuration to sanitize
-    :return: Sanitized configuration
-    """
-    return {k: v for k, v in config.items() if v in [0, False] or v}
-
-
-def merge_configs(base_config: Config, new_config: Config) -> Config:
-    """
-    Merge static configurations.
-    Used internally. Removes "family" key from the result, which is set explicitly by ExtractManager.push_config
-
-    :param base_config: Base configuration
-    :param new_config: Changes to apply
-    :return: Merged configuration
-    """
-    config = dict(base_config)
-    for k, v in new_config.items():
-        if k == "family":
-            continue
-        if k not in config:
-            config[k] = v
-        elif config[k] == v:
-            continue
-        elif isinstance(config[k], list):
-            for el in v:
-                if el not in config[k]:
-                    config[k] = config[k] + [el]
-        else:
-            raise RuntimeError(
-                f"Extractor tries to override '{config[k]}' "
-                f"value of '{k}' with '{v}'"
-            )
-    return config
-
-
-class ExtractorModules:
-    """
-    Configuration object with loaded Extractor modules for ExtractManager
-
-    :param modules_path: Path with module files (Extractor classes and Yara files, default '~/.malduck')
-    :type modules_path: str
-    """
-
-    def __init__(self, modules_path: Optional[str] = None) -> None:
-        if modules_path is None:
-            modules_path = os.path.join(os.path.expanduser("~"), ".malduck")
-            if not os.path.exists(modules_path):
-                os.makedirs(modules_path)
-        # Load Yara rules
-        self.rules: Yara = Yara.from_dir(modules_path)
-        # Preload modules
-        loaded_modules = load_modules(modules_path, onerror=self.on_error)
-        self.extractors: List[Type[Extractor]] = Extractor.__subclasses__()
-
-        loaded_extractors = [x.__module__ for x in self.extractors]
-
-        for module in loaded_modules.values():
-            module_name = module.__name__
-            if not any(x.startswith(module_name) for x in loaded_extractors):
-                warnings.warn(
-                    f"The extractor engine couldn't import any Extractors from module {module_name}. Make sure the Extractor class is imported into __init__.py",
-                )
-
-    def on_error(self, exc: Exception, module_name: str) -> None:
-        """
-        Handler for all exceptions raised during module load
-
-        Override this method if you want to set your own error handler.
-
-        :param exc: Exception object
-        :type exc: :class:`Exception`
-        :param module_name: Name of module which raised the exception
-        :type module_name: str
-        """
-        log.warning("%s not loaded: %s", module_name, exc)
+__all__ = ["ExtractManager"]
 
 
 class ExtractManager:
@@ -128,6 +31,10 @@ class ExtractManager:
 
     def __init__(self, modules: ExtractorModules) -> None:
         self.modules = modules
+        self.binary_classes: List[Type[ProcessMemoryBinary]] = [
+            ProcessMemoryPE,
+            ProcessMemoryELF,
+        ]
         self.configs: Dict[str, Config] = {}
 
     @property
@@ -184,7 +91,7 @@ class ExtractManager:
             traceback.format_exc(),
         )
 
-    def push_file(self, filepath: str, base: int = 0) -> Optional[str]:
+    def push_file(self, filepath: str, base: int = 0) -> List[str]:
         """
         Pushes file for extraction. Config extractor entrypoint.
 
@@ -192,31 +99,97 @@ class ExtractManager:
         :type filepath: str
         :param base: Memory dump base address
         :type base: int
-        :return: Family name if ripped successfully and provided better configuration than previous files.
-            Returns None otherwise.
+        :return: Configuration if ripped successfully or empty dict otherwise
         """
         log.debug("Started extraction of file %s:%x", filepath, base)
         with ProcessMemory.from_file(filepath, base=base) as p:
             return self.push_procmem(p, rip_binaries=True)
 
-    def push_config(self, family: str, config: Config) -> Optional[str]:
-        config["family"] = family
-        if family not in self.configs:
-            self.configs[family] = config
-            return family
-        else:
-            base_config = self.configs[family]
-            if is_config_better(base_config, config):
-                log.debug("Config looks better")
-                self.configs[family] = config
-                return family
-            else:
-                log.debug("Config doesn't look better - ignoring.")
-        return None
+    def match_procmem(self, p: ProcessMemory) -> YaraRulesetMatch:
+        """
+        Performs Yara matchign on ProcessMemory using modules
+        bound with current ExtractManager.
+        """
+        matches = p.yarap(self.rules, extended=True)
+        log.debug("Matched rules: %s", list(matches.keys()))
+        return matches
 
-    def push_procmem(
-        self, p: ProcessMemory, rip_binaries: bool = False
-    ) -> Optional[str]:
+    def carve_procmem(self, p: ProcessMemory) -> List[ProcessMemoryBinary]:
+        """
+        Carves binaries from ProcessMemory to try configuration extraction
+        using every possible address mapping.
+        """
+        binaries = []
+        for binclass in self.binary_classes:
+            carved_bins = list(binclass.load_binaries_from_memory(p))
+            for carved_bin in carved_bins:
+                log.debug(
+                    f"carve: Found {carved_bin.__class__.__name__} "
+                    f"at offset {carved_bin.regions[0].offset}"
+                )
+            binaries += carved_bins
+        return binaries
+
+    def push_config(self, config: Config):
+        if not config.get("family"):
+            return False
+
+        family = config["family"]
+        if family in self.configs:
+            if is_config_better(self.configs[family], config):
+                self.configs[family] = config
+                log.debug("%s config looks better than previous one", family)
+                return True
+            else:
+                log.debug("%s config doesn't look better than previous one", family)
+                return False
+
+        if family in self.modules.override_paths:
+            # 'citadel' > 'zeus'
+            # If 'zeus' appears but we have already 'citadel', we should ignore 'zeus'
+            # Otherwise we should get 'citadel' instead of 'zeus'
+            for stored_family in self.configs.keys():
+                if stored_family == family:
+                    continue
+                score = self.modules.compare_family_overrides(family, stored_family)
+                if score == -1:
+                    del self.configs[stored_family]
+                    self.configs[family] = config
+                    log.debug(
+                        "%s config looks better (overrides %s)", family, stored_family
+                    )
+                    return True
+                elif score == 1:
+                    log.debug(
+                        "%s config doesn't look better than previous one (overridden by %s)",
+                        family,
+                        stored_family,
+                    )
+                    return False
+
+        log.debug("New %s config collected", family)
+        self.configs[family] = config
+        return True
+
+    def _extract_procmem(self, p: ProcessMemory, matches):
+        log.debug("%s - ripping...", repr(p))
+        # Create extraction context for single file
+        manager = ExtractionContext(parent=self)
+        # Map offset matches to VA using procmem address mapping
+        va_matches = matches.remap(p.p2v)
+        # Push ProcessMemory for extraction with mapped Yara matches
+        manager.push_procmem(p, _matches=va_matches)
+        # Get final configurations
+        config = manager.collected_config
+        if config.get("family"):
+            log.debug("%s - found %s!", repr(p), config.get("family"))
+            self.push_config(config)
+            return [config["family"]]
+        else:
+            log.debug("%s - no luck.", repr(p))
+            return []
+
+    def push_procmem(self, p: ProcessMemory, rip_binaries: bool = False) -> List[str]:
         """
         Pushes ProcessMemory object for extraction
 
@@ -225,52 +198,24 @@ class ExtractManager:
         :param rip_binaries: Look for binaries (PE, ELF) in provided ProcessMemory and try to perform extraction using
             specialized variants (ProcessMemoryPE, ProcessMemoryELF)
         :type rip_binaries: bool (default: False)
-        :return: Family name if ripped successfully and provided better configuration than previous procmems.
-            Returns None otherwise.
+        :return: List of detected families
         """
-        from ..procmem import ProcessMemoryELF, ProcessMemoryPE
-        from ..procmem.binmem import ProcessMemoryBinary
-
-        matches = p.yarav(self.rules, extended=True)
-
+        matches = self.match_procmem(p)
         if not matches:
             log.debug("No Yara matches.")
-            return None
+            return []
 
-        binaries: List[Union[ProcessMemory, ProcessMemoryBinary]] = [p]
-        if rip_binaries:
-            binaries += list(ProcessMemoryPE.load_binaries_from_memory(p))
-            binaries += list(ProcessMemoryELF.load_binaries_from_memory(p))
+        binaries = self.carve_procmem(p) if rip_binaries else []
 
-        def fmt_procmem(p: ProcessMemory) -> str:
-            procmem_type = "IMG" if getattr(p, "is_image", False) else "DMP"
-            return f"{p.__class__.__name__}:{procmem_type}:{p.imgbase:x}"
-
-        def extract_config(procmem: ProcessMemory) -> Optional[str]:
-            log.debug("%s - ripping...", fmt_procmem(procmem))
-            extractor = ProcmemExtractManager(self)
-            extractor.push_procmem(procmem, _matches=matches.remap(procmem.p2v))
-            if extractor.family:
-                log.debug("%s - found %s!", fmt_procmem(procmem), extractor.family)
-                return self.push_config(extractor.family, extractor.config)
-            else:
-                log.debug("%s - No luck.", fmt_procmem(procmem))
-            return None
-
-        # 'list()' for prettier logs
-        log.debug("Matched rules: %s", list(matches.keys()))
-
-        ripped_family = None
-
+        families = set(self._extract_procmem(p, matches))
         for binary in binaries:
-            found_family = extract_config(binary)
-            if found_family is not None:
-                ripped_family = found_family
-            if isinstance(binary, ProcessMemoryBinary) and binary.image is not None:
-                found_family = extract_config(binary.image)
-                if found_family is not None:
-                    ripped_family = found_family
-        return ripped_family
+            families = families.union(set(self._extract_procmem(binary, matches)))
+            binary_image = binary.image
+            if binary_image:
+                families = families.union(
+                    set(self._extract_procmem(binary_image, matches))
+                )
+        return list(families)
 
     @property
     def config(self) -> List[Config]:
@@ -280,7 +225,7 @@ class ExtractManager:
         return [config for family, config in self.configs.items()]
 
 
-class ProcmemExtractManager:
+class ExtractionContext:
     """
     Single-dump extraction context (single family)
     """
@@ -290,7 +235,11 @@ class ProcmemExtractManager:
         self.collected_config: Config = {}
         self.globals: Dict[str, Any] = {}
         self.parent = parent  #: Bound ExtractManager instance
-        self.family = None  #: Matched family
+
+    @property
+    def family(self):
+        """Matched family"""
+        return self.collected_config.get("family")
 
     def on_extractor_error(
         self, exc: Exception, extractor: Extractor, method_name: str
@@ -376,14 +325,27 @@ class ProcmemExtractManager:
             sorted(config.keys()),
         )
 
-        self.collected_config = merge_configs(self.collected_config, config)
-
-        if "family" in config and (
-            not self.family
-            or (self.family != extractor.family and self.family in extractor.overrides)
-        ):
-            self.family = config["family"]
-            log.debug("%s tells it's %s", extractor.__class__.__name__, self.family)
+        if "family" in config:
+            log.debug(
+                "%s tells it's %s", extractor.__class__.__name__, config["family"]
+            )
+            if (
+                "family" in self.collected_config
+                and self.collected_config["family"] != config["family"]
+            ):
+                overrides = self.parent.modules.compare_family_overrides(
+                    config["family"], self.collected_config["family"]
+                )
+                if not overrides:
+                    raise RuntimeError(
+                        f"Ripped both {self.collected_config['family']} and {config['family']} "
+                        f"from the same ProcessMemory which is not expected"
+                    )
+                if overrides == -1:
+                    self.collected_config["family"] = config["family"]
+                else:
+                    config["family"] = self.collected_config["family"]
+        self.collected_config = apply_config_part(self.collected_config, config)
 
     @property
     def config(self) -> Config:

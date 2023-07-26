@@ -86,3 +86,6 @@ class ProcessMemoryBinary(ProcessMemory, metaclass=ABCMeta):
         Used by `detect_image`
         """
         raise NotImplementedError()
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}:{'IMG' if self.is_image else 'DMP'}:{hex(self.imgbase)[2:]}"
