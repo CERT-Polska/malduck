@@ -4,6 +4,7 @@ import logging
 from typing import List, cast
 
 from ..procmem import ProcessMemory, ProcessMemoryELF, ProcessMemoryPE
+from .config_builder import ConfigBuilder
 
 log = logging.getLogger(__name__)
 
@@ -332,6 +333,7 @@ class Extractor:
 
     def __init__(self, parent):
         self.parent = parent
+        self.config = ConfigBuilder(self)
 
     def push_procmem(self, procmem: ProcessMemory, **info):
         """
