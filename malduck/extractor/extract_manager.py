@@ -99,7 +99,7 @@ class ExtractManager:
         :type filepath: str
         :param base: Memory dump base address
         :type base: int
-        :return: Configuration if ripped successfully or empty dict otherwise
+        :return: List of detected families
         """
         log.debug("Started extraction of file %s:%x", filepath, base)
         with ProcessMemory.from_file(filepath, base=base) as p:
@@ -107,7 +107,7 @@ class ExtractManager:
 
     def match_procmem(self, p: ProcessMemory) -> YaraRulesetMatch:
         """
-        Performs Yara matchign on ProcessMemory using modules
+        Performs Yara matching on ProcessMemory using modules
         bound with current ExtractManager.
         """
         matches = p.yarap(self.rules, extended=True)
