@@ -91,7 +91,7 @@ class ExtractManager:
             traceback.format_exc(),
         )
 
-    def push_file(self, filepath: str, base: int = 0) -> List[str]:
+    def push_file(self, filepath: str, base: int = 0) -> Optional[str]:
         """
         Pushes file for extraction. Config extractor entrypoint.
 
@@ -99,7 +99,7 @@ class ExtractManager:
         :type filepath: str
         :param base: Memory dump base address
         :type base: int
-        :return: List of detected families
+        :return: Detected family if configuration looks better than already stored one
         """
         log.debug("Started extraction of file %s:%x", filepath, base)
         with ProcessMemory.from_file(filepath, base=base) as p:
@@ -171,7 +171,7 @@ class ExtractManager:
         self.configs[family] = config
         return True
 
-    def _extract_procmem(self, p: ProcessMemory, matches) -> List[Config]:
+    def _extract_procmem(self, p: ProcessMemory, matches) -> Optional[str]:
         log.debug("%s - ripping...", repr(p))
         # Create extraction context for single file
         manager = ExtractionContext(parent=self)
@@ -183,13 +183,17 @@ class ExtractManager:
         config = manager.collected_config
         if config.get("family"):
             log.debug("%s - found %s!", repr(p), config.get("family"))
-            self.push_config(config)
-            return [config["family"]]
+            if self.push_config(config):
+                return config["family"]
+            else:
+                return None
         else:
             log.debug("%s - no luck.", repr(p))
-            return []
+            return None
 
-    def push_procmem(self, p: ProcessMemory, rip_binaries: bool = False) -> List[str]:
+    def push_procmem(
+        self, p: ProcessMemory, rip_binaries: bool = False
+    ) -> Optional[str]:
         """
         Pushes ProcessMemory object for extraction
 
@@ -198,24 +202,22 @@ class ExtractManager:
         :param rip_binaries: Look for binaries (PE, ELF) in provided ProcessMemory and try to perform extraction using
             specialized variants (ProcessMemoryPE, ProcessMemoryELF)
         :type rip_binaries: bool (default: False)
-        :return: List of detected families
+        :return: Detected family if configuration looks better than already stored one
         """
         matches = self.match_procmem(p)
         if not matches:
             log.debug("No Yara matches.")
-            return []
+            return None
 
         binaries = self.carve_procmem(p) if rip_binaries else []
 
-        families = set(self._extract_procmem(p, matches))
+        family = self._extract_procmem(p, matches)
         for binary in binaries:
-            families = families.union(set(self._extract_procmem(binary, matches)))
+            family = self._extract_procmem(binary, matches) or family
             binary_image = binary.image
             if binary_image:
-                families = families.union(
-                    set(self._extract_procmem(binary_image, matches))
-                )
-        return list(families)
+                family = self._extract_procmem(binary_image, matches) or family
+        return family
 
     @property
     def config(self) -> List[Config]:
@@ -237,7 +239,7 @@ class ExtractionContext:
         self.parent = parent  #: Bound ExtractManager instance
 
     @property
-    def family(self) -> str:
+    def family(self) -> Optional[str]:
         """Matched family"""
         return self.collected_config.get("family")
 
