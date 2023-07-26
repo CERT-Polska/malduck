@@ -111,7 +111,7 @@ class ExtractManager:
         bound with current ExtractManager.
         """
         matches = p.yarap(self.rules, extended=True)
-        log.debug("Matched rules: %s", list(matches.keys()))
+        log.debug("Matched rules: %s", ",".join(list(matches.keys())))
         return matches
 
     def carve_procmem(self, p: ProcessMemory) -> List[ProcessMemoryBinary]:
@@ -130,13 +130,13 @@ class ExtractManager:
             binaries += carved_bins
         return binaries
 
-    def push_config(self, config: Config):
+    def push_config(self, config: Config) -> bool:
         if not config.get("family"):
             return False
 
         family = config["family"]
         if family in self.configs:
-            if is_config_better(self.configs[family], config):
+            if is_config_better(base_config=self.configs[family], new_config=config):
                 self.configs[family] = config
                 log.debug("%s config looks better than previous one", family)
                 return True
@@ -171,7 +171,7 @@ class ExtractManager:
         self.configs[family] = config
         return True
 
-    def _extract_procmem(self, p: ProcessMemory, matches):
+    def _extract_procmem(self, p: ProcessMemory, matches) -> List[Config]:
         log.debug("%s - ripping...", repr(p))
         # Create extraction context for single file
         manager = ExtractionContext(parent=self)
@@ -237,7 +237,7 @@ class ExtractionContext:
         self.parent = parent  #: Bound ExtractManager instance
 
     @property
-    def family(self):
+    def family(self) -> str:
         """Matched family"""
         return self.collected_config.get("family")
 
