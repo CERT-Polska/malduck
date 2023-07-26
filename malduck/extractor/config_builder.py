@@ -12,6 +12,7 @@ class ConfigBuilder:
 
     .. versionadded:: 4.4.0
     """
+
     def __init__(self, parent: Extractor) -> None:
         self.parent = parent
 

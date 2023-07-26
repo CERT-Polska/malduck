@@ -3,9 +3,10 @@ import inspect
 import logging
 from typing import List, cast
 
+from maco.model import ExtractorModel
+
 from ..procmem import ProcessMemory, ProcessMemoryELF, ProcessMemoryPE
 from .config_builder import ConfigBuilder
-from maco.model import ExtractorModel
 
 log = logging.getLogger(__name__)
 
@@ -40,7 +41,14 @@ class ExtractorMethod:
         # If method returns ExtractorModel - push it as non-jsonable
         if isinstance(config, ExtractorModel):
             extractor.push_config(
-                config.dict(exclude_defaults=True, exclude={"family",} if self.weak else set()),
+                config.dict(
+                    exclude_defaults=True,
+                    exclude={
+                        "family",
+                    }
+                    if self.weak
+                    else set(),
+                ),
                 jsonable=False,
             )
             return
@@ -353,7 +361,7 @@ class Extractor:
         """
         return self.parent.push_procmem(procmem, **info)
 
-    def push_config(self, config, jsonable = True):
+    def push_config(self, config, jsonable=True):
         """
         Push partial config (used by :py:meth:`Extractor.handle_match`)
 
