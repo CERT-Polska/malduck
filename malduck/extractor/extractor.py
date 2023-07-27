@@ -370,7 +370,7 @@ class Extractor:
         :param jsonable: Try to decode 'bytes' as UTF-8 and check if config can be converted to JSON (default: True)
         :type jsonable: bool
         """
-        return self.parent.push_config(config, self)
+        return self.parent.push_config(config, self, jsonable=jsonable)
 
     @property
     def matched(self):

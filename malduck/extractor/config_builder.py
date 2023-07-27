@@ -44,21 +44,21 @@ class ConfigBuilder:
         )
         self.parent.push_config(config, jsonable=False)
 
-    def add_other(self, others: Dict[str, Any]) -> None:
+    def add_other(self, other: Dict[str, Any]) -> None:
         """
-        Add new fields to ``others`` key that doesn't match to any of
+        Add new fields to ``other`` key that doesn't match to any of
         predefined categories.
 
-        ``others`` is merged similarly to configuration itself:
+        ``other`` is merged similarly to configuration itself:
 
         - list elements are treated like ordered sets and
           are collecting all elements within extraction
         - other elements can be set only once, override will
           throw an exception
 
-        :param others: Dictionary with other configuration fields
+        :param other: Dictionary with other configuration fields
         """
-        return self.push_config(dict(others=others))
+        return self.push_config(dict(other=other))
 
     def set_version(self, version: str) -> None:
         """
