@@ -3,12 +3,12 @@ from setuptools import setup, Extension
 try:
     from Cython.Build import cythonize
     extensions = cythonize([
-        Extension("malduck.ints.nativeint", ["malduck/ints/nativeint.pyx"])
+        Extension("malduck.native.ints.nativeint", ["malduck/native/ints/nativeint.pyx"])
     ])
 except ImportError:
     # Fallback for source package compilation (without Cython)
     extensions = [
-        Extension("malduck.ints.nativeint", ["malduck/ints/nativeint.c"])
+        Extension("malduck.native.ints.nativeint", ["malduck/native/ints/nativeint.c"])
     ]
 
 setup(

@@ -46,10 +46,6 @@ except ImportError as e:
     NATIVE_INT = False
 
 
-def is_native_impl():
-    return NATIVE_INT
-
-
 __all__ = [
     "QWORD",
     "DWORD",
@@ -66,4 +62,5 @@ __all__ = [
     "Int8",
     "FixedInt",
     "FixedIntType",
+    "NATIVE_INT",
 ]

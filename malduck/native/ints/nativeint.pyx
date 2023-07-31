@@ -1,14 +1,15 @@
 #cython: language_level=3, overflowcheck=False
 
+import os
+
+if os.getenv("MALDUCK_NATIVE_INTS") == "0":
+    raise ImportError("MALDUCK_NATIVE_INTS is set to 0")
+
 if (<unsigned long long> 0) - 1 != <unsigned long long>0xffffffffffffffff:
     raise ImportError("This module needs 2's complement architecture")
 
 import ctypes
-import os
 from struct import error, pack, unpack_from
-
-if os.getenv("MALDUCK_PYTHON_INTS") == "1":
-    raise ImportError("Choosing legacy int implementation (MALDUCK_PYTHON_INTS)")
 
 
 # bits
