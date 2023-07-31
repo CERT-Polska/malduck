@@ -2,6 +2,7 @@ from .native.ints import (
     BYTE,
     CHAR,
     DWORD,
+    NATIVE_INT,
     QWORD,
     WORD,
     FixedInt,
@@ -14,11 +15,12 @@ from .native.ints import (
     UInt16,
     UInt32,
     UInt64,
-    NATIVE_INT,
 )
 
-def is_native_impl():
+
+def is_native_impl() -> bool:
     return NATIVE_INT
+
 
 __all__ = [
     "BYTE",

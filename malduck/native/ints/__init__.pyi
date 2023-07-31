@@ -115,6 +115,4 @@ Int64: FixedIntType
 Int32: FixedIntType
 Int16: FixedIntType
 Int8: FixedIntType
-
-def is_native_impl() -> bool:
-    ...
+NATIVE_INT: bool
