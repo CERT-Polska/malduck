@@ -38,7 +38,9 @@ def sanitize_config(config: Config) -> Config:
     return {k: v for k, v in config.items() if v in [0, False] or v}
 
 
-def apply_config_part(base_config: Config, new_config_part: Config) -> Config:
+def apply_config_part(
+    base_config: Config, new_config_part: Config, _prefix: str = ""
+) -> Config:
     """
     Apply new part of static configuration. Used internally.
 
@@ -50,6 +52,9 @@ def apply_config_part(base_config: Config, new_config_part: Config) -> Config:
     for k, v in new_config_part.items():
         if k not in config:
             config[k] = v
+        elif k == "other":
+            # "others" is special field that can be extended like regular config
+            config[k] = apply_config_part(config.get("other", {}), v, "other.")
         elif config[k] == v:
             continue
         elif isinstance(config[k], list):
@@ -58,7 +63,7 @@ def apply_config_part(base_config: Config, new_config_part: Config) -> Config:
                     config[k] = config[k] + [el]
         else:
             raise RuntimeError(
-                f"Extractor tries to override '{config[k]}' "
-                f"value of '{k}' with '{v}'"
+                f"Extractor tries to override '{_prefix}{config[k]}' "
+                f"value of '{_prefix}{k}' with '{v}'"
             )
     return config

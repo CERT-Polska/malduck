@@ -13,6 +13,8 @@ Module interface
     :members:
 .. autoclass:: malduck.extractor.ExtractorModules
     :members:
+.. autoclass:: malduck.extractor.config_builder.ConfigBuilder
+    :members:
 
 Internally used classes and routines
 ------------------------------------

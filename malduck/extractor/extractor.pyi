@@ -18,6 +18,7 @@ from typing_extensions import Protocol
 
 from ..procmem import ProcessMemory, ProcessMemoryELF, ProcessMemoryPE
 from ..yara import YaraRuleMatch, YaraStringMatch
+from .config_builder import ConfigBuilder
 from .extract_manager import ExtractionContext
 
 Config = Dict[str, Any]
@@ -96,9 +97,10 @@ class Extractor:
     family: Optional[str]
     overrides: List[str]
     parent: ExtractionContext
+    config: ConfigBuilder
     def __init__(self, parent: ExtractionContext) -> None: ...
     def push_procmem(self, procmem: ProcessMemory, **info): ...
-    def push_config(self, config): ...
+    def push_config(self, config, jsonable: bool = True): ...
     @property
     def matched(self) -> bool: ...
     @property
