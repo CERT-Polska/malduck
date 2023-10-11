@@ -71,6 +71,12 @@ class ProcessMemoryBinary(ProcessMemory, metaclass=ABCMeta):
         """
         Looks for binaries in ProcessMemory object and yields specialized ProcessMemoryBinary objects
         :param procmem: ProcessMemory object to search
+
+        .. versionchanged:: 4.4.0
+
+            In addition to image=False binaries, it also returns image=True versions.
+            In previous versions it was done by extractor, so it was working only
+            if memory-aligned version was also "valid".
         """
         if cls.__magic__ is None:
             raise NotImplementedError()
