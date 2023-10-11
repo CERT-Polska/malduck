@@ -39,14 +39,21 @@ def main(log_level, verbose):
 @click.argument("mempath", type=click.Path(exists=True))
 @click.argument("outpath", type=click.Path(), required=False)
 @click.option(
+    "--base",
+    "-b",
+    default=None,
+    help="Set imagebase of the result",
+)
+@click.option(
     "--force/--no-force",
     "-f",
     default=False,
     help="Try to fix dump even if it's correctly parsed as PE",
 )
-def fixpe(mempath, outpath, force):
+def fixpe(mempath, outpath, force, base):
     """Fix dumped PE file into the correct form"""
-    with ProcessMemoryPE.from_file(mempath) as p:
+    base = 0 if base is None else int(base, 0)
+    with ProcessMemoryPE.from_file(mempath, base=base) as p:
         if not force and p.is_image_loaded_as_memdump():
             click.echo(
                 "Input file looks like correct PE file. Use -f if you want to fix it anyway."
