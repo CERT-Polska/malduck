@@ -75,9 +75,12 @@ class ProcessMemoryBinary(ProcessMemory, metaclass=ABCMeta):
         if cls.__magic__ is None:
             raise NotImplementedError()
         for binary_va in procmem.findv(cls.__magic__):
-            binary_procmem = cls.from_memory(procmem, base=binary_va)
-            if binary_procmem.is_valid():
-                yield binary_procmem
+            binary_procmem_dmp = cls.from_memory(procmem, base=binary_va)
+            if binary_procmem_dmp.is_valid():
+                yield binary_procmem_dmp
+            binary_procmem_img = cls.from_memory(procmem, base=binary_va, image=True)
+            if binary_procmem_img.is_valid():
+                yield binary_procmem_img
 
     @abstractmethod
     def is_image_loaded_as_memdump(self) -> bool:

@@ -214,9 +214,6 @@ class ExtractManager:
         family = self._extract_procmem(p, matches)
         for binary in binaries:
             family = self._extract_procmem(binary, matches) or family
-            binary_image = binary.image
-            if binary_image:
-                family = self._extract_procmem(binary_image, matches) or family
         return family
 
     @property
