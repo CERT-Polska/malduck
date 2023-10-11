@@ -78,8 +78,8 @@ class ProcessMemoryBinary(ProcessMemory, metaclass=ABCMeta):
             binary_procmem_dmp = cls.from_memory(procmem, base=binary_va)
             if binary_procmem_dmp.is_valid():
                 yield binary_procmem_dmp
-            binary_procmem_img = cls.from_memory(procmem, base=binary_va, image=True)
-            if binary_procmem_img.is_valid():
+            binary_procmem_img = binary_procmem_dmp.image
+            if binary_procmem_img and binary_procmem_img.is_valid():
                 yield binary_procmem_img
 
     @abstractmethod
