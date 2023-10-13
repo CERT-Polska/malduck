@@ -3,49 +3,24 @@
 # See the file 'docs/LICENSE.txt' for copying permission.
 
 import ctypes
-from typing import List, Tuple, Type
+from typing import Any, List, Tuple
 
-from .ints import (
-    Int8,
-    Int16,
-    Int32,
-    Int64,
-    IntTypeBase,
-    MultipliedIntTypeBase,
-    UInt8,
-    UInt16,
-    UInt32,
-    UInt64,
-)
+from .ints import FixedIntType
 
 __all__ = ["Structure"]
-
-mapping = {
-    Int8: ctypes.c_byte,
-    UInt8: ctypes.c_ubyte,
-    Int16: ctypes.c_short,
-    UInt16: ctypes.c_ushort,
-    Int32: ctypes.c_int,
-    UInt32: ctypes.c_uint,
-    Int64: ctypes.c_longlong,
-    UInt64: ctypes.c_ulonglong,
-}
 
 
 class Structure(object):
     _pack_ = 0
-    _fields_: List[Tuple[str, Type]] = []
+    _fields_: List[Tuple[str, Any]] = []
 
     def __init__(self):
         self.subfields, fields = {}, []
         for field, type_ in self._fields_:
             if isinstance(type_, int):
                 type_ = ctypes.c_char * type_
-            elif issubclass(type_, IntTypeBase):
-                if issubclass(type_, MultipliedIntTypeBase):
-                    type_ = mapping[type_.int_type] * type_.mul
-                else:
-                    type_ = mapping[type_]
+            elif isinstance(type_, FixedIntType):
+                type_ = type_.ctypes_type
             elif issubclass(type_, Structure):
                 # Keep track, likely for Python GC purposes.
                 self.subfields[field] = type_()

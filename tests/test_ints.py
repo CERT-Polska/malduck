@@ -114,10 +114,10 @@ def test_multi_unpack():
 
 
 def test_fixed():
-    assert type(UInt32.unpack(b'A'*16)) is UInt32
+    assert UInt32.unpack(b'A'*16).typename == "UInt32"
     assert type(UInt32.unpack(b'A'*16, fixed=False)) is int
 
-    assert type((UInt32*4).unpack(b'A'*16)[0]) is UInt32
+    assert ((UInt32*4).unpack(b'A'*16)[0]).typename == "UInt32"
     assert type((UInt32*4).unpack(b'A'*16, fixed=False)[0]) is int  
 
 
