@@ -59,7 +59,7 @@ class MemoryPEData:
             return -1
 
 
-class PE(object):
+class PE:
     """
     Wrapper around :class:`pefile.PE`, accepts either bytes (raw file contents) or
     :class:`ProcessMemory` instance.

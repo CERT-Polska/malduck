@@ -32,7 +32,7 @@ mapping = {
 }
 
 
-class Structure(object):
+class Structure:
     _pack_ = 0
     _fields_: List[Tuple[str, Type]] = []
 

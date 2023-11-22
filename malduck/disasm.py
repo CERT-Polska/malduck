@@ -141,7 +141,7 @@ class Operand:
             raise Exception("Invalid Operand type")
 
 
-class Instruction(object):
+class Instruction:
     """
     Represents single instruction in :class:`Disassemble`
 

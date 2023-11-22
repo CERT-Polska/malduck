@@ -23,7 +23,7 @@ __all__ = [
 T = TypeVar("T", bound="IntType")
 
 
-class IntTypeBase(object):
+class IntTypeBase:
     """
     Base class representing all IntType instances
     """
