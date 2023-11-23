@@ -24,7 +24,8 @@ class ExtractorModules:
     """
     Configuration object with loaded Extractor modules for ExtractManager
 
-    :param modules_path: Path with module files (Extractor classes and Yara files, default '~/.malduck')
+    :param modules_path:
+        Path with module files (Extractor classes and Yara files, default '~/.malduck')
     :type modules_path: str
     """
 
@@ -45,8 +46,9 @@ class ExtractorModules:
             module_name = module.__name__
             if not any(x.startswith(module_name) for x in loaded_extractors):
                 warnings.warn(
-                    f"The extractor engine couldn't import any Extractors from module {module_name}. "
-                    f"Make sure the Extractor class is imported into __init__.py",
+                    "The extractor engine couldn't import any Extractors "
+                    f"from module {module_name}. "
+                    "Make sure the Extractor class is imported into __init__.py",
                 )
         self.override_paths = make_override_paths(self.extractors)
 
@@ -102,7 +104,8 @@ def make_override_paths(extractors: list[type[Extractor]]) -> dict[str, list[str
     def make_override_path(node, visited, current_path=None):
         if node in visited:
             raise RuntimeError(
-                f"Override cycle detected: {node} already visited during tree traversal",
+                "Override cycle detected: "
+                f"{node} already visited during tree traversal",
             )
         visited.add(node)
         unvisited.remove(node)
@@ -121,7 +124,8 @@ def make_override_paths(extractors: list[type[Extractor]]) -> dict[str, list[str
     # Root undetected
     if unvisited:
         raise RuntimeError(
-            f"Override cycle detected: {list(unvisited)} not visited during tree traversal",
+            "Override cycle detected: "
+            f"{list(unvisited)} not visited during tree traversal",
         )
     return dict(override_paths)
 
@@ -157,7 +161,8 @@ def load_modules(
 
     .. note::
 
-        This method is considered to be used internally (see also :class:`extractor.ExtractorModules`)
+        This method is considered to be used internally
+        (see also :class:`extractor.ExtractorModules`)
 
     :param search_path: Path searched for modules
     :type search_path: str

@@ -29,7 +29,8 @@ __all__ = ["ExtractManager"]
 
 class ExtractManager:
     """
-    Multi-dump extraction context. Handles merging configs from different dumps, additional dropped families etc.
+    Multi-dump extraction context.
+    Handles merging configs from different dumps, additional dropped families etc.
 
     :param modules: Object with loaded extractor modules
     :type modules: :class:`ExtractorModules`
@@ -80,7 +81,8 @@ class ExtractManager:
         method_name: str,
     ) -> None:
         """
-        Handler for all exceptions raised by extractor methods (including :py:meth:`Extractor.handle_yara`).
+        Handler for all exceptions raised by extractor methods
+        (including :py:meth:`Extractor.handle_yara`).
 
         Override this method if you want to set your own error handler.
 
@@ -172,7 +174,8 @@ class ExtractManager:
                     return True
                 elif score == 1:
                     log.debug(
-                        "%s config doesn't look better than previous one (overridden by %s)",
+                        "%s config doesn't look better than "
+                        "previous one (overridden by %s)",
                         family,
                         stored_family,
                     )
@@ -212,8 +215,10 @@ class ExtractManager:
 
         :param p: ProcessMemory object
         :type p: :class:`malduck.procmem.ProcessMemory`
-        :param rip_binaries: Look for binaries (PE, ELF) in provided ProcessMemory and try to perform extraction using
-            specialized variants (ProcessMemoryPE, ProcessMemoryELF)
+        :param rip_binaries:
+            Look for binaries (PE, ELF) in provided ProcessMemory
+            and try to perform extraction using specialized variants
+            (ProcessMemoryPE, ProcessMemoryELF)
         :type rip_binaries: bool (default: False)
         :return: Detected family if configuration looks better than already stored one
         """
@@ -291,7 +296,8 @@ class ExtractionContext:
 
             if type(extractor.yara_rules) is str:
                 raise TypeError(
-                    f'"{extractor.__class__.__name__}.yara_rules" cannot be a string, convert it into a list of strings',
+                    f'"{extractor.__class__.__name__}.yara_rules" cannot be a string, '
+                    'convert it into a list of strings',
                 )
 
             # For each rule identifier in extractor.yara_rules...
@@ -300,7 +306,8 @@ class ExtractionContext:
                     try:
                         if hasattr(extractor, "handle_yara"):
                             warnings.warn(
-                                "Extractor.handle_yara is deprecated, use Extractor.handle_match",
+                                "Extractor.handle_yara is deprecated, "
+                                "use Extractor.handle_match",
                                 DeprecationWarning,
                             )
                             getattr(extractor, "handle_yara")(
@@ -359,8 +366,9 @@ class ExtractionContext:
                 )
                 if not overrides:
                     raise RuntimeError(
-                        f"Ripped both {self.collected_config['family']} and {config['family']} "
-                        f"from the same ProcessMemory which is not expected",
+                        f"Ripped both {self.collected_config['family']} "
+                        f"and {config['family']} from the same ProcessMemory "
+                        "which is not expected",
                     )
                 if overrides == -1:
                     self.collected_config["family"] = config["family"]
@@ -372,7 +380,8 @@ class ExtractionContext:
     def config(self) -> Config:
         """
         Returns collected config, but if family is not matched - returns empty dict.
-        Family is not included in config itself, look at :py:attr:`ProcmemExtractManager.family`.
+        Family is not included in config itself,
+        look at :py:attr:`ProcmemExtractManager.family`.
         """
         if self.family is None:
             return {}

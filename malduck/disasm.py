@@ -77,8 +77,9 @@ class Operand:
         """
         Returns register used by operand.
 
-        For memory operands, returns base register or index register if base is not used.
-        For immediate operands or displacement-only memory operands returns None.
+        For memory operands, returns base register or index register
+        if base is not used. For immediate operands or displacement-only
+        memory operands returns None.
 
         :rtype: str
         """

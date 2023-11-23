@@ -134,7 +134,10 @@ class APLib:
 
 def main():
     # self-test
-    data = b"T\x00he quick\xecb\x0erown\xcef\xaex\x80jumps\xed\xe4veur`t?lazy\xead\xfeg\xc0\x00"
+    data = (
+        b"T\x00he quick\xecb\x0erown\xcef\xaex\x80"
+        b"jumps\xed\xe4veur`t?lazy\xead\xfeg\xc0\x00"
+    )
     assert APLib(data).depack() == b"The quick brown fox jumps over the lazy dog"
 
 

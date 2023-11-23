@@ -18,17 +18,23 @@ class ProcessMemoryPE(ProcessMemoryBinary):
     :param buf: A memory object containing the PE to be loaded
     :type buf: bytes, mmap, memoryview, bytearray or :py:meth:`MemoryBuffer` object
 
-    :param base: Virtual address of the region of interest (or beginning of buf when no regions provided)
+    :param base:
+        Virtual address of the region of interest (or beginning of buf
+        when no regions provided)
     :type base: int, optional (default: 0)
 
     :param image: The memory object is a dump of memory-mapped PE
     :type image: bool, optional (default: False)
 
-    :param detect_image: Try to automatically detect if the input buffer is memory-mapped PE using some heuristics
+    :param detect_image:
+        Try to automatically detect if the input buffer is memory-mapped PE
+        using some heuristics
     :type detect_image: bool, optional (default: False)
 
-    File `memory_dump` contains a 64bit memory-aligned PE dumped from address `0x140000000`, in order to load it
-    into procmempe and access the `pe` field all we have to do is initialize a new object with the file data:
+    File `memory_dump` contains a 64bit memory-aligned PE dumped
+    from address `0x140000000`, in order to load it into procmempe
+    and access the `pe` field all we have to do is initialize a new object
+    with the file data:
 
     .. code-block:: python
 
@@ -41,7 +47,8 @@ class ProcessMemoryPE(ProcessMemoryBinary):
         print(pe_dump.pe.is64bit)
 
 
-    PE files can also be read directly using inherited :py:meth:`ProcessMemory.from_file` with `image` argument set
+    PE files can also be read directly using inherited
+    :py:meth:`ProcessMemory.from_file` with `image` argument set
     (look at :py:meth:`from_memory` method).
 
     .. code-block:: python
@@ -119,7 +126,8 @@ class ProcessMemoryPE(ProcessMemoryBinary):
 
     def is_image_loaded_as_memdump(self) -> bool:
         """
-        Checks whether memory region contains image incorrectly loaded as memory-mapped PE dump (image=False).
+        Checks whether memory region contains image incorrectly loaded as memory-mapped
+        PE dump (image=False).
 
         .. code-block:: python
 

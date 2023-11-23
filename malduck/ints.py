@@ -95,7 +95,9 @@ class MetaIntType(type):
                 Unpacks multiple values from provided buffer
                 :param other: Buffer object containing value to unpack
                 :param offset: Buffer offset
-                :return: tuple of IntType instances or None if there are not enough data to unpack
+                :return:
+                    tuple of IntType instances
+                    or None if there are not enough data to unpack
                 """
                 fmt = cls.fmt + cls.fmt[-1] * (multiplier - 1)
                 try:
@@ -120,12 +122,18 @@ class IntType(int, IntTypeBase, metaclass=MetaIntType):
     Supports ctypes-like multiplication for unpacking tuple of values
 
     * Unsigned types:
-          :class:`UInt64` (:class:`QWORD`), :class:`UInt32` (:class:`DWORD`),
-          :class:`UInt16` (:class:`WORD`), :class:`UInt8` (:class:`BYTE` or :class:`CHAR`)
+          :class:`UInt64` (:class:`QWORD`),
+          :class:`UInt32` (:class:`DWORD`),
+          :class:`UInt16` (:class:`WORD`),
+          :class:`UInt8` (:class:`BYTE` or :class:`CHAR`)
     * Signed types:
-          :class:`Int64`, :class:`Int32`, :class:`Int16`, :class:`Int8`
+          :class:`Int64`,
+          :class:`Int32`,
+          :class:`Int16`,
+          :class:`Int8`
 
-    IntTypes are derived from :class:`int` type, so they are fully compatible with other numeric types
+    IntTypes are derived from :class:`int` type, so they are fully compatible
+    with other numeric types
 
     .. code-block:: python
 
@@ -134,7 +142,8 @@ class IntType(int, IntTypeBase, metaclass=MetaIntType):
         res = Int32(res)
         > -1
 
-    Using IntTypes you don't need to mask everything with 0xFFFFFFFF, only if you remember about appropriate casting.
+    Using IntTypes you don't need to mask everything with 0xFFFFFFFF,
+    only if you remember about appropriate casting.
 
     .. code-block:: python
 
@@ -269,7 +278,8 @@ class IntType(int, IntTypeBase, metaclass=MetaIntType):
         :rtype: IntType instance or None if there are not enough data to unpack
 
         .. warning::
-            Fixed-size integer operations are 4-5 times slower than equivalent on built-in integer types
+            Fixed-size integer operations are 4-5 times slower
+            than equivalent on built-in integer types
         """
         try:
             ret = unpack_from("<" + cls.fmt, other, offset=offset)
@@ -296,7 +306,8 @@ class IntType(int, IntTypeBase, metaclass=MetaIntType):
         :rtype: IntType instance or None if there are not enough data to unpack
 
         .. warning::
-            Fixed-size integer operations are 4-5 times slower than equivalent on built-in integer types
+            Fixed-size integer operations are 4-5 times slower
+            than equivalent on built-in integer types
         """
         try:
             ret = unpack_from(">" + cls.fmt, other, offset=offset)

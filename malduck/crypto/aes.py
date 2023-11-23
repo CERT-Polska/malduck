@@ -46,7 +46,8 @@ class PlaintextKeyBlob(BaseBlob):
         """
         Exports key from structure or returns None if no key was imported
 
-        :return: Tuple (`algorithm`, `key`). `Algorithm` is one of: "AES-128", "AES-192", "AES-256"
+        :return: Tuple (`algorithm`, `key`).
+            `Algorithm` is one of: "AES-128", "AES-192", "AES-256"
         :rtype: Tuple[str, bytes]
         """
         if self.key is not None:
@@ -170,7 +171,8 @@ class Aes:
 
         :param data: Buffer with `BLOB` structure data
         :type data: bytes
-        :return: Tuple (`algorithm`, `key`). `Algorithm` is one of: "AES-128", "AES-192", "AES-256"
+        :return: Tuple (`algorithm`, `key`).
+            `Algorithm` is one of: "AES-128", "AES-192", "AES-256"
         """
         if len(data) < BLOBHEADER.sizeof():
             return None

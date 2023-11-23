@@ -120,11 +120,14 @@ class Extractor:
     .. py:decoratormethod:: Extractor.string
 
         Decorator for string-based extractor methods.
-        Method is called each time when string with the same identifier as method name has matched
+        Method is called each time when string with the same identifier
+        as method name has matched
 
-        Extractor can be called for many number-suffixed strings e.g. `$keyex1` and `$keyex2` will call `keyex` method.
+        Extractor can be called for many number-suffixed strings
+        e.g. `$keyex1` and `$keyex2` will call `keyex` method.
 
-        You can optionally provide the actual string identifier as an argument if you don't want to name your method
+        You can optionally provide the actual string identifier
+        as an argument if you don't want to name your method
         after the string identifier.
 
         Signature of decorated method:
@@ -132,35 +135,48 @@ class Extractor:
         .. code-block:: Python
 
             @Extractor.string
-            def string_identifier(self, p: ProcessMemory, addr: int, match: YaraStringMatch) -> Config:
+            def string_identifier(
+                self,
+                p: ProcessMemory,
+                addr: int,
+                match: YaraStringMatch
+            ) -> Config:
                 # p: ProcessMemory object that contains matched file/dump representation
                 # addr: Virtual address of matched string
                 # Called for each "$string_identifier" hit
                 ...
 
-        If you want to use same method for multiple different named strings, you can provide multiple identifiers
-        as `@Extractor.string` decorator argument
+        If you want to use same method for multiple different named strings,
+        you can provide multiple identifiers as `@Extractor.string` decorator argument
 
         .. code-block::Python
 
             @Extractor.string("xor_call", "mov_call")
-            def xxx_call(self, p: ProcessMemory, addr: int, match: YaraStringMatch) -> Config:
+            def xxx_call(
+                self,
+                p: ProcessMemory,
+                addr: int,
+                match: YaraStringMatch
+            ) -> Config:
                 # This will be called for all $xor_call and $mov_call string hits
                 # You can determine which string triggered the hit via match.identifier
                 if match.identifier == "xor_call":
                     ...
 
-        Extractor methods should return `dict` object with extracted part of configuration, `True` indicating
-        a match or `False`/`None` when family has not been matched.
+        Extractor methods should return `dict` object with extracted part
+        of configuration, `True` indicating a match or `False`/`None`
+        when family has not been matched.
 
-        For strong methods: truthy values are transformed to `dict` with `{"family": self.family}` key.
+        For strong methods: truthy values are transformed to `dict`
+        with `{"family": self.family}` key.
 
         .. versionadded:: 4.0.0
 
             Added `@Extractor.string` as extended version of `@Extractor.extractor`
 
         :param strings_or_method:
-            If method name doesn't match the string identifier, pass yara string identifier as decorator argument.
+            If method name doesn't match the string identifier,
+            pass yara string identifier as decorator argument.
             Multiple strings are accepted
         :type strings_or_method: str, optional
 
@@ -168,7 +184,8 @@ class Extractor:
 
         Simplified variant of `@Extractor.string`.
 
-        Doesn't accept multiple strings and passes only string offset to the extractor method.
+        Doesn't accept multiple strings and passes only string offset
+        to the extractor method.
 
         .. code-block:: Python
 
@@ -191,12 +208,14 @@ class Extractor:
 
     .. py:decoratormethod:: Extractor.rule
 
-        Decorator for rule-based extractor methods, called once for rule match after string-based extraction methods.
+        Decorator for rule-based extractor methods,
+        called once for rule match after string-based extraction methods.
 
-        Method is called each time when rule with the same identifier as method name has matched.
+        Method is called each time when rule with the same identifier
+        as method name has matched.
 
-        You can optionally provide the actual rule identifier as an argument if you don't want to name your method
-        after the rule identifier.
+        You can optionally provide the actual rule identifier as an argument
+        if you don't want to name your method after the rule identifier.
 
         Rule identifier must appear in `yara_rules` tuple.
 
@@ -205,9 +224,14 @@ class Extractor:
         .. code-block:: Python
 
             @Extractor.rule
-            def rule_identifier(self, p: ProcessMemory, matches: YaraMatch) -> Config:
+            def rule_identifier(
+                self,
+                p: ProcessMemory,
+                matches: YaraMatch
+            ) -> Config:
                 # p: ProcessMemory object that contains matched file/dump representation
-                # matches: YaraMatch object with offsets of all matched strings related with the rule
+                # matches: YaraMatch object with offsets of all matched strings related
+                # with the rule
                 # Called for matched rule named "rule_identifier".
                 ...
 
@@ -239,10 +263,11 @@ class Extractor:
 
     .. py:decoratormethod:: Extractor.final
 
-        Decorator for final extractor methods, called once for each single rule match after other extraction methods.
+        Decorator for final extractor methods, called once for each single rule
+        match after other extraction methods.
 
-        Behaves similarly to the @rule-decorated methods but is called for each rule match regardless of
-        the rule identifier.
+        Behaves similarly to the @rule-decorated methods but is called
+        for each rule match regardless of the rule identifier.
 
         Signature of decorated method:
 
@@ -275,13 +300,15 @@ class Extractor:
 
     .. py:decoratormethod:: Extractor.weak
 
-        Use this decorator for extractors when successful extraction is not sufficient to mark family as matched.
+        Use this decorator for extractors when successful extraction
+        is not sufficient to mark family as matched.
 
         All "weak configs" will be flushed when "strong config" appears.
 
         .. versionchanged:: 4.0.0
 
-            Method must be decorated first with `@extractor`, `@rule` or `@final` decorator
+            Method must be decorated first
+            with `@extractor`, `@rule` or `@final` decorator
 
         .. code-block:: Python
 
@@ -296,8 +323,9 @@ class Extractor:
                 @Extractor.weak
                 @Extractor.extractor
                 def dga_seed(self, p, hit):
-                    # Even if we're able to get the DGA seed, extractor won't produce config
-                    # until is_it_really_evil match as well
+                    # Even if we're able to get the DGA seed,
+                    # extractor won't produce config until is_it_really_evil
+                    # match as well
                     dga_config = p.readv(hit, 128)
                     seed = self._get_dga_seed(dga_config)
                     if seed is not None:
@@ -315,7 +343,8 @@ class Extractor:
 
         .. versionchanged:: 4.0.0
 
-            Method must be decorated first with `@extractor`, `@rule` or `@final` decorator
+            Method must be decorated first
+            with `@extractor`, `@rule` or `@final` decorator
 
     .. py:decoratormethod:: Extractor.needs_elf
 
@@ -324,12 +353,14 @@ class Extractor:
 
         .. versionchanged:: 4.0.0
 
-            Method must be decorated first with `@extractor`, `@rule` or `@final` decorator.
+            Method must be decorated first
+            with `@extractor`, `@rule` or `@final` decorator.
 
     """
 
     yara_rules = ()  #: Names of Yara rules for which handle_match is called
-    family = None  #: Extracted malware family, automatically added to "family" key for strong extraction methods
+    family = None  #: Extracted malware family, automatically added to "family" key
+    # for strong extraction methods
     overrides = []  #: Family match overrides another match e.g. citadel overrides zeus
 
     def __init__(self, parent):
@@ -420,8 +451,9 @@ class Extractor:
 
         Called for each rule hit listed in Extractor.yara_rules.
 
-        Overriding this method means that all Yara hits must be processed within this method.
-        Ripped configurations must be reported using :py:meth:`push_config` method.
+        Overriding this method means that all Yara hits must be processed
+        within this method. Ripped configurations must be reported using
+        :py:meth:`push_config` method.
 
         .. versionadded: 4.0.0::
 
@@ -553,7 +585,8 @@ class Extractor:
     def needs_pe(method):
         if not isinstance(method, ExtractorMethod):
             raise TypeError(
-                "@needs_pe decorator must be placed before @final/@rule/@extractor decorator",
+                "@needs_pe decorator must be placed "
+                "before @final/@rule/@extractor decorator",
             )
         method.procmem_type = ProcessMemoryPE
         return method
@@ -562,7 +595,8 @@ class Extractor:
     def needs_elf(method):
         if not isinstance(method, ExtractorMethod):
             raise TypeError(
-                "@needs_elf decorator must be placed before @final/@rule/@extractor decorator",
+                "@needs_elf decorator must be placed "
+                "before @final/@rule/@extractor decorator",
             )
         method.procmem_type = ProcessMemoryELF
         return method
@@ -571,7 +605,8 @@ class Extractor:
     def weak(method):
         if not isinstance(method, ExtractorMethod):
             raise TypeError(
-                "@weak decorator must be placed before @final/@rule/@extractor decorator",
+                "@weak decorator must be placed "
+                "before @final/@rule/@extractor decorator",
             )
         method.weak = True
         return method

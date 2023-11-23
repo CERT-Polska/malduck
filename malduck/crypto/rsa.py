@@ -104,7 +104,8 @@ class RSA:
     @staticmethod
     def import_key(data: bytes) -> bytes | None:
         r"""
-        Extracts key from buffer containing :class:`PublicKeyBlob` or :class:`PrivateKeyBlob` data
+        Extracts key from buffer containing :class:`PublicKeyBlob`
+        or :class:`PrivateKeyBlob` data
 
         :param data: Buffer with `BLOB` structure data
         :type data: bytes

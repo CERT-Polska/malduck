@@ -15,13 +15,19 @@ from .procmem import ProcessMemoryPE
     "-l",
     type=str,
     default=None,
-    help="Set logging level for commands: critical, error, warning (default), info, debug",
+    help=(
+        "Set logging level for commands: "
+        "critical, error, warning (default), info, debug"
+    ),
 )
 @click.option(
     "--verbose/--quiet",
     "-v/-q",
     default=None,
-    help="Verbose mode (shortcut for '--log-level debug') / quiet mode ('--log-level error')",
+    help=(
+        "Verbose mode (shortcut for '--log-level debug') "
+        "/ quiet mode ('--log-level error')"
+    ),
 )
 @click.version_option()
 def main(log_level, verbose):
@@ -56,7 +62,8 @@ def fixpe(mempath, outpath, force, base):
     with ProcessMemoryPE.from_file(mempath, base=base) as p:
         if not force and p.is_image_loaded_as_memdump():
             click.echo(
-                "Input file looks like correct PE file. Use -f if you want to fix it anyway.",
+                "Input file looks like correct PE file. "
+                "Use -f if you want to fix it anyway.",
             )
             return 1
         outpath = outpath or mempath + ".exe"
@@ -86,7 +93,10 @@ def fixpe(mempath, outpath, force, base):
     default=None,
     type=click.Path(exists=True),
     required=False,
-    help="Specify directory where Yara files and modules are located (default path is ~/.malduck)",
+    help=(
+        "Specify directory where Yara files and modules are located "
+        "(default path is ~/.malduck)"
+    ),
 )
 def extract(ctx, paths, base, analysis, modules):
     """Extract static configuration from dumps"""

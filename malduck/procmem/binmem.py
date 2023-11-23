@@ -48,7 +48,8 @@ class ProcessMemoryBinary(ProcessMemory, metaclass=ABCMeta):
     @property
     def image(self: T) -> T | None:
         """
-        Returns ProcessMemory object loaded with image=True or None if can't be loaded or is loaded as image yet
+        Returns ProcessMemory object loaded with image=True or None
+        if can't be loaded or is loaded as image yet
         """
         if self.is_image:
             return None
@@ -75,7 +76,8 @@ class ProcessMemoryBinary(ProcessMemory, metaclass=ABCMeta):
     @classmethod
     def load_binaries_from_memory(cls: type[T], procmem: ProcessMemory) -> Iterator[T]:
         """
-        Looks for binaries in ProcessMemory object and yields specialized ProcessMemoryBinary objects
+        Looks for binaries in ProcessMemory object and yields specialized
+        ProcessMemoryBinary objects
         :param procmem: ProcessMemory object to search
 
         .. versionchanged:: 4.4.0
@@ -103,4 +105,8 @@ class ProcessMemoryBinary(ProcessMemory, metaclass=ABCMeta):
         raise NotImplementedError()
 
     def __repr__(self):
-        return f"{self.__class__.__name__}:{'IMG' if self.is_image else 'DMP'}:{self.imgbase:x}"
+        return ":".join((
+            self.__class__.__name__,
+            "IMG" if self.is_image else "DMP",
+            f"{self.imgbase:x}"
+        ))

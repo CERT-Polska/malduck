@@ -70,7 +70,8 @@ class _Mapper:
 
 class Yara:
     """
-    Represents Yara ruleset. Rules can be compiled from set of files or defined in code (single rule only).
+    Represents Yara ruleset.
+    Rules can be compiled from set of files or defined in code (single rule only).
 
     Most simple rule (with default identifiers left):
 
@@ -107,11 +108,14 @@ class Yara:
                 # Note: Order of offsets for grouped strings is undetermined
                 print("mal*", match.MalwareRule["mal"])
 
-    :param rule_paths: Dictionary of {"namespace": "rule_path"}. See also :py:meth:`Yara.from_dir`.
+    :param rule_paths:
+        Dictionary of {"namespace": "rule_path"}. See also :py:meth:`Yara.from_dir`.
     :type rule_paths: dict
     :param name: Name of generated rule (default: "r")
     :type name: str
-    :param strings: Dictionary representing set of string patterns ({"string_identifier": YaraString or plain str})
+    :param strings:
+        Dictionary representing set of string patterns
+        ({"string_identifier": YaraString or plain str})
     :type strings: dict or str or :class:`YaraString`
     :param condition: Yara rule condition (default: "any of them")
     :type condition: str
@@ -136,7 +140,7 @@ class Yara:
 
         yara_strings = "\n        ".join(
             [
-                f"${key} = {str(YaraString(value) if isinstance(value, str) else value)}"
+                f"${key} = {YaraString(value) if isinstance(value, str) else value!s}"
                 for key, value in strings.items()
             ],
         )
@@ -156,7 +160,8 @@ class Yara:
     @staticmethod
     def from_dir(path, recursive=True, followlinks=True):
         """
-        Find rules (recursively) in specified path. Supported extensions: \\*.yar, \\*.yara
+        Find rules (recursively) in specified path.
+        Supported extensions: \\*.yar, \\*.yara
 
         :param path: Root path for searching
         :type path: str
@@ -191,13 +196,15 @@ class Yara:
         :type filepath: str
         :param data: Data to be scanned
         :type data: str
-        :param offset_mapper: Offset mapping function. For unmapped region, should returned None.
-                              Used by :py:meth:`malduck.procmem.ProcessMemory.yarav`
+        :param offset_mapper:
+            Offset mapping function. For unmapped region, should returned None.
+            Used by :py:meth:`malduck.procmem.ProcessMemory.yarav`
         :type offset_mapper: function
         :param extended: Returns extended information about matched strings and rules
         :type extended: bool (optional, default False)
-        :rtype: :class:`malduck.yara.YaraRulesetOffsets` or :class:`malduck.yara.YaraRulesetMatches`
-                if extended is set to True
+        :rtype:
+            :class:`malduck.yara.YaraRulesetOffsets`
+            or :class:`malduck.yara.YaraRulesetMatches` if extended is set to True
         """
         matches = YaraRulesetMatch(
             self.rules.match(**kwargs),
@@ -219,7 +226,10 @@ class YaraString:
     :param value: Pattern value
     :type value: str
     :param type: Pattern type (default is :py:attr:`YaraString.TEXT`)
-    :type type: :py:attr:`YaraString.TEXT` / :py:attr:`YaraString.HEX` / :py:attr:`YaraString.REGEX`
+    :type type:
+        :py:attr:`YaraString.TEXT`
+        / :py:attr:`YaraString.HEX`
+        / :py:attr:`YaraString.REGEX`
     :param modifiers: Yara string modifier flags
     """
 
@@ -276,7 +286,8 @@ class YaraRulesetMatch(_Mapper):
     def _map_strings(self, strings, offset_mapper):
         mapped_strings = defaultdict(list)
         for yara_string in strings:
-            # yara-python 4.3.0 broke compatibilty and started returning a StringMatch object
+            # yara-python 4.3.0 broke compatibilty
+            # and started returning a StringMatch object
             if type(yara_string) is tuple:
                 offsets = [yara_string[0]]
                 identifier = yara_string[1]

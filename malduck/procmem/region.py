@@ -96,7 +96,8 @@ class Region:
 
     def v2p(self, addr: int) -> int:
         """
-        Virtual address to physical offset translation. Assumes that address is valid within Region.
+        Virtual address to physical offset translation.
+        Assumes that address is valid within Region.
         :param addr: Virtual address
         :return: Physical offset
         """

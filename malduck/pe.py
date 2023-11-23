@@ -122,7 +122,8 @@ class PE:
     def headers_size(self) -> int:
         """
         Estimated size of PE headers (first section offset).
-        If there are no sections: returns 0x1000 or size of input if provided data are shorter than single page
+        If there are no sections: returns 0x1000 or size of input
+        if provided data are shorter than single page
         """
         return (
             self.sections[0].PointerToRawData
@@ -148,7 +149,9 @@ class PE:
         """
         Get pefile directory entry by identifier
 
-        :param name: shortened pefile directory entry identifier (e.g. 'IMPORT' for 'IMAGE_DIRECTORY_ENTRY_IMPORT')
+        :param name:
+            shortened pefile directory entry identifier
+            (e.g. 'IMPORT' for 'IMAGE_DIRECTORY_ENTRY_IMPORT')
         :rtype: :class:`pefile.Structure`
         """
         return self.optional_header.DATA_DIRECTORY[
@@ -160,8 +163,9 @@ class PE:
         Get internal pefile Structure from specified rva
 
         :param rva: Relative virtual address of structure
-        :param format: :class:`pefile.Structure` format
-                       (e.g. :py:attr:`pefile.PE.__IMAGE_LOAD_CONFIG_DIRECTORY64_format__`)
+        :param format:
+            :class:`pefile.Structure` format
+            (e.g. :py:attr:`pefile.PE.__IMAGE_LOAD_CONFIG_DIRECTORY64_format__`)
         :rtype: :class:`pefile.Structure`
         """
         structure = pefile.Structure(format)
@@ -237,7 +241,8 @@ class PE:
 
     def validate_padding(self) -> bool:
         """
-        Returns True if area between first non-bss section and first 4kB doesn't have only null-bytes
+        Returns True if area between first non-bss section
+        and first 4kB doesn't have only null-bytes
         """
         section_start_offs = None
         for section in self.sections:
@@ -282,7 +287,9 @@ class PE:
         """
         Finds resource objects by specified name or type
 
-        :param name: String name (e2) or type (e1), numeric identifier name (e2) or RT_* type (e1)
+        :param name:
+            String name (e2) or type (e1),
+            numeric identifier name (e2) or RT_* type (e1)
         :type name: int or str or bytes
         :rtype: Iterator[bytes]
         """
@@ -298,7 +305,8 @@ class PE:
         def type_int(e1, e2, e3):
             return e1.id == type_id
 
-        # Broken PE files will not have this directory and it's better to return no value
+        # Broken PE files will not have this directory
+        # and it's better to return no value
         # than to throw a meaningless exception
         if not hasattr(self.pe, "DIRECTORY_ENTRY_RESOURCE"):
             return
@@ -323,7 +331,9 @@ class PE:
         """
         Retrieves single resource by specified name or type
 
-        :param name: String name (e2) or type (e1), numeric identifier name (e2) or RT_* type (e1)
+        :param name:
+            String name (e2) or type (e1),
+            numeric identifier name (e2) or RT_* type (e1)
         :type name: int or str or bytes
         :rtype: bytes or None
         """

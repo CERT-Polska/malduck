@@ -18,8 +18,8 @@ class ProcessMemoryELF(ProcessMemoryBinary):
 
     Short name: `procmemelf`
 
-    ELF files can be read directly using inherited :py:meth:`ProcessMemory.from_file` with `image` argument set
-    (look at :py:meth:`from_memory` method).
+    ELF files can be read directly using inherited :py:meth:`ProcessMemory.from_file`
+    with `image` argument set (look at :py:meth:`from_memory` method).
     """
 
     __magic__ = b"\x7fELF"
