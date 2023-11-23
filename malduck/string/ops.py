@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import binascii
 from base64 import b64decode, b64encode
+from sys import byteorder
 from typing import TYPE_CHECKING, cast
 
 if TYPE_CHECKING:
@@ -126,7 +127,7 @@ class Padding:
         if length == block_size:
             padding = b""
         elif self.style == "pkcs7":
-            padding = bytes([length]) * length
+            padding = length.to_bytes(1, byteorder) * length
         elif self.style == "null":
             padding = b"\x00" * length
         else:
