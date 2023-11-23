@@ -20,9 +20,10 @@ def is_config_better(base_config: Config, new_config: Config) -> bool:
     Checks whether new config looks more reliable than base.
     Currently just checking the amount of non-empty keys.
     """
-    base = [(k, v) for k, v in base_config.items() if v]
-    new = [(k, v) for k, v in new_config.items() if v]
-    return len(new) > len(base)
+    return (
+        len(tuple(filter(None, new_config.values())))
+        > len(tuple(filter(None, base_config.values())))
+    )
 
 
 def encode_for_json(data: Any) -> Any:
