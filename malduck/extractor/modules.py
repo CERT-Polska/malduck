@@ -102,7 +102,7 @@ def make_override_paths(extractors: list[type[Extractor]]) -> dict[str, list[str
     def make_override_path(node, visited, current_path=None):
         if node in visited:
             raise RuntimeError(
-                f"Override cycle detected: {node} already visited during tree traversal"
+                f"Override cycle detected: {node} already visited during tree traversal",
             )
         visited.add(node)
         unvisited.remove(node)
@@ -121,7 +121,7 @@ def make_override_paths(extractors: list[type[Extractor]]) -> dict[str, list[str
     # Root undetected
     if unvisited:
         raise RuntimeError(
-            f"Override cycle detected: {list(unvisited)} not visited during tree traversal"
+            f"Override cycle detected: {list(unvisited)} not visited during tree traversal",
         )
     return dict(override_paths)
 
@@ -149,7 +149,8 @@ def import_module_by_finder(finder: PathEntryFinder, module_name: str) -> Any:
 
 
 def load_modules(
-    search_path: str, onerror: Callable[[Exception, str], None] | None = None
+    search_path: str,
+    onerror: Callable[[Exception, str], None] | None = None,
 ) -> dict[str, Any]:
     """
     Loads plugin modules under specified paths
@@ -165,7 +166,8 @@ def load_modules(
     """
     modules: dict[str, Any] = {}
     for finder, module_name, is_pkg in pkgutil.iter_modules(
-        [search_path], "malduck.extractor.modules."
+        [search_path],
+        "malduck.extractor.modules.",
     ):
         if not is_pkg:
             continue
@@ -173,7 +175,8 @@ def load_modules(
             log.warning("Module collision - %s overridden", module_name)
         try:
             modules[module_name] = import_module_by_finder(
-                cast(PathEntryFinder, finder), module_name
+                cast(PathEntryFinder, finder),
+                module_name,
             )
         except Exception as exc:
             if onerror:

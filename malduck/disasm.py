@@ -267,7 +267,11 @@ class Disassemble:
             Operand.regs[getattr(capstone.x86, reg)] = reg.split("_")[2].lower()
 
     def disassemble(
-        self, data: bytes, addr: int, x64: bool = False, count: int = 0
+        self,
+        data: bytes,
+        addr: int,
+        x64: bool = False,
+        count: int = 0,
     ) -> Iterator[Instruction]:
         """
         Disassembles data from specific address
@@ -293,7 +297,8 @@ class Disassemble:
         import capstone
 
         cs = capstone.Cs(
-            capstone.CS_ARCH_X86, capstone.CS_MODE_64 if x64 else capstone.CS_MODE_32
+            capstone.CS_ARCH_X86,
+            capstone.CS_MODE_64 if x64 else capstone.CS_MODE_32,
         )
         cs.detail = True
         for insn in cs.disasm(data, addr, count):

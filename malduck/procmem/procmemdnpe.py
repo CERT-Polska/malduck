@@ -21,7 +21,11 @@ class ProcessMemoryDnPE(ProcessMemoryPE):
     ) -> None:
         self._pe: DnPE | None = None
         super().__init__(
-            buf, base=base, regions=regions, image=image, detect_image=detect_image
+            buf,
+            base=base,
+            regions=regions,
+            image=image,
+            detect_image=detect_image,
         )
 
     def _pe_direct_load(self, fast_load: bool = True) -> DnPE:

@@ -110,7 +110,7 @@ class ProcessMemory:
             self.memory = buf
         else:
             raise TypeError(
-                "Wrong buffer type - must be bytes, bytearray, mmap object or MemoryBuffer"
+                "Wrong buffer type - must be bytes, bytearray, mmap object or MemoryBuffer",
             )
 
         self.imgbase = base
@@ -218,7 +218,10 @@ class ProcessMemory:
         :rtype: :class:`ProcessMemory`
         """
         copied = cls(
-            memory.m, base=base or memory.imgbase, regions=memory.regions, **kwargs
+            memory.m,
+            base=base or memory.imgbase,
+            regions=memory.regions,
+            **kwargs,
         )
         return copied
 
@@ -236,7 +239,12 @@ class ProcessMemory:
             return 0
 
     def iter_regions(
-        self, addr=None, offset=None, length=None, contiguous=False, trim=False
+        self,
+        addr=None,
+        offset=None,
+        length=None,
+        contiguous=False,
+        trim=False,
     ):
         """
         Iterates over Region objects starting at provided virtual address or offset
@@ -264,11 +272,11 @@ class ProcessMemory:
         """
         if addr is not None and offset is not None:
             raise ValueError(
-                "'addr' and 'offset' arguments should be provided exclusively"
+                "'addr' and 'offset' arguments should be provided exclusively",
             )
         if addr is None and offset is None and contiguous:
             raise ValueError(
-                "Starting point (addr or offset) must be provided for contiguous regions"
+                "Starting point (addr or offset) must be provided for contiguous regions",
             )
         if length and length < 0:
             raise ValueError("Length can't be less than 0")
@@ -302,7 +310,7 @@ class ProcessMemory:
             else:
                 if length is not None:
                     raise ValueError(
-                        "Don't know how to retrieve length-limited regions with offset from unmapped area"
+                        "Don't know how to retrieve length-limited regions with offset from unmapped area",
                     )
                 offset = region.offset
             # If we're out of length after adjustment: time to stop
@@ -313,7 +321,7 @@ class ProcessMemory:
         if addr is None:
             if offset is None:
                 raise RuntimeError(
-                    "Something went wrong, starting region offset is set to None?"
+                    "Something went wrong, starting region offset is set to None?",
                 )
             addr = region.p2v(offset)
         # Continue enumeration
@@ -345,7 +353,10 @@ class ProcessMemory:
             return None
         mapping_length = 0
         for region in self.iter_regions(
-            addr=addr, length=length, contiguous=True, trim=True
+            addr=addr,
+            length=length,
+            contiguous=True,
+            trim=True,
         ):
             if length is None:
                 return region.v2p(addr)
@@ -371,7 +382,10 @@ class ProcessMemory:
             return None
         mapping_length = 0
         for region in self.iter_regions(
-            offset=off, length=length, contiguous=True, trim=True
+            offset=off,
+            length=length,
+            contiguous=True,
+            trim=True,
         ):
             if length is None:
                 return region.p2v(off)
@@ -438,7 +452,10 @@ class ProcessMemory:
         current_strings: list[bytes] = []
         prev_region = None
         for region in self.iter_regions(
-            addr=addr, length=length, contiguous=contiguous, trim=True
+            addr=addr,
+            length=length,
+            contiguous=contiguous,
+            trim=True,
         ):
             if not prev_region or prev_region.end != region.addr:
                 if current_strings:
@@ -532,7 +549,7 @@ class ProcessMemory:
         # Boundary check
         if region is None or region.end < (addr + len(buf)):
             raise ValueError(
-                "Patched bytes range must be contained within single, existing region"
+                "Patched bytes range must be contained within single, existing region",
             )
         return self.patchp(region.v2p(addr), buf)
 
@@ -821,7 +838,9 @@ class ProcessMemory:
                 return ptr
 
         return ruleset.match(
-            offset_mapper=map_offset, extended=extended, data=self.readp(0)
+            offset_mapper=map_offset,
+            extended=extended,
+            data=self.readp(0),
         )
 
     def _findbytes(self, yara_fn, query, addr, length):

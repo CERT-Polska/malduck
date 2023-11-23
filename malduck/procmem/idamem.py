@@ -72,7 +72,7 @@ class IDAProcessMemory(ProcessMemory):
     def __init__(self):
         if not IDAPYTHON:
             raise RuntimeError(
-                "This class is intended to work only in IDAPython context"
+                "This class is intended to work only in IDAPython context",
             )
         regions = []
         for seg in idautils.Segments():

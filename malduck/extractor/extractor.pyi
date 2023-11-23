@@ -19,7 +19,11 @@ class _StringOffsetCallback(Protocol[T, U]):
 
 class _StringCallback(Protocol[T, U]):
     def __call__(
-        cls, self: T, p: U, addr: int, match: YaraStringMatch
+        cls,
+        self: T,
+        p: U,
+        addr: int,
+        match: YaraStringMatch,
     ) -> Config | bool | None: ...
 
 class _RuleCallback(Protocol[T, U]):
@@ -55,21 +59,27 @@ class ExtractorMethod(Generic[T, U]):
 class StringOffsetExtractorMethod(ExtractorMethod[T, U]):
     string_name: str
     def __init__(
-        self, method: _StringOffsetCallback[T, U], string_name: str | None = None
+        self,
+        method: _StringOffsetCallback[T, U],
+        string_name: str | None = None,
     ) -> None:
         super().__init__(method)
 
 class StringExtractorMethod(ExtractorMethod[T, U]):
     string_names: list[str]
     def __init__(
-        self, method: _StringCallback[T, U], string_names: list[str] | None = None
+        self,
+        method: _StringCallback[T, U],
+        string_names: list[str] | None = None,
     ) -> None:
         super().__init__(method)
 
 class RuleExtractorMethod(ExtractorMethod[T, U]):
     rule_name: str
     def __init__(
-        self, method: _RuleCallback[T, U], rule_name: str | None = None
+        self,
+        method: _RuleCallback[T, U],
+        rule_name: str | None = None,
     ) -> None:
         super().__init__(method)
 
@@ -100,7 +110,7 @@ class Extractor:
     @overload
     @staticmethod
     def extractor(
-        string_or_method: _StringOffsetCallback[T, U]
+        string_or_method: _StringOffsetCallback[T, U],
     ) -> StringOffsetExtractorMethod[T, U]: ...
     @overload
     @staticmethod
@@ -110,7 +120,7 @@ class Extractor:
     @overload
     @staticmethod
     def string(
-        *strings_or_method: _StringCallback[T, U]
+        *strings_or_method: _StringCallback[T, U],
     ) -> StringExtractorMethod[T, U]: ...
     @overload
     @staticmethod
@@ -129,11 +139,11 @@ class Extractor:
     def final(method: _FinalCallback[T, U]) -> FinalExtractorMethod[T, U]: ...
     @staticmethod
     def needs_pe(
-        method: ExtractorMethod[T, ProcessMemoryPE]
+        method: ExtractorMethod[T, ProcessMemoryPE],
     ) -> ExtractorMethod[T, ProcessMemoryPE]: ...
     @staticmethod
     def needs_elf(
-        method: ExtractorMethod[T, ProcessMemoryELF]
+        method: ExtractorMethod[T, ProcessMemoryELF],
     ) -> ExtractorMethod[T, ProcessMemoryELF]: ...
     @staticmethod
     def weak(method: ExtractorMethod[T, U]) -> ExtractorMethod[T, U]: ...

@@ -62,7 +62,11 @@ class ProcessMemoryPE(ProcessMemoryBinary):
     ) -> None:
         self._pe: PE | None = None
         super().__init__(
-            buf, base=base, regions=regions, image=image, detect_image=detect_image
+            buf,
+            base=base,
+            regions=regions,
+            image=image,
+            detect_image=detect_image,
         )
 
     def _pe_direct_load(self, fast_load: bool = True) -> PE:
@@ -96,7 +100,7 @@ class ProcessMemoryPE(ProcessMemoryBinary):
                         0,
                         0,
                         section.PointerToRawData,
-                    )
+                    ),
                 )
 
     def is_valid(self) -> bool:
@@ -179,7 +183,8 @@ class ProcessMemoryPE(ProcessMemoryBinary):
             section_size = align(section_size, file_alignment)
             # Read section data including appropriate padding
             section_data = self.readv(
-                self.imgbase + section.VirtualAddress, section_size
+                self.imgbase + section.VirtualAddress,
+                section_size,
             )
             section_data += (section_size - len(section_data)) * b"\x00"
             data.append(section_data)

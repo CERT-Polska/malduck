@@ -57,7 +57,7 @@ class MemoryPEData:
             return -1
         try:
             return next(
-                self.memory.regexv(str, self.memory.imgbase + beg, end and end - beg)
+                self.memory.regexv(str, self.memory.imgbase + beg, end and end - beg),
             )
         except StopIteration:
             return -1
@@ -183,13 +183,15 @@ class PE:
             # Don't go further than 8 entries
             for _ in range(8):
                 import_desc = self.structure(
-                    import_rva, pefile.PE.__IMAGE_IMPORT_DESCRIPTOR_format__
+                    import_rva,
+                    pefile.PE.__IMAGE_IMPORT_DESCRIPTOR_format__,
                 )
                 if import_desc.all_zeroes():
                     # End of import-table
                     break
                 import_dllname = self.pe.get_string_at_rva(
-                    import_desc.Name, pefile.MAX_DLL_LENGTH
+                    import_desc.Name,
+                    pefile.MAX_DLL_LENGTH,
                 )
                 if not pefile.is_valid_dos_filename(import_dllname):
                     # Invalid import filename found
@@ -210,7 +212,8 @@ class PE:
         try:
             resource_rva = resource_dir.VirtualAddress
             resource_desc = self.structure(
-                resource_rva, pefile.PE.__IMAGE_RESOURCE_DIRECTORY_format__
+                resource_rva,
+                pefile.PE.__IMAGE_RESOURCE_DIRECTORY_format__,
             )
             resource_no = (
                 resource_desc.NumberOfNamedEntries + resource_desc.NumberOfIdEntries
@@ -225,7 +228,7 @@ class PE:
                 )
                 if (
                     self.pe.get_word_at_rva(
-                        resource_rva + resource_entry_desc.OffsetToData & 0x7FFFFFFF
+                        resource_rva + resource_entry_desc.OffsetToData & 0x7FFFFFFF,
                     )
                     is None
                 ):

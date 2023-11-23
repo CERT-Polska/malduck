@@ -34,7 +34,11 @@ class ProcessMemoryELF(ProcessMemoryBinary):
     ) -> None:
         self._elf = None
         super().__init__(
-            buf, base=base, regions=regions, image=image, detect_image=detect_image
+            buf,
+            base=base,
+            regions=regions,
+            image=image,
+            detect_image=detect_image,
         )
 
     def _elf_direct_load(self) -> elftools.elf.elffile.ELFFile:
@@ -86,7 +90,7 @@ class ProcessMemoryELF(ProcessMemoryBinary):
                         segment.header["p_type"],
                         0,  # TODO: protect flags
                         segment.header["p_offset"] - presegment_len,
-                    )
+                    ),
                 )
         if len(regions) == 0:
             raise elftools.elf.elffile.ELFError("No regions in ELF file!")

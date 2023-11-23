@@ -37,7 +37,13 @@ class Region:
     """Represents single mapped region in :class:`ProcessMemory`"""
 
     def __init__(
-        self, addr: int, size: int, state: int, type_: int, protect: int, offset: int
+        self,
+        addr: int,
+        size: int,
+        state: int,
+        type_: int,
+        protect: int,
+        offset: int,
     ) -> None:
         self.addr = addr
         self.size = size

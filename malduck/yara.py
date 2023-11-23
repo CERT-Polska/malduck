@@ -118,7 +118,11 @@ class Yara:
     """
 
     def __init__(
-        self, rule_paths=None, name="r", strings=None, condition="any of them"
+        self,
+        rule_paths=None,
+        name="r",
+        strings=None,
+        condition="any of them",
     ):
         if rule_paths:
             self.rules = yara.compile(filepaths=rule_paths)
@@ -134,7 +138,7 @@ class Yara:
             [
                 f"${key} = {str(YaraString(value) if isinstance(value, str) else value)}"
                 for key, value in strings.items()
-            ]
+            ],
         )
         yara_source = textwrap.dedent(
             f"""
@@ -144,7 +148,7 @@ class Yara:
                 condition:
                     {condition}
             }}
-        """
+        """,
         )
 
         self.rules = yara.compile(source=yara_source)
@@ -172,7 +176,7 @@ class Yara:
                 if ruleset_name in rule_paths:
                     log.warning(
                         f"Yara file name collision - {rule_paths[ruleset_name]} "
-                        f"overridden by {ruleset_path}"
+                        f"overridden by {ruleset_path}",
                     )
                 rule_paths[ruleset_name] = ruleset_path
             if not recursive:
@@ -196,7 +200,8 @@ class Yara:
                 if extended is set to True
         """
         matches = YaraRulesetMatch(
-            self.rules.match(**kwargs), offset_mapper=offset_mapper
+            self.rules.match(**kwargs),
+            offset_mapper=offset_mapper,
         )
         return YaraRulesetOffsets(matches) if not extended else matches
 
@@ -258,7 +263,11 @@ class YaraRulesetMatch(_Mapper):
         ]
         return {
             match.rule: YaraRuleMatch(
-                match.rule, strings, match.meta, match.namespace, match.tags
+                match.rule,
+                strings,
+                match.meta,
+                match.namespace,
+                match.tags,
             )
             for match, strings in mapped_matches
             if strings
@@ -290,12 +299,12 @@ class YaraRulesetMatch(_Mapper):
                     offset = _offset
                 # Register offset for full identifier
                 mapped_strings[real_ident].append(
-                    YaraStringMatch(real_ident, offset, content)
+                    YaraStringMatch(real_ident, offset, content),
                 )
                 # Register offset for grouped identifier
                 if real_ident != group_ident:
                     mapped_strings[group_ident].append(
-                        YaraStringMatch(real_ident, offset, content)
+                        YaraStringMatch(real_ident, offset, content),
                     )
         return mapped_strings
 
@@ -314,7 +323,7 @@ class YaraRulesetOffsets(_Mapper):
     def __init__(self, matches):
         self._matches = matches
         super().__init__(
-            elements={k: YaraRuleOffsets(v) for k, v in matches.elements.items()}
+            elements={k: YaraRuleOffsets(v) for k, v in matches.elements.items()},
         )
 
     def remap(self, offset_mapper=None):
@@ -337,7 +346,7 @@ class YaraRuleMatch(_Mapper):
         self.namespace = namespace
         self.tags = tags
         super().__init__(
-            elements={k: sorted(v, key=lambda s: s.offset) for k, v in strings.items()}
+            elements={k: sorted(v, key=lambda s: s.offset) for k, v in strings.items()},
         )
 
     def get_offsets(self, string):

@@ -59,7 +59,9 @@ class DnPE(PE):
         return self.pe.net.flags
 
     def dn_user_string(
-        self, index: int, encoding="utf-16"
+        self,
+        index: int,
+        encoding="utf-16",
     ) -> dnfile.stream.UserString | None:
         if not self.dn_user_strings or self.dn_user_strings.sizeof() == 0:
             return None

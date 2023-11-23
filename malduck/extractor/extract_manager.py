@@ -74,7 +74,10 @@ class ExtractManager:
         self.on_extractor_error(exc, extractor, "handle_yara")
 
     def on_extractor_error(
-        self, exc: Exception, extractor: Extractor, method_name: str
+        self,
+        exc: Exception,
+        extractor: Extractor,
+        method_name: str,
     ) -> None:
         """
         Handler for all exceptions raised by extractor methods (including :py:meth:`Extractor.handle_yara`).
@@ -131,7 +134,7 @@ class ExtractManager:
             for carved_bin in carved_bins:
                 log.debug(
                     f"carve: Found {carved_bin.__class__.__name__} "
-                    f"at offset {carved_bin.regions[0].offset}"
+                    f"at offset {carved_bin.regions[0].offset}",
                 )
             binaries += carved_bins
         return binaries
@@ -162,7 +165,9 @@ class ExtractManager:
                     del self.configs[stored_family]
                     self.configs[family] = config
                     log.debug(
-                        "%s config looks better (overrides %s)", family, stored_family
+                        "%s config looks better (overrides %s)",
+                        family,
+                        stored_family,
                     )
                     return True
                 elif score == 1:
@@ -198,7 +203,9 @@ class ExtractManager:
             return None
 
     def push_procmem(
-        self, p: ProcessMemory, rip_binaries: bool = False
+        self,
+        p: ProcessMemory,
+        rip_binaries: bool = False,
     ) -> Optional[str]:
         """
         Pushes ProcessMemory object for extraction
@@ -247,7 +254,10 @@ class ExtractionContext:
         return self.collected_config.get("family")
 
     def on_extractor_error(
-        self, exc: Exception, extractor: Extractor, method_name: str
+        self,
+        exc: Exception,
+        extractor: Extractor,
+        method_name: str,
     ) -> None:
         """
         Handler for all exceptions raised by extractor methods.
@@ -262,7 +272,9 @@ class ExtractionContext:
         self.parent.on_extractor_error(exc, extractor, method_name)
 
     def push_procmem(
-        self, p: ProcessMemory, _matches: Optional[YaraRulesetMatch] = None
+        self,
+        p: ProcessMemory,
+        _matches: Optional[YaraRulesetMatch] = None,
     ) -> None:
         """
         Pushes ProcessMemory object for extraction
@@ -279,7 +291,7 @@ class ExtractionContext:
 
             if type(extractor.yara_rules) is str:
                 raise TypeError(
-                    f'"{extractor.__class__.__name__}.yara_rules" cannot be a string, convert it into a list of strings'
+                    f'"{extractor.__class__.__name__}.yara_rules" cannot be a string, convert it into a list of strings',
                 )
 
             # For each rule identifier in extractor.yara_rules...
@@ -292,7 +304,8 @@ class ExtractionContext:
                                 DeprecationWarning,
                             )
                             getattr(extractor, "handle_yara")(
-                                p, YaraRuleOffsets(matches[rule])
+                                p,
+                                YaraRuleOffsets(matches[rule]),
                             )
                         else:
                             extractor.handle_match(p, matches[rule])
@@ -332,19 +345,22 @@ class ExtractionContext:
 
         if "family" in config:
             log.debug(
-                "%s tells it's %s", extractor.__class__.__name__, config["family"]
+                "%s tells it's %s",
+                extractor.__class__.__name__,
+                config["family"],
             )
             if (
                 "family" in self.collected_config
                 and self.collected_config["family"] != config["family"]
             ):
                 overrides = self.parent.modules.compare_family_overrides(
-                    config["family"], self.collected_config["family"]
+                    config["family"],
+                    self.collected_config["family"],
                 )
                 if not overrides:
                     raise RuntimeError(
                         f"Ripped both {self.collected_config['family']} and {config['family']} "
-                        f"from the same ProcessMemory which is not expected"
+                        f"from the same ProcessMemory which is not expected",
                     )
                 if overrides == -1:
                     self.collected_config["family"] = config["family"]

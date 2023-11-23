@@ -2958,10 +2958,10 @@ __testkey = (
 )
 __testdat = b"\x00\x01\x02\x03\x04\x05\x06\x07\x08\t\n\x0b\x0c\r\x0e\x0f"
 assert b"\xde&\x9f\xf83\xe42\xb8[.\x88\xd2p\x1c\xe7\\" == Serpent(__testkey).encrypt(
-    __testdat
+    __testdat,
 )
 assert __testdat == Serpent(__testkey).decrypt(
-    b"\xde&\x9f\xf83\xe42\xb8[.\x88\xd2p\x1c\xe7\\"
+    b"\xde&\x9f\xf83\xe42\xb8[.\x88\xd2p\x1c\xe7\\",
 )
 
 

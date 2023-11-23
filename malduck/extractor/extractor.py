@@ -389,14 +389,15 @@ class Extractor:
         :return: :class:`logging.Logger`
         """
         return logging.getLogger(
-            f"{self.__class__.__module__}.{self.__class__.__name__}"
+            f"{self.__class__.__module__}.{self.__class__.__name__}",
         )
 
     def _get_methods(self, method_type):
         return (
             (name, method)
             for name, method in inspect.getmembers(
-                self.__class__, predicate=lambda member: isinstance(member, method_type)
+                self.__class__,
+                predicate=lambda member: isinstance(member, method_type),
             )
             if isinstance(method, method_type)
         )
@@ -552,7 +553,7 @@ class Extractor:
     def needs_pe(method):
         if not isinstance(method, ExtractorMethod):
             raise TypeError(
-                "@needs_pe decorator must be placed before @final/@rule/@extractor decorator"
+                "@needs_pe decorator must be placed before @final/@rule/@extractor decorator",
             )
         method.procmem_type = ProcessMemoryPE
         return method
@@ -561,7 +562,7 @@ class Extractor:
     def needs_elf(method):
         if not isinstance(method, ExtractorMethod):
             raise TypeError(
-                "@needs_elf decorator must be placed before @final/@rule/@extractor decorator"
+                "@needs_elf decorator must be placed before @final/@rule/@extractor decorator",
             )
         method.procmem_type = ProcessMemoryELF
         return method
@@ -570,7 +571,7 @@ class Extractor:
     def weak(method):
         if not isinstance(method, ExtractorMethod):
             raise TypeError(
-                "@weak decorator must be placed before @final/@rule/@extractor decorator"
+                "@weak decorator must be placed before @final/@rule/@extractor decorator",
             )
         method.weak = True
         return method

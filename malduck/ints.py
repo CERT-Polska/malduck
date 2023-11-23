@@ -45,7 +45,9 @@ class MultipliedIntTypeBase(IntTypeBase, Generic[T], metaclass=ABCMeta):
     @staticmethod
     @abstractmethod
     def unpack(
-        other: bytes, offset: int = 0, foxed: bool = False
+        other: bytes,
+        offset: int = 0,
+        foxed: bool = False,
     ) -> tuple[T, ...] | int | None:
         raise NotImplementedError()
 
@@ -85,7 +87,9 @@ class MetaIntType(type):
 
             @staticmethod
             def unpack(
-                other: bytes, offset: int = 0, fixed: bool = True
+                other: bytes,
+                offset: int = 0,
+                fixed: bool = True,
             ) -> tuple[T, ...] | int | None:
                 """
                 Unpacks multiple values from provided buffer
@@ -248,7 +252,10 @@ class IntType(int, IntTypeBase, metaclass=MetaIntType):
 
     @classmethod
     def unpack(
-        cls, other: bytes, offset: int = 0, fixed: bool = True
+        cls,
+        other: bytes,
+        offset: int = 0,
+        fixed: bool = True,
     ) -> IntType | int | None:
         """
         Unpacks single value from provided buffer with little-endian order
@@ -272,7 +279,10 @@ class IntType(int, IntTypeBase, metaclass=MetaIntType):
 
     @classmethod
     def unpack_be(
-        cls, other: bytes, offset: int = 0, fixed: bool = True
+        cls,
+        other: bytes,
+        offset: int = 0,
+        fixed: bool = True,
     ) -> IntType | int | None:
         """
         Unpacks single value from provided buffer with big-endian order

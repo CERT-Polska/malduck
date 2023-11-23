@@ -56,7 +56,7 @@ def fixpe(mempath, outpath, force, base):
     with ProcessMemoryPE.from_file(mempath, base=base) as p:
         if not force and p.is_image_loaded_as_memdump():
             click.echo(
-                "Input file looks like correct PE file. Use -f if you want to fix it anyway."
+                "Input file looks like correct PE file. Use -f if you want to fix it anyway.",
             )
             return 1
         outpath = outpath or mempath + ".exe"
@@ -119,7 +119,8 @@ def extract(ctx, paths, base, analysis, modules):
     for path in paths:
         if os.path.isdir(path):
             files = filter(
-                os.path.isfile, map(lambda f: os.path.join(path, f), os.listdir(path))
+                os.path.isfile,
+                map(lambda f: os.path.join(path, f), os.listdir(path)),
             )
         elif os.path.isfile(path):
             files = [path]

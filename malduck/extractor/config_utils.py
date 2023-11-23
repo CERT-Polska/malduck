@@ -67,6 +67,6 @@ def apply_config_part(base_config: Config, new_config_part: Config) -> Config:
         else:
             raise RuntimeError(
                 f"Extractor tries to override '{config[k]}' "
-                f"value of '{k}' with '{v}'"
+                f"value of '{k}' with '{v}'",
             )
     return config

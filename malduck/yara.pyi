@@ -40,7 +40,9 @@ class Yara:
     ) -> None: ...
     @staticmethod
     def from_dir(
-        path: str, recursive: bool = True, followlinks: bool = True
+        path: str,
+        recursive: bool = True,
+        followlinks: bool = True,
     ) -> Yara: ...
     # match(...)
     # match(offset_mapper, ...)
@@ -55,7 +57,10 @@ class Yara:
     # match(offset_mapper, extended=True, ...)
     @overload
     def match(
-        self, offset_mapper: OffsetMapper | None, extended: Literal[True], **kwargs
+        self,
+        offset_mapper: OffsetMapper | None,
+        extended: Literal[True],
+        **kwargs,
     ) -> YaraRulesetMatch: ...
     # match(extended=True, ...)
     @overload
@@ -75,7 +80,10 @@ class YaraString:
     type: YaraStringType
     modifiers: list[str]
     def __init__(
-        self, value: str, type: YaraStringType = YaraStringType.TEXT, **modifiers: bool
+        self,
+        value: str,
+        type: YaraStringType = YaraStringType.TEXT,
+        **modifiers: bool,
     ) -> None: ...
     def __str__(self) -> str: ...
 
@@ -88,10 +96,14 @@ class YaraRulesetMatch(_Mapper["YaraRuleMatch"]):
     ) -> None:
         super().__init__(elements={})
     def _map_matches(
-        self, matches: list[YaraRulesMatch], offset_mapper: OffsetMapper | None
+        self,
+        matches: list[YaraRulesMatch],
+        offset_mapper: OffsetMapper | None,
     ) -> dict[str, YaraRuleMatch]: ...
     def _map_strings(
-        self, strings: Iterable[YaraRulesString], offset_mapper: OffsetMapper | None
+        self,
+        strings: Iterable[YaraRulesString],
+        offset_mapper: OffsetMapper | None,
     ) -> dict[str, list[YaraStringMatch]]: ...
     def _parse_string_identifier(self, identifier: str) -> tuple[str, str]: ...
     def remap(self, offset_mapper: OffsetMapper | None = None) -> YaraRulesetMatch: ...
@@ -101,7 +113,8 @@ class YaraRulesetOffsets(_Mapper["YaraRuleOffsets"]):
     def __init__(self, matches: YaraRulesetMatch) -> None:
         super().__init__(elements={})
     def remap(
-        self, offset_mapper: OffsetMapper | None = None
+        self,
+        offset_mapper: OffsetMapper | None = None,
     ) -> YaraRulesetOffsets: ...
 
 YaraStringMatch = namedtuple("YaraStringMatch", ["identifier", "offset", "content"])

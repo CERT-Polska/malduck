@@ -60,7 +60,10 @@ class ProcessMemory:
     def from_file(cls: type[T], filename: str, **kwargs) -> T: ...
     @classmethod
     def from_memory(
-        cls: type[T], memory: ProcessMemory, base: int = None, **kwargs
+        cls: type[T],
+        memory: ProcessMemory,
+        base: int = None,
+        **kwargs,
     ) -> T: ...
     @property
     def length(self) -> int: ...
@@ -193,16 +196,28 @@ class ProcessMemory:
         length: int | None = None,
     ) -> Iterator[int]: ...
     def findp(
-        self, query: bytes, offset: int | None = None, length: int | None = None
+        self,
+        query: bytes,
+        offset: int | None = None,
+        length: int | None = None,
     ) -> Iterator[int]: ...
     def findv(
-        self, query: bytes, addr: int | None = None, length: int | None = None
+        self,
+        query: bytes,
+        addr: int | None = None,
+        length: int | None = None,
     ) -> Iterator[int]: ...
     def regexp(
-        self, query: bytes, offset: int | None = None, length: int | None = None
+        self,
+        query: bytes,
+        offset: int | None = None,
+        length: int | None = None,
     ) -> Iterator[int]: ...
     def regexv(
-        self, query: bytes, addr: int | None = None, length: int | None = None
+        self,
+        query: bytes,
+        addr: int | None = None,
+        length: int | None = None,
     ) -> Iterator[int]: ...
     def disasmv(
         self,
@@ -244,12 +259,20 @@ class ProcessMemory:
     # yarap(ruleset, 0, extended=True)
     @overload
     def yarap(
-        self, ruleset: Yara, offset: int | None, *, extended: Literal[True]
+        self,
+        ruleset: Yara,
+        offset: int | None,
+        *,
+        extended: Literal[True],
     ) -> YaraRulesetMatch: ...
     # yarap(ruleset, length=0, extended=True)
     @overload
     def yarap(
-        self, ruleset: Yara, *, length: int | None, extended: Literal[True]
+        self,
+        ruleset: Yara,
+        *,
+        length: int | None,
+        extended: Literal[True],
     ) -> YaraRulesetMatch: ...
     # yarav(ruleset)
     # yarav(ruleset, addr)
@@ -279,12 +302,20 @@ class ProcessMemory:
     # yarav(ruleset, 0, extended=True)
     @overload
     def yarav(
-        self, ruleset: Yara, addr: int | None, *, extended: Literal[True]
+        self,
+        ruleset: Yara,
+        addr: int | None,
+        *,
+        extended: Literal[True],
     ) -> YaraRulesetMatch: ...
     # yarav(ruleset, length=0, extended=True)
     @overload
     def yarav(
-        self, ruleset: Yara, *, length: int | None, extended: Literal[True]
+        self,
+        ruleset: Yara,
+        *,
+        length: int | None,
+        extended: Literal[True],
     ) -> YaraRulesetMatch: ...
     def _findbytes(
         self,
