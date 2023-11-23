@@ -20,7 +20,7 @@ class ProcessMemoryDnPE(ProcessMemoryPE):
         detect_image: bool = False,
     ) -> None:
         self._pe: DnPE | None = None
-        super(ProcessMemoryPE, self).__init__(
+        super().__init__(
             buf, base=base, regions=regions, image=image, detect_image=detect_image
         )
 

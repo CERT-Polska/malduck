@@ -12,7 +12,7 @@ class CuckooProcessMemory(ProcessMemory):
     """Wrapper object to operate on process memory dumps in Cuckoo 2.x format."""
 
     def __init__(self, buf: ProcessMemoryBuffer, base: int | None = None, **_) -> None:
-        super(CuckooProcessMemory, self).__init__(buf)
+        super().__init__(buf)
         ptr = 0
         self.regions = []
 
