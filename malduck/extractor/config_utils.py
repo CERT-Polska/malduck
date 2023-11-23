@@ -44,7 +44,7 @@ def sanitize_config(config: Config) -> Config:
     :param config: Configuration to sanitize
     :return: Sanitized configuration
     """
-    return {k: v for k, v in config.items() if v in [0, False] or v}
+    return {k: v for k, v in config.items() if v == 0 or v}
 
 
 def apply_config_part(base_config: Config, new_config_part: Config) -> Config:

@@ -261,7 +261,7 @@ class PE:
                 # Probably fixpe'd - seems to be ok
                 return True
             return not all(
-                b in [0, "\0"]
+                b in (0, "\0")
                 for b in self.pe.__data__[
                     section_start_offs : section_start_offs + data_len
                 ]
