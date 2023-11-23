@@ -64,7 +64,7 @@ def apply_config_part(base_config: Config, new_config_part: Config) -> Config:
         elif isinstance(config[k], list):
             for el in v:
                 if el not in config[k]:
-                    config[k] = config[k] + [el]
+                    config[k] += [el]
         else:
             raise RuntimeError(
                 f"Extractor tries to override '{config[k]}' "
