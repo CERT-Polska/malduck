@@ -203,7 +203,7 @@ class ProcessMemoryPE(ProcessMemoryBinary):
         pe.optional_header.ImageBase = self.imgbase
 
         # Generate header data
-        pe_data = b"".join([bytes(pe.pe.write())] + data)
+        pe_data = b"".join((bytes(pe.pe.write()), *data))
 
         # Return PE file data
         return pe_data
