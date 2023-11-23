@@ -6,8 +6,11 @@ import elftools
 import elftools.elf.elffile
 
 from .binmem import ProcessMemoryBinary
-from .procmem import ProcessMemoryBuffer
 from .region import Region
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .procmem import ProcessMemoryBuffer
 
 __all__ = ["ProcessMemoryELF", "procmemelf"]
 

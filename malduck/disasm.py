@@ -7,10 +7,10 @@ from __future__ import annotations
 import collections
 from typing import TYPE_CHECKING
 
-from capstone import CsInsn
-from capstone.x86 import X86Op
 
 if TYPE_CHECKING:
+    from capstone import CsInsn
+    from capstone.x86 import X86Op
     from collections.abc import Iterator
     from typing import Any
 

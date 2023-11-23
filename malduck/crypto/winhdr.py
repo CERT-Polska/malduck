@@ -3,13 +3,13 @@
 # See the file 'docs/LICENSE.txt' for copying permission.
 from __future__ import annotations
 
-import io
 from typing import TYPE_CHECKING
 
 from ..ints import UInt8, UInt16, UInt32
 from ..structure import Structure
 
 if TYPE_CHECKING:
+    import io
     from typing import Any
 
 

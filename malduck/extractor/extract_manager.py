@@ -6,7 +6,6 @@ import warnings
 from typing import TYPE_CHECKING
 
 from ..procmem import ProcessMemory, ProcessMemoryELF, ProcessMemoryPE
-from ..procmem.binmem import ProcessMemoryBinary
 from ..yara import Yara, YaraRuleOffsets, YaraRulesetMatch
 from .config_utils import (
     apply_config_part,
@@ -14,10 +13,11 @@ from .config_utils import (
     is_config_better,
     sanitize_config,
 )
-from .extractor import Extractor
-from .modules import ExtractorModules
 
 if TYPE_CHECKING:
+    from .modules import ExtractorModules
+    from .extractor import Extractor
+    from ..procmem.binmem import ProcessMemoryBinary
     from typing import Any, Optional
 
     from .config_utils import Config

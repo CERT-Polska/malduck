@@ -1,9 +1,12 @@
 from __future__ import annotations
 
 from ..dnpe import DnPE
-from .binmem import ProcessMemoryBuffer
 from .procmempe import ProcessMemoryPE
-from .region import Region
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .region import Region
+    from .binmem import ProcessMemoryBuffer
 
 __all__ = ["ProcessMemoryDnPE", "procmemdnpe"]
 

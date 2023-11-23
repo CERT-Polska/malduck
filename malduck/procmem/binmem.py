@@ -5,9 +5,9 @@ from abc import ABCMeta, abstractmethod
 from typing import TYPE_CHECKING, TypeVar
 
 from .procmem import ProcessMemory, ProcessMemoryBuffer
-from .region import Region
 
 if TYPE_CHECKING:
+    from .region import Region
     from collections.abc import Iterator
 
 log = logging.getLogger(__name__)
