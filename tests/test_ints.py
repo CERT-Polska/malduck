@@ -1,7 +1,20 @@
 from malduck import (
-    Int8, Int16, Int32, Int64, UInt8, UInt16, UInt32, UInt64,
-    u8, u16, u32, u64,
-    p8, p16, p32, p64
+    Int8,
+    Int16,
+    Int32,
+    Int64,
+    UInt8,
+    UInt16,
+    UInt32,
+    UInt64,
+    p8,
+    p16,
+    p32,
+    p64,
+    u8,
+    u16,
+    u32,
+    u64,
 )
 
 

@@ -2,7 +2,7 @@
 # This file is part of Roach - https://github.com/jbremer/roach.
 # See the file 'docs/LICENSE.txt' for copying permission.
 
-from malduck import enhex, crc32, md5, sha1, sha224, sha256, sha384, sha512
+from malduck import crc32, enhex, md5, sha1, sha224, sha256, sha384, sha512
 
 
 def test_hash():

@@ -1,4 +1,5 @@
 import pytest
+
 from malduck import procmem
 from malduck.procmem import Region
 

@@ -1,7 +1,7 @@
 import os
 
 from malduck import procmem, procmempe
-from malduck.extractor import ExtractorModules, ExtractManager
+from malduck.extractor import ExtractManager, ExtractorModules
 
 
 def test_scan_base64():

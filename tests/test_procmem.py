@@ -5,9 +5,20 @@
 import os
 import struct
 import tempfile
+
 import pytest
 
-from malduck import procmem, procmempe, procmemdnpe, cuckoomem, pad, pe, insn, PAGE_READWRITE, enhex
+from malduck import (
+    PAGE_READWRITE,
+    cuckoomem,
+    enhex,
+    insn,
+    pad,
+    pe,
+    procmem,
+    procmemdnpe,
+    procmempe,
+)
 from malduck.procmem import Region
 
 
