@@ -55,12 +55,10 @@ class MemoryPEData:
     def find(self, str: bytes, beg: int = 0, end: int | None = None) -> int:
         if end and beg >= end:
             return -1
-        try:
-            return next(
-                self.memory.regexv(str, self.memory.imgbase + beg, end and end - beg),
-            )
-        except StopIteration:
-            return -1
+        return next(
+            self.memory.regexv(str, self.memory.imgbase + beg, end and end - beg),
+            -1,
+        )
 
 
 class PE:
@@ -329,10 +327,7 @@ class PE:
         :type name: int or str or bytes
         :rtype: bytes or None
         """
-        try:
-            return next(self.resources(name))
-        except StopIteration:
-            return None
+        return next(self.resources(name), None)
 
 
 pe = PE
