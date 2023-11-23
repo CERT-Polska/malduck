@@ -62,8 +62,7 @@ def fixpe(mempath, outpath, force, base):
         outpath = outpath or mempath + ".exe"
         if not force and os.path.isfile(outpath):
             click.confirm(f"{outpath} exists. Overwrite?", abort=True)
-        with open(outpath, "wb") as f:
-            f.write(p.store())
+        Path(outpath).write_bytes(p.store())
         click.echo(f"Fixed {mempath} => {outpath}")
 
 
@@ -145,8 +144,7 @@ def extract(ctx, paths, base, analysis, modules):
 @click.argument("outpath", type=click.Path())
 def extract_resources(filepath, outpath):
     """Extract PE resources from an EXE into a directory"""
-    with open(filepath, "rb") as f:
-        pe = PE(data=f.read())
+    pe = PE(data=Path(filepath).read_bytes())
 
     out_dir = Path(outpath)
     out_dir.mkdir(exist_ok=True)

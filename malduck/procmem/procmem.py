@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import mmap
 import re
+from pathlib import Path
 from typing import TYPE_CHECKING, cast
 
 from ..disasm import disasm
@@ -186,7 +187,7 @@ class ProcessMemory:
                 mem = p.readv(...)
                 ...
         """
-        file = open(filename, "rb")
+        file = Path(filename).open("rb")
         try:
             # Allow copy-on-write
             if hasattr(mmap, "ACCESS_COPY"):
