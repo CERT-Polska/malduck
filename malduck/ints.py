@@ -189,63 +189,63 @@ class IntType(int, IntTypeBase, metaclass=MetaIntType):
 
     def __add__(self, other: Any) -> IntType:
         res = super().__add__(other)
-        return self.__class__(res)
+        return type(self)(res)
 
     def __sub__(self, other: Any) -> IntType:
         res = super().__sub__(other)
-        return self.__class__(res)
+        return type(self)(res)
 
     def __mul__(self, other: Any) -> IntType:
         res = super().__mul__(other)
-        return self.__class__(res)
+        return type(self)(res)
 
     def __truediv__(self, other: Any) -> IntType:
         res = super().__truediv__(other)
-        return self.__class__(res)
+        return type(self)(res)
 
     def __floordiv__(self, other: Any) -> IntType:
         res = super().__floordiv__(other)
-        return self.__class__(res)
+        return type(self)(res)
 
     def __and__(self, other: Any) -> IntType:
         res = super().__and__(other)
-        return self.__class__(res)
+        return type(self)(res)
 
     def __xor__(self, other: Any) -> IntType:
         res = super().__xor__(other)
-        return self.__class__(res)
+        return type(self)(res)
 
     def __or__(self, other: Any) -> IntType:
         res = super().__or__(other)
-        return self.__class__(res)
+        return type(self)(res)
 
     def __lshift__(self, other: Any) -> IntType:
         res = super().__lshift__(other)
-        return self.__class__(res)
+        return type(self)(res)
 
     def __pos__(self) -> IntType:
         res = super().__pos__()
-        return self.__class__(res)
+        return type(self)(res)
 
     def __abs__(self) -> IntType:
         res = super().__abs__()
-        return self.__class__(res)
+        return type(self)(res)
 
     def __rshift__(self, other: Any) -> IntType:
-        res = int.__rshift__(int(self) & self.__class__.mask, other)
-        return self.__class__(res)
+        res = int.__rshift__(int(self) & type(self).mask, other)
+        return type(self)(res)
 
     def __neg__(self) -> IntType:
-        res = (int(self) ^ self.__class__.mask) + 1
-        return self.__class__(res)
+        res = (int(self) ^ type(self).mask) + 1
+        return type(self)(res)
 
     def __invert__(self) -> IntType:
-        res = int(self) ^ self.__class__.mask
-        return self.__class__(res)
+        res = int(self) ^ type(self).mask
+        return type(self)(res)
 
     def rol(self, other) -> IntType:
         """Bitwise rotate left"""
-        return self.__class__(rol(int(self), other, bits=self.bits))
+        return type(self)(rol(int(self), other, bits=self.bits))
 
     def ror(self, other) -> IntType:
         """Bitwise rotate right"""

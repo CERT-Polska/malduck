@@ -55,7 +55,7 @@ class ProcessMemoryBinary(ProcessMemory, metaclass=ABCMeta):
             return None
         try:
             if not self._image:
-                self._image = self.__class__.from_memory(self, image=True)
+                self._image = type(self).from_memory(self, image=True)
             return self._image
         except Exception:
             import traceback
@@ -106,7 +106,7 @@ class ProcessMemoryBinary(ProcessMemory, metaclass=ABCMeta):
 
     def __repr__(self):
         return ":".join((
-            self.__class__.__name__,
+            type(self).__name__,
             "IMG" if self.is_image else "DMP",
             f"{self.imgbase:x}"
         ))

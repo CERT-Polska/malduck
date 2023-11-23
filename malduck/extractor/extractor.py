@@ -27,9 +27,9 @@ class ExtractorMethod:
         if not isinstance(procmem, self.procmem_type):
             log.debug(
                 "Omitting %s.%s - %s is not %s",
-                self.__class__.__name__,
+                type(self).__name__,
                 self.method.__name__,
-                procmem.__class__.__name__,
+                type(procmem).__name__,
                 self.procmem_type.__name__,
             )
             return
@@ -420,14 +420,14 @@ class Extractor:
         :return: :class:`logging.Logger`
         """
         return logging.getLogger(
-            f"{self.__class__.__module__}.{self.__class__.__name__}",
+            f"{type(self).__module__}.{type(self).__name__}",
         )
 
     def _get_methods(self, method_type):
         return (
             (name, method)
             for name, method in inspect.getmembers(
-                self.__class__,
+                type(self),
                 predicate=lambda member: isinstance(member, method_type),
             )
             if isinstance(method, method_type)
@@ -473,7 +473,7 @@ class Extractor:
                 try:
                     log.debug(
                         "Trying %s.%s for %s@%x",
-                        self.__class__.__name__,
+                        type(self).__name__,
                         method_name,
                         identifier,
                         string_match.offset,
@@ -492,7 +492,7 @@ class Extractor:
                     try:
                         log.debug(
                             "Trying %s.%s for %s@%x",
-                            self.__class__.__name__,
+                            type(self).__name__,
                             method_name,
                             string_match.identifier,
                             string_match.offset,
@@ -505,7 +505,7 @@ class Extractor:
         for method_name, method in self._get_methods(RuleExtractorMethod):
             if match.name != method.rule_name:
                 continue
-            log.debug("Trying %s.%s (rule)", self.__class__.__name__, method_name)
+            log.debug("Trying %s.%s (rule)", type(self).__name__, method_name)
             try:
                 method(self, p, match)
             except Exception as exc:
@@ -513,7 +513,7 @@ class Extractor:
 
         # Call final extractors
         for method_name, method in self._get_methods(FinalExtractorMethod):
-            log.debug("Trying %s.%s (final)", self.__class__.__name__, method_name)
+            log.debug("Trying %s.%s (final)", type(self).__name__, method_name)
             try:
                 method(self, p)
             except Exception as exc:

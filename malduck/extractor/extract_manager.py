@@ -97,7 +97,7 @@ class ExtractManager:
 
         log.warning(
             "%s.%s raised an exception: %s",
-            extractor.__class__.__name__,
+            type(extractor).__name__,
             method_name,
             traceback.format_exc(),
         )
@@ -135,7 +135,7 @@ class ExtractManager:
             carved_bins = list(binclass.load_binaries_from_memory(p))
             for carved_bin in carved_bins:
                 log.debug(
-                    f"carve: Found {carved_bin.__class__.__name__} "
+                    f"carve: Found {type(carved_bin).__name__} "
                     f"at offset {carved_bin.regions[0].offset}",
                 )
             binaries += carved_bins
@@ -296,7 +296,7 @@ class ExtractionContext:
 
             if type(extractor.yara_rules) is str:
                 raise TypeError(
-                    f'"{extractor.__class__.__name__}.yara_rules" cannot be a string, '
+                    f'"{type(extractor).__name__}.yara_rules" cannot be a string, '
                     'convert it into a list of strings',
                 )
 
@@ -346,14 +346,14 @@ class ExtractionContext:
 
         log.debug(
             "%s found the following config parts: %s",
-            extractor.__class__.__name__,
+            type(extractor).__name__,
             sorted(config.keys()),
         )
 
         if "family" in config:
             log.debug(
                 "%s tells it's %s",
-                extractor.__class__.__name__,
+                type(extractor).__name__,
                 config["family"],
             )
             if (
