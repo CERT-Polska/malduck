@@ -297,7 +297,7 @@ class ExtractionContext:
             if type(extractor.yara_rules) is str:
                 raise TypeError(
                     f'"{type(extractor).__name__}.yara_rules" cannot be a string, '
-                    'convert it into a list of strings',
+                    "convert it into a list of strings",
                 )
 
             # For each rule identifier in extractor.yara_rules...
