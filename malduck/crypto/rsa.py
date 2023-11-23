@@ -1,11 +1,12 @@
 # Copyright (C) 2018 Jurriaan Bremer.
 # This file is part of Roach - https://github.com/jbremer/roach.
 # See the file 'docs/LICENSE.txt' for copying permission.
+from __future__ import annotations
 
 import io
 from io import BytesIO
 from itertools import takewhile
-from typing import Optional, cast
+from typing import cast
 
 from Cryptodome.PublicKey import RSA as RSA_
 
@@ -20,10 +21,10 @@ class PublicKeyBlob(BaseBlob):
 
     def __init__(self) -> None:
         BaseBlob.__init__(self)
-        self.e: Optional[int] = None
-        self.n: Optional[int] = None
+        self.e: int | None = None
+        self.n: int | None = None
 
-    def parse(self, buf: BytesIO) -> Optional[int]:
+    def parse(self, buf: BytesIO) -> int | None:
         header = buf.read(12)
         if len(header) != 12 or header[:4] != self.magic:
             return None
@@ -49,12 +50,12 @@ class PrivateKeyBlob(PublicKeyBlob):
 
     def __init__(self) -> None:
         PublicKeyBlob.__init__(self)
-        self.p1: Optional[int] = None
-        self.p2: Optional[int] = None
-        self.exp1: Optional[int] = None
-        self.exp2: Optional[int] = None
-        self.coeff: Optional[int] = None
-        self.d: Optional[int] = None
+        self.p1: int | None = None
+        self.p2: int | None = None
+        self.exp1: int | None = None
+        self.exp2: int | None = None
+        self.coeff: int | None = None
+        self.d: int | None = None
 
     def parse(self, buf: BytesIO) -> None:
         off = PublicKeyBlob.parse(self, buf)
@@ -101,7 +102,7 @@ class RSA:
     algorithms = (0x0000A400,)  # RSA
 
     @staticmethod
-    def import_key(data: bytes) -> Optional[bytes]:
+    def import_key(data: bytes) -> bytes | None:
         r"""
         Extracts key from buffer containing :class:`PublicKeyBlob` or :class:`PrivateKeyBlob` data
 
@@ -134,10 +135,10 @@ class RSA:
     def export_key(
         n: int,
         e: int,
-        d: Optional[int] = None,
-        p: Optional[int] = None,
-        q: Optional[int] = None,
-        crt: Optional[int] = None,
+        d: int | None = None,
+        p: int | None = None,
+        q: int | None = None,
+        crt: int | None = None,
     ) -> bytes:
         r"""
         Constructs key from tuple of RSA components

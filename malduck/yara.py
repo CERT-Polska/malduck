@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import enum
 import json
 import logging
@@ -5,9 +7,17 @@ import os
 import re
 import textwrap
 from collections import defaultdict, namedtuple
-from typing import Callable, Dict, Optional, Tuple, TypeVar
+from typing import TYPE_CHECKING, TypeVar
 
 import yara
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    from typing_extensions import TypeAlias
+
+    YaraRulesString: TypeAlias = tuple[int, str, bytes]
+    OffsetMapper: TypeAlias = Callable[[int | None, int | None], int | None]
 
 __all__ = [
     "Yara",
@@ -24,9 +34,6 @@ __all__ = [
 log = logging.getLogger(__name__)
 
 T = TypeVar("T")
-OffsetMapper = Callable[[Optional[int], Optional[int]], Optional[int]]
-
-YaraRulesString = Tuple[int, str, bytes]
 
 
 class _Mapper:
@@ -155,7 +162,7 @@ class Yara:
         :type followlinks: bool
         :rtype: :class:`Yara`
         """
-        rule_paths: Dict[str, str] = {}
+        rule_paths: dict[str, str] = {}
         for root, _, files in os.walk(path, followlinks=followlinks):
             for fname in files:
                 if not fname.endswith(".yar") and not fname.endswith(".yara"):

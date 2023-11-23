@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from .procmem import MemoryBuffer, ProcessMemory
 from .region import Region
 

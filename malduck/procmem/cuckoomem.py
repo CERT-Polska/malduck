@@ -1,5 +1,6 @@
+from __future__ import annotations
+
 import struct
-from typing import Optional
 
 from .procmem import ProcessMemory, ProcessMemoryBuffer
 from .region import Region
@@ -10,9 +11,7 @@ __all__ = ["CuckooProcessMemory", "cuckoomem"]
 class CuckooProcessMemory(ProcessMemory):
     """Wrapper object to operate on process memory dumps in Cuckoo 2.x format."""
 
-    def __init__(
-        self, buf: ProcessMemoryBuffer, base: Optional[int] = None, **_
-    ) -> None:
+    def __init__(self, buf: ProcessMemoryBuffer, base: int | None = None, **_) -> None:
         super(CuckooProcessMemory, self).__init__(buf)
         ptr = 0
         self.regions = []

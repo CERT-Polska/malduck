@@ -1,5 +1,6 @@
+from __future__ import annotations
+
 import io
-from typing import List, Optional
 
 import elftools
 import elftools.elf.elffile
@@ -27,7 +28,7 @@ class ProcessMemoryELF(ProcessMemoryBinary):
         self,
         buf: ProcessMemoryBuffer,
         base: int = 0,
-        regions: Optional[List[Region]] = None,
+        regions: list[Region] | None = None,
         image: bool = False,
         detect_image: bool = False,
     ) -> None:

@@ -1,9 +1,9 @@
 # Copyright (C) 2018 Jurriaan Bremer.
 # This file is part of Roach - https://github.com/jbremer/roach.
 # See the file 'docs/LICENSE.txt' for copying permission.
+from __future__ import annotations
 
 import io
-from typing import Optional, Tuple
 
 from Cryptodome.Cipher import AES as AESCipher
 
@@ -27,7 +27,7 @@ class PlaintextKeyBlob(BaseBlob):
 
     def __init__(self) -> None:
         BaseBlob.__init__(self)
-        self.key: Optional[bytes] = None
+        self.key: bytes | None = None
 
     def parse(self, buf: io.BytesIO) -> None:
         """
@@ -42,7 +42,7 @@ class PlaintextKeyBlob(BaseBlob):
             return
         self.key = value
 
-    def export_key(self) -> Optional[Tuple[str, bytes]]:
+    def export_key(self) -> tuple[str, bytes] | None:
         """
         Exports key from structure or returns None if no key was imported
 
@@ -164,7 +164,7 @@ class Aes:
     ctr = AesCtr()
 
     @staticmethod
-    def import_key(data: bytes) -> Optional[Tuple[str, bytes]]:
+    def import_key(data: bytes) -> tuple[str, bytes] | None:
         """
         Extracts key from buffer containing :class:`PlaintextKeyBlob` data
 

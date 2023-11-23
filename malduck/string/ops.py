@@ -1,10 +1,17 @@
 # Copyright (C) 2018 Jurriaan Bremer.
 # This file is part of Roach - https://github.com/jbremer/roach.
 # See the file 'docs/LICENSE.txt' for copying permission.
+from __future__ import annotations
 
 import binascii
 from base64 import b64decode, b64encode
-from typing import Iterator, List, Optional, Sequence, Tuple, TypeVar, Union, cast
+from typing import TYPE_CHECKING, cast
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator, Sequence
+    from typing import TypeVar
+
+    T = TypeVar("T", bound=Sequence)
 
 __all__ = [
     "asciiz",
@@ -24,8 +31,6 @@ __all__ = [
     "unpkcs7",
 ]
 
-T = TypeVar("T", bound=Sequence)
-
 
 def asciiz(s: bytes) -> bytes:
     """
@@ -39,10 +44,10 @@ def asciiz(s: bytes) -> bytes:
 
 def chunks_iter(s: T, n: int) -> Iterator[T]:
     """Yield successive n-sized chunks from s."""
-    return (cast(T, s[i : i + n]) for i in range(0, len(s), n))
+    return (cast("T", s[i : i + n]) for i in range(0, len(s), n))
 
 
-def chunks(s: T, n: int) -> List[T]:
+def chunks(s: T, n: int) -> list[T]:
     """Return list of successive n-sized chunks from s."""
     return list(chunks_iter(s, n))
 
@@ -76,11 +81,11 @@ def enhex(s: bytes) -> bytes:
     return binascii.hexlify(s)
 
 
-def unhex(s: Union[str, bytes]) -> bytes:
+def unhex(s: str | bytes) -> bytes:
     return binascii.unhexlify(s)
 
 
-def uleb128(s: bytes) -> Optional[Tuple[int, int]]:
+def uleb128(s: bytes) -> tuple[int, int] | None:
     """Unsigned Little-Endian Base 128"""
     ret = 0
     for idx in range(len(s)):
@@ -98,7 +103,7 @@ class Base64:
     def encode(self, s: bytes) -> bytes:
         return b64encode(s)
 
-    def decode(self, s: Union[str, bytes]) -> bytes:
+    def decode(self, s: str | bytes) -> bytes:
         return b64decode(s)
 
     __call__ = decode

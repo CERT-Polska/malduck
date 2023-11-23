@@ -2,11 +2,17 @@
 # This file is part of Roach - https://github.com/jbremer/roach.
 # See the file 'docs/LICENSE.txt' for copying permission.
 
+from __future__ import annotations
+
 import collections
-from typing import Any, Dict, Iterator, List, Optional, Union
+from typing import TYPE_CHECKING
 
 from capstone import CsInsn
 from capstone.x86 import X86Op
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
+    from typing import Any
 
 __all__ = ["disasm", "insn", "Disassemble", "Instruction", "Operand", "Memory"]
 
@@ -22,7 +28,7 @@ class Operand:
     _x86_op_imm = None
     _x86_op_reg = None
     _x86_op_mem = None
-    regs: Dict[str, Union[str, int]] = {}
+    regs: dict[str, str | int] = {}
 
     sizes = {
         1: "byte",
@@ -51,7 +57,7 @@ class Operand:
         return self.op.type == Operand._x86_op_mem
 
     @property
-    def value(self) -> Union[str, int]:
+    def value(self) -> str | int:
         """
         Returns operand value or displacement value for memory operands
 
@@ -67,7 +73,7 @@ class Operand:
             raise Exception("Invalid Operand type")
 
     @property
-    def reg(self) -> Optional[Union[str, int]]:
+    def reg(self) -> str | int | None:
         """
         Returns register used by operand.
 
@@ -85,7 +91,7 @@ class Operand:
         return None
 
     @property
-    def mem(self) -> Optional[Memory]:
+    def mem(self) -> Memory | None:
         """
         Returns :class:`Memory` object for memory operands
         """
@@ -93,9 +99,9 @@ class Operand:
             return None
 
         mem = self.op.value.mem
-        base: Optional[Union[str, int]] = None
-        index: Optional[Union[str, int]] = None
-        scale: Optional[int] = None
+        base: str | int | None = None
+        index: str | int | None = None
+        scale: int | None = None
 
         if mem.base:
             base = self.regs[mem.base]
@@ -171,11 +177,11 @@ class Instruction:
 
     def __init__(
         self,
-        mnem: Optional[str] = None,
-        op1: Optional[Operand] = None,
-        op2: Optional[Operand] = None,
-        op3: Optional[Operand] = None,
-        addr: Optional[int] = None,
+        mnem: str | None = None,
+        op1: Operand | None = None,
+        op2: Operand | None = None,
+        op3: Operand | None = None,
+        addr: int | None = None,
         x64: bool = False,
     ) -> None:
         self.insn = None
@@ -188,35 +194,35 @@ class Instruction:
         self.insn = insn
         self.mnem = insn.mnemonic
 
-        operands: List[Optional[Operand]] = []
+        operands: list[Operand | None] = []
         for op in insn.operands + [None, None, None]:
             operands.append(Operand(op, self.x64) if op else None)
         self.operands = operands[0], operands[1], operands[2]
 
     @staticmethod
-    def from_capstone(insn: CsInsn, x64: bool = False) -> "Instruction":
+    def from_capstone(insn: CsInsn, x64: bool = False) -> Instruction:
         ret = Instruction()
         ret.x64 = x64
         ret.parse(insn)
         return ret
 
     @property
-    def op1(self) -> Optional[Operand]:
+    def op1(self) -> Operand | None:
         """First operand"""
         return self.operands[0]
 
     @property
-    def op2(self) -> Optional[Operand]:
+    def op2(self) -> Operand | None:
         """Second operand"""
         return self.operands[1]
 
     @property
-    def op3(self) -> Optional[Operand]:
+    def op3(self) -> Operand | None:
         """Third operand"""
         return self.operands[2]
 
     @property
-    def addr(self) -> Optional[int]:
+    def addr(self) -> int | None:
         """Instruction address"""
         if self._addr:
             return self._addr

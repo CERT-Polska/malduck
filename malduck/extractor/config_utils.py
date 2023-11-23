@@ -1,10 +1,18 @@
+from __future__ import annotations
+
 import logging
-from typing import Any, Dict
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from typing import Any
+
+    from typing_extensions import TypeAlias
+
+    Config: TypeAlias = dict[str, Any]
+    ConfigSet: TypeAlias = dict[str, Config]
+
 
 log = logging.getLogger(__name__)
-
-Config = Dict[str, Any]
-ConfigSet = Dict[str, Config]
 
 
 def is_config_better(base_config: Config, new_config: Config) -> bool:

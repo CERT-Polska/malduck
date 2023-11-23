@@ -1,8 +1,14 @@
+from __future__ import annotations
+
 from abc import ABCMeta, abstractmethod
 from struct import error, pack, unpack_from
-from typing import Any, Generic, Iterator, Tuple, Type, TypeVar, Union
+from typing import TYPE_CHECKING, Generic, TypeVar
 
 from .bits import rol
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
+    from typing import Any
 
 __all__ = [
     "QWORD",
@@ -40,7 +46,7 @@ class MultipliedIntTypeBase(IntTypeBase, Generic[T], metaclass=ABCMeta):
     @abstractmethod
     def unpack(
         other: bytes, offset: int = 0, foxed: bool = False
-    ) -> Union[Tuple[T, ...], int, None]:
+    ) -> tuple[T, ...] | int | None:
         raise NotImplementedError()
 
 
@@ -68,19 +74,19 @@ class MetaIntType(type):
         """
         return (2**cls.bits) >> 1
 
-    def __mul__(cls: Type[T], multiplier: int) -> Type[MultipliedIntTypeBase[T]]:  # type: ignore
+    def __mul__(cls: type[T], multiplier: int) -> type[MultipliedIntTypeBase[T]]:  # type: ignore
         # mypy doesn't know how to deal with metaclasses
         # that are used for specific base class instantiation
         # We're doing our best, but 'type: ignore' is still needed here
 
         class MultipliedIntTypeClass(MultipliedIntTypeBase):
-            int_type: Type[T] = cls
+            int_type: type[T] = cls
             mul = multiplier
 
             @staticmethod
             def unpack(
                 other: bytes, offset: int = 0, fixed: bool = True
-            ) -> Union[Tuple[T, ...], int, None]:
+            ) -> tuple[T, ...] | int | None:
                 """
                 Unpacks multiple values from provided buffer
                 :param other: Buffer object containing value to unpack
@@ -162,73 +168,73 @@ class IntType(int, IntTypeBase, metaclass=MetaIntType):
     signed = False
     fmt = "Q"
 
-    def __new__(cls: MetaIntType, value: Any) -> "IntType":
+    def __new__(cls: MetaIntType, value: Any) -> IntType:
         value = int(value) & cls.mask
         if cls.signed:
             value |= -(value & cls.invert_mask)
         return int.__new__(cls, value)  # type: ignore
 
-    def __add__(self, other: Any) -> "IntType":
+    def __add__(self, other: Any) -> IntType:
         res = super().__add__(other)
         return self.__class__(res)
 
-    def __sub__(self, other: Any) -> "IntType":
+    def __sub__(self, other: Any) -> IntType:
         res = super().__sub__(other)
         return self.__class__(res)
 
-    def __mul__(self, other: Any) -> "IntType":
+    def __mul__(self, other: Any) -> IntType:
         res = super().__mul__(other)
         return self.__class__(res)
 
-    def __truediv__(self, other: Any) -> "IntType":
+    def __truediv__(self, other: Any) -> IntType:
         res = super().__truediv__(other)
         return self.__class__(res)
 
-    def __floordiv__(self, other: Any) -> "IntType":
+    def __floordiv__(self, other: Any) -> IntType:
         res = super().__floordiv__(other)
         return self.__class__(res)
 
-    def __and__(self, other: Any) -> "IntType":
+    def __and__(self, other: Any) -> IntType:
         res = super().__and__(other)
         return self.__class__(res)
 
-    def __xor__(self, other: Any) -> "IntType":
+    def __xor__(self, other: Any) -> IntType:
         res = super().__xor__(other)
         return self.__class__(res)
 
-    def __or__(self, other: Any) -> "IntType":
+    def __or__(self, other: Any) -> IntType:
         res = super().__or__(other)
         return self.__class__(res)
 
-    def __lshift__(self, other: Any) -> "IntType":
+    def __lshift__(self, other: Any) -> IntType:
         res = super().__lshift__(other)
         return self.__class__(res)
 
-    def __pos__(self) -> "IntType":
+    def __pos__(self) -> IntType:
         res = super().__pos__()
         return self.__class__(res)
 
-    def __abs__(self) -> "IntType":
+    def __abs__(self) -> IntType:
         res = super().__abs__()
         return self.__class__(res)
 
-    def __rshift__(self, other: Any) -> "IntType":
+    def __rshift__(self, other: Any) -> IntType:
         res = int.__rshift__(int(self) & self.__class__.mask, other)
         return self.__class__(res)
 
-    def __neg__(self) -> "IntType":
+    def __neg__(self) -> IntType:
         res = (int(self) ^ self.__class__.mask) + 1
         return self.__class__(res)
 
-    def __invert__(self) -> "IntType":
+    def __invert__(self) -> IntType:
         res = int(self) ^ self.__class__.mask
         return self.__class__(res)
 
-    def rol(self, other) -> "IntType":
+    def rol(self, other) -> IntType:
         """Bitwise rotate left"""
         return self.__class__(rol(int(self), other, bits=self.bits))
 
-    def ror(self, other) -> "IntType":
+    def ror(self, other) -> IntType:
         """Bitwise rotate right"""
         return self.rol(self.bits - other)
 
@@ -243,7 +249,7 @@ class IntType(int, IntTypeBase, metaclass=MetaIntType):
     @classmethod
     def unpack(
         cls, other: bytes, offset: int = 0, fixed: bool = True
-    ) -> Union["IntType", int, None]:
+    ) -> IntType | int | None:
         """
         Unpacks single value from provided buffer with little-endian order
 
@@ -267,7 +273,7 @@ class IntType(int, IntTypeBase, metaclass=MetaIntType):
     @classmethod
     def unpack_be(
         cls, other: bytes, offset: int = 0, fixed: bool = True
-    ) -> Union["IntType", int, None]:
+    ) -> IntType | int | None:
         """
         Unpacks single value from provided buffer with big-endian order
 

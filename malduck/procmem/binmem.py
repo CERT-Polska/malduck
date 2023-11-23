@@ -1,9 +1,14 @@
+from __future__ import annotations
+
 import logging
 from abc import ABCMeta, abstractmethod
-from typing import Iterator, List, Optional, Type, TypeVar
+from typing import TYPE_CHECKING, TypeVar
 
 from .procmem import ProcessMemory, ProcessMemoryBuffer
 from .region import Region
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
 
 log = logging.getLogger(__name__)
 
@@ -15,13 +20,13 @@ class ProcessMemoryBinary(ProcessMemory, metaclass=ABCMeta):
     Abstract class for memory-mapped executable binary
     """
 
-    __magic__: Optional[bytes] = None
+    __magic__: bytes | None = None
 
     def __init__(
         self: T,
         buf: ProcessMemoryBuffer,
         base: int = 0,
-        regions: Optional[List[Region]] = None,
+        regions: list[Region] | None = None,
         image: bool = False,
         detect_image: bool = False,
     ) -> None:
@@ -29,7 +34,7 @@ class ProcessMemoryBinary(ProcessMemory, metaclass=ABCMeta):
         if detect_image:
             image = self.is_image_loaded_as_memdump()
         self.is_image = image
-        self._image: Optional[T] = None
+        self._image: T | None = None
         if image:
             self._reload_as_image()
 
@@ -41,7 +46,7 @@ class ProcessMemoryBinary(ProcessMemory, metaclass=ABCMeta):
         raise NotImplementedError()
 
     @property
-    def image(self: T) -> Optional[T]:
+    def image(self: T) -> T | None:
         """
         Returns ProcessMemory object loaded with image=True or None if can't be loaded or is loaded as image yet
         """
@@ -67,7 +72,7 @@ class ProcessMemoryBinary(ProcessMemory, metaclass=ABCMeta):
         raise NotImplementedError()
 
     @classmethod
-    def load_binaries_from_memory(cls: Type[T], procmem: ProcessMemory) -> Iterator[T]:
+    def load_binaries_from_memory(cls: type[T], procmem: ProcessMemory) -> Iterator[T]:
         """
         Looks for binaries in ProcessMemory object and yields specialized ProcessMemoryBinary objects
         :param procmem: ProcessMemory object to search

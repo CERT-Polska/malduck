@@ -1,7 +1,8 @@
+from __future__ import annotations
+
 import logging
 import struct
 from binascii import crc32
-from typing import Optional
 
 from .components.aplib import APLib
 
@@ -30,7 +31,7 @@ class aPLib:
     :rtype: bytes
     """
 
-    def decompress(self, buf: bytes, headerless: bool = True) -> Optional[bytes]:
+    def decompress(self, buf: bytes, headerless: bool = True) -> bytes | None:
         packed_size = None
         packed_crc = None
         orig_size = None

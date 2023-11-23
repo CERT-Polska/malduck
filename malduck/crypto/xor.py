@@ -1,10 +1,11 @@
+from __future__ import annotations
+
 from itertools import cycle
-from typing import Union
 
 __all__ = ["xor"]
 
 
-def xor(key: Union[int, bytes], data: bytes) -> bytes:
+def xor(key: int | bytes, data: bytes) -> bytes:
     """
     XOR encryption/decryption
 

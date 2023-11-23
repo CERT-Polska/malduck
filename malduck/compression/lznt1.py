@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from .components.lznt1 import decompress_data
 
 __all__ = ["Lznt1", "lznt1"]

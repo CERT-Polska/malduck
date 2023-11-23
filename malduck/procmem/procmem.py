@@ -1,12 +1,19 @@
+from __future__ import annotations
+
 import mmap
 import re
-from typing import BinaryIO, List, Optional, Union, cast
+from typing import TYPE_CHECKING, cast
 
 from ..disasm import disasm
 from ..string.bin import int8, int16, int32, int64, uint8, uint16, uint32, uint64
 from ..string.ops import utf16z
 from ..yara import Yara, YaraString
 from .region import PAGE_EXECUTE_READWRITE, Region
+
+if TYPE_CHECKING:
+    from typing import BinaryIO
+
+    from typing_extensions import TypeAlias
 
 __all__ = ["ProcessMemory", "procmem"]
 
@@ -22,7 +29,7 @@ class MemoryBuffer:
         raise NotImplementedError("__len__ not implemented")
 
 
-ProcessMemoryBuffer = Union[bytes, bytearray, mmap.mmap, MemoryBuffer]
+ProcessMemoryBuffer: TypeAlias = "bytes | bytearray | mmap.mmap | MemoryBuffer"
 
 
 class ProcessMemory:
@@ -88,9 +95,9 @@ class ProcessMemory:
     """
 
     def __init__(self, buf, base=0, regions=None, **_):
-        self.opened_file: Optional[BinaryIO] = None
-        self.mapped_memory: Optional[mmap.mmap] = None
-        self.memory: Optional[bytearray] = None
+        self.opened_file: BinaryIO | None = None
+        self.mapped_memory: mmap.mmap | None = None
+        self.memory: bytearray | None = None
 
         if isinstance(buf, mmap.mmap):
             self.mapped_memory = buf
@@ -146,7 +153,7 @@ class ProcessMemory:
             # Get object contents from mapped_memory
             self.mapped_memory.seek(0)
             contents = self.mapped_memory.read()
-            buf: Optional[bytearray] = bytearray(contents)
+            buf: bytearray | None = bytearray(contents)
         else:
             # Invalidate object
             buf = None
@@ -427,7 +434,7 @@ class ProcessMemory:
         :rtype: Iterator[Tuple[int, bytes]]
         """
         current_addr = 0
-        current_strings: List[bytes] = []
+        current_strings: list[bytes] = []
         prev_region = None
         for region in self.iter_regions(
             addr=addr, length=length, contiguous=contiguous, trim=True

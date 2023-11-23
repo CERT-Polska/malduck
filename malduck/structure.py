@@ -2,8 +2,9 @@
 # This file is part of Roach - https://github.com/jbremer/roach.
 # See the file 'docs/LICENSE.txt' for copying permission.
 
+from __future__ import annotations
+
 import ctypes
-from typing import List, Tuple, Type
 
 from .ints import (
     Int8,
@@ -34,7 +35,7 @@ mapping = {
 
 class Structure:
     _pack_ = 0
-    _fields_: List[Tuple[str, Type]] = []
+    _fields_: list[tuple[str, type]] = []
 
     def __init__(self):
         self.subfields, fields = {}, []

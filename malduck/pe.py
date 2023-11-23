@@ -1,12 +1,16 @@
 # Copyright (C) 2018 Jurriaan Bremer.
 # This file is part of Roach - https://github.com/jbremer/roach.
 # See the file 'docs/LICENSE.txt' for copying permission.
+from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Iterator, Optional, Tuple, Union
+from typing import TYPE_CHECKING
 
 import pefile
 
 if TYPE_CHECKING:
+    from collections.abc import Iterator
+    from typing import Any
+
     from .procmem import ProcessMemory
 
 __all__ = ["pe", "PE", "MemoryPEData"]
@@ -48,7 +52,7 @@ class MemoryPEData:
             stop = start
         return self.memory.readv(start, stop - start + 1)
 
-    def find(self, str: bytes, beg: int = 0, end: Optional[int] = None) -> int:
+    def find(self, str: bytes, beg: int = 0, end: int | None = None) -> int:
         if end and beg >= end:
             return -1
         try:
@@ -65,9 +69,7 @@ class PE:
     :class:`ProcessMemory` instance.
     """
 
-    def __init__(
-        self, data: Union["ProcessMemory", bytes], fast_load: bool = False
-    ) -> None:
+    def __init__(self, data: ProcessMemory | bytes, fast_load: bool = False) -> None:
         from .procmem import ProcessMemory
 
         if isinstance(data, ProcessMemory):
@@ -130,7 +132,7 @@ class PE:
             else min(len(self.pe.__data__), 0x1000)
         )
 
-    def section(self, name: Union[str, bytes]) -> Any:
+    def section(self, name: str | bytes) -> Any:
         """
         Get section by name
 
@@ -264,7 +266,7 @@ class PE:
     def iterate_resources(
         self,
     ) -> Iterator[
-        Tuple[
+        tuple[
             pefile.ResourceDirEntryData,
             pefile.ResourceDirEntryData,
             pefile.ResourceDirEntryData,
@@ -275,7 +277,7 @@ class PE:
                 for e3 in e2.directory.entries:
                     yield (e1, e2, e3)
 
-    def resources(self, name: Union[int, str, bytes]) -> Iterator[bytes]:
+    def resources(self, name: int | str | bytes) -> Iterator[bytes]:
         """
         Finds resource objects by specified name or type
 
@@ -316,7 +318,7 @@ class PE:
             if compare(e1, e2, e3):
                 yield self.pe.get_data(e3.data.struct.OffsetToData, e3.data.struct.Size)
 
-    def resource(self, name: Union[int, str, bytes]) -> Optional[bytes]:
+    def resource(self, name: int | str | bytes) -> bytes | None:
         """
         Retrieves single resource by specified name or type
 

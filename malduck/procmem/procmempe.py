@@ -1,4 +1,4 @@
-from typing import List, Optional
+from __future__ import annotations
 
 from ..bits import align
 from ..pe import PE
@@ -56,11 +56,11 @@ class ProcessMemoryPE(ProcessMemoryBinary):
         self,
         buf: ProcessMemoryBuffer,
         base: int = 0,
-        regions: Optional[List[Region]] = None,
+        regions: list[Region] | None = None,
         image: bool = False,
         detect_image: bool = False,
     ) -> None:
-        self._pe: Optional[PE] = None
+        self._pe: PE | None = None
         super(ProcessMemoryPE, self).__init__(
             buf, base=base, regions=regions, image=image, detect_image=detect_image
         )

@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 import functools
 import inspect
 import logging
-from typing import List, cast
+from typing import cast
 
 from ..procmem import ProcessMemory, ProcessMemoryELF, ProcessMemoryPE
 
@@ -511,7 +513,7 @@ class Extractor:
                 raise TypeError("@extractor decorator must be first")
             return StringExtractorMethod(method)
         elif all(isinstance(string, str) for string in strings_or_method):
-            strings = cast(List[str], strings_or_method)
+            strings = cast("list[str]", strings_or_method)
 
             def extractor_wrapper(method):
                 if isinstance(method, ExtractorMethod):

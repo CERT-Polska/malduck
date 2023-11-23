@@ -1,13 +1,14 @@
+from __future__ import annotations
+
 import json
 import logging
 import warnings
-from typing import Any, Dict, List, Optional, Type
+from typing import TYPE_CHECKING
 
 from ..procmem import ProcessMemory, ProcessMemoryELF, ProcessMemoryPE
 from ..procmem.binmem import ProcessMemoryBinary
 from ..yara import Yara, YaraRuleOffsets, YaraRulesetMatch
 from .config_utils import (
-    Config,
     apply_config_part,
     encode_for_json,
     is_config_better,
@@ -15,6 +16,11 @@ from .config_utils import (
 )
 from .extractor import Extractor
 from .modules import ExtractorModules
+
+if TYPE_CHECKING:
+    from typing import Any, Optional
+
+    from .config_utils import Config
 
 log = logging.getLogger(__name__)
 
@@ -31,11 +37,11 @@ class ExtractManager:
 
     def __init__(self, modules: ExtractorModules) -> None:
         self.modules = modules
-        self.binary_classes: List[Type[ProcessMemoryBinary]] = [
+        self.binary_classes: list[type[ProcessMemoryBinary]] = [
             ProcessMemoryPE,
             ProcessMemoryELF,
         ]
-        self.configs: Dict[str, Config] = {}
+        self.configs: dict[str, Config] = {}
 
     @property
     def rules(self) -> Yara:
@@ -46,7 +52,7 @@ class ExtractManager:
         return self.modules.rules
 
     @property
-    def extractors(self) -> List[Type[Extractor]]:
+    def extractors(self) -> list[type[Extractor]]:
         """
         Bound extractor modules
         :rtype: List[Type[:class:`malduck.extractor.Extractor`]]
@@ -114,7 +120,7 @@ class ExtractManager:
         log.debug("Matched rules: %s", ",".join(list(matches.keys())))
         return matches
 
-    def carve_procmem(self, p: ProcessMemory) -> List[ProcessMemoryBinary]:
+    def carve_procmem(self, p: ProcessMemory) -> list[ProcessMemoryBinary]:
         """
         Carves binaries from ProcessMemory to try configuration extraction
         using every possible address mapping.
@@ -217,7 +223,7 @@ class ExtractManager:
         return family
 
     @property
-    def config(self) -> List[Config]:
+    def config(self) -> list[Config]:
         """
         Extracted configuration (list of configs for each extracted family)
         """
@@ -232,7 +238,7 @@ class ExtractionContext:
     def __init__(self, parent: ExtractManager) -> None:
         #: Collected configuration so far (especially useful for "final" extractors)
         self.collected_config: Config = {}
-        self.globals: Dict[str, Any] = {}
+        self.globals: dict[str, Any] = {}
         self.parent = parent  #: Bound ExtractManager instance
 
     @property

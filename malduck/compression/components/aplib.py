@@ -5,6 +5,8 @@ Adapted from the original C source code from http://ibsensoftware.com/files/aPLi
 Approximately 20 times faster than other Python implementations.
 Compatible with both Python 2 and 3.
 """
+from __future__ import annotations
+
 from io import BytesIO
 
 __all__ = ["APLib"]
@@ -13,7 +15,6 @@ __author__ = "Sandor Nemes"
 
 
 class APLib:
-
     __slots__ = "source", "destination", "tag", "bitcount", "strict"
 
     def __init__(self, source: bytes, strict: bool = True) -> None:
@@ -54,7 +55,6 @@ class APLib:
         done = False
 
         try:
-
             # first byte verbatim
             self.destination += self.source.read(1)
 

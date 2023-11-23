@@ -1,3 +1,4 @@
+from __future__ import annotations
 import importlib.util
 import logging
 import os
@@ -6,10 +7,15 @@ import sys
 import warnings
 from collections import defaultdict
 from importlib.abc import FileLoader, PathEntryFinder
-from typing import Any, Callable, DefaultDict, Dict, List, Optional, Type, cast
+from typing import TYPE_CHECKING, cast
 
 from ..yara import Yara
 from .extractor import Extractor
+
+if TYPE_CHECKING:
+    from typing import Any
+
+    from collecions.abc import Callable
 
 log = logging.getLogger(__name__)
 
@@ -22,7 +28,7 @@ class ExtractorModules:
     :type modules_path: str
     """
 
-    def __init__(self, modules_path: Optional[str] = None) -> None:
+    def __init__(self, modules_path: str | None = None) -> None:
         if modules_path is None:
             modules_path = os.path.join(os.path.expanduser("~"), ".malduck")
             if not os.path.exists(modules_path):
@@ -31,7 +37,7 @@ class ExtractorModules:
         self.rules: Yara = Yara.from_dir(modules_path)
         # Preload modules
         loaded_modules = load_modules(modules_path, onerror=self.on_error)
-        self.extractors: List[Type[Extractor]] = Extractor.__subclasses__()
+        self.extractors: list[type[Extractor]] = Extractor.__subclasses__()
 
         loaded_extractors = [x.__module__ for x in self.extractors]
 
@@ -76,9 +82,9 @@ class ExtractorModules:
         return 0
 
 
-def make_override_paths(extractors: List[Type[Extractor]]) -> Dict[str, List[str]]:
+def make_override_paths(extractors: list[type[Extractor]]) -> dict[str, list[str]]:
     # Make override trees and get roots
-    overrides: DefaultDict[str, List[str]] = defaultdict(list)
+    overrides: defaultdict[str, list[str]] = defaultdict(list)
     parents = set()
     children = set()
     for extractor in extractors:
@@ -143,8 +149,8 @@ def import_module_by_finder(finder: PathEntryFinder, module_name: str) -> Any:
 
 
 def load_modules(
-    search_path: str, onerror: Optional[Callable[[Exception, str], None]] = None
-) -> Dict[str, Any]:
+    search_path: str, onerror: Callable[[Exception, str], None] | None = None
+) -> dict[str, Any]:
     """
     Loads plugin modules under specified paths
 
@@ -157,7 +163,7 @@ def load_modules(
     :param onerror: Exception handler (default: ignore exceptions)
     :return: dict {name: module}
     """
-    modules: Dict[str, Any] = {}
+    modules: dict[str, Any] = {}
     for finder, module_name, is_pkg in pkgutil.iter_modules(
         [search_path], "malduck.extractor.modules."
     ):
