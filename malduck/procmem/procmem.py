@@ -904,7 +904,7 @@ class ProcessMemory:
             addr -= 0x1000
 
     def __repr__(self):
-        return f"{self.__class__.__name__}:DMP:{hex(self.imgbase)[2:]}"
+        return f"{self.__class__.__name__}:DMP:{self.imgbase:x}"
 
 
 procmem = ProcessMemory

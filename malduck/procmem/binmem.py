@@ -102,4 +102,4 @@ class ProcessMemoryBinary(ProcessMemory, metaclass=ABCMeta):
         raise NotImplementedError()
 
     def __repr__(self):
-        return f"{self.__class__.__name__}:{'IMG' if self.is_image else 'DMP'}:{hex(self.imgbase)[2:]}"
+        return f"{self.__class__.__name__}:{'IMG' if self.is_image else 'DMP'}:{self.imgbase:x}"
