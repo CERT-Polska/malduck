@@ -8,6 +8,7 @@ import sys
 import warnings
 from collections import defaultdict
 from importlib.abc import FileLoader, PathEntryFinder
+from operator import attrgetter
 from typing import TYPE_CHECKING, cast
 
 from ..yara import Yara
@@ -41,7 +42,7 @@ class ExtractorModules:
         loaded_modules = load_modules(modules_path, onerror=self.on_error)
         self.extractors: list[type[Extractor]] = Extractor.__subclasses__()
 
-        loaded_extractors = [x.__module__ for x in self.extractors]
+        [*loaded_extractors] = map(attrgetter("__module__"), self.extractors)
 
         for module in loaded_modules.values():
             module_name = module.__name__
