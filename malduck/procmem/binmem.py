@@ -43,7 +43,7 @@ class ProcessMemoryBinary(ProcessMemory, metaclass=ABCMeta):
         """
         Load executable file embedded in ProcessMemory like native loader does
         """
-        raise NotImplementedError()
+        raise NotImplementedError
 
     @property
     def image(self: T) -> T | None:
@@ -71,7 +71,7 @@ class ProcessMemoryBinary(ProcessMemory, metaclass=ABCMeta):
         """
         Checks whether imgbase is pointing at valid binary header
         """
-        raise NotImplementedError()
+        raise NotImplementedError
 
     @classmethod
     def load_binaries_from_memory(cls: type[T], procmem: ProcessMemory) -> Iterator[T]:
@@ -87,7 +87,7 @@ class ProcessMemoryBinary(ProcessMemory, metaclass=ABCMeta):
             if memory-aligned version was also "valid".
         """
         if cls.__magic__ is None:
-            raise NotImplementedError()
+            raise NotImplementedError
         for binary_va in procmem.findv(cls.__magic__):
             binary_procmem_dmp = cls.from_memory(procmem, base=binary_va)
             if binary_procmem_dmp.is_valid():
@@ -102,7 +102,7 @@ class ProcessMemoryBinary(ProcessMemory, metaclass=ABCMeta):
         Uses some heuristics to deduce whether contents can be loaded with `image=True`.
         Used by `detect_image`
         """
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def __repr__(self):
         return ":".join((

@@ -65,7 +65,7 @@ class _Mapper:
         try:
             return self[item]
         except IndexError:
-            raise AttributeError()
+            raise AttributeError
 
 
 class Yara:

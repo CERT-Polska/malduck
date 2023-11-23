@@ -107,7 +107,7 @@ class ProcessMemoryELF(ProcessMemoryBinary):
         return self._elf
 
     def is_image_loaded_as_memdump(self):
-        raise NotImplementedError()
+        raise NotImplementedError
 
     @property
     def imgend(self) -> int:

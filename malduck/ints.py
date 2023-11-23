@@ -49,7 +49,7 @@ class MultipliedIntTypeBase(IntTypeBase, Generic[T], metaclass=ABCMeta):
         offset: int = 0,
         foxed: bool = False,
     ) -> tuple[T, ...] | int | None:
-        raise NotImplementedError()
+        raise NotImplementedError
 
 
 class MetaIntType(type):
