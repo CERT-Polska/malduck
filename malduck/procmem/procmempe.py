@@ -1,10 +1,11 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from ..bits import align
 from ..pe import PE
 from .binmem import ProcessMemoryBinary
 from .region import Region
-from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .procmem import ProcessMemoryBuffer

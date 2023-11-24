@@ -15,12 +15,12 @@ from .config_utils import (
 )
 
 if TYPE_CHECKING:
-    from .modules import ExtractorModules
-    from .extractor import Extractor
-    from ..procmem.binmem import ProcessMemoryBinary
     from typing import Any, Optional
 
+    from ..procmem.binmem import ProcessMemoryBinary
     from .config_utils import Config
+    from .extractor import Extractor
+    from .modules import ExtractorModules
 
 log = logging.getLogger(__name__)
 

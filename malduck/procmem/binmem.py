@@ -7,8 +7,9 @@ from typing import TYPE_CHECKING, TypeVar
 from .procmem import ProcessMemory, ProcessMemoryBuffer
 
 if TYPE_CHECKING:
-    from .region import Region
     from collections.abc import Iterator
+
+    from .region import Region
 
 log = logging.getLogger(__name__)
 
