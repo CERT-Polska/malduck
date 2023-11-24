@@ -1,10 +1,13 @@
-from itertools import cycle
-from typing import Union
+from __future__ import annotations
+
+import operator
+from itertools import cycle, starmap
+from sys import byteorder
 
 __all__ = ["xor"]
 
 
-def xor(key: Union[int, bytes], data: bytes) -> bytes:
+def xor(key: int | bytes, data: bytes) -> bytes:
     """
     XOR encryption/decryption
 
@@ -16,5 +19,5 @@ def xor(key: Union[int, bytes], data: bytes) -> bytes:
     :rtype: bytes
     """
     if isinstance(key, int):
-        key = bytes([key])
-    return bytes([a ^ b for a, b in zip(data, cycle(key))])
+        key = key.to_bytes(1, byteorder)  # generally faster than bytes([key])
+    return bytes(starmap(operator.xor, zip(data, cycle(key))))

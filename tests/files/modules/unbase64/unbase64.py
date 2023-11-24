@@ -1,5 +1,5 @@
-from malduck.extractor import Extractor
 from malduck import base64, procmempe
+from malduck.extractor import Extractor
 
 
 class Unbase64(Extractor):

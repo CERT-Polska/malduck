@@ -1,2 +1,2 @@
-from .multistring import MultiString
 from .multirule import MultiRule
+from .multistring import MultiString

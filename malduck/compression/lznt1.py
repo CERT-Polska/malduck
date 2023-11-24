@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from .components.lznt1 import decompress_data
 
 __all__ = ["Lznt1", "lznt1"]
@@ -5,7 +7,8 @@ __all__ = ["Lznt1", "lznt1"]
 
 class Lznt1:
     """
-    Implementation of LZNT1 decompression. Allows to decompress data compressed by RtlCompressBuffer
+    Implementation of LZNT1 decompression.
+    Allows to decompress data compressed by RtlCompressBuffer
 
     .. code-block:: python
 

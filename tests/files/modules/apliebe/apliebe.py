@@ -1,6 +1,6 @@
-from malduck.extractor import Extractor
+from malduck import align_down, procmem, procmempe
 from malduck.compression.aplib import aPLib
-from malduck import procmem, procmempe, align_down
+from malduck.extractor import Extractor
 
 
 class aPLiebe(Extractor):

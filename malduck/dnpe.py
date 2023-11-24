@@ -1,9 +1,15 @@
-from typing import Any, Iterator, List, Optional, Union
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 import dnfile
 
 from .pe import PE, MemoryPEData
 from .procmem import ProcessMemory
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
+    from typing import Any
 
 __all__ = ["dnpe", "DnPE", "MemoryDnPEData"]
 
@@ -18,37 +24,34 @@ class MemoryDnPEData(MemoryPEData):
 
 
 class DnPE(PE):
-    def __init__(
-        self, data: Union[ProcessMemory, bytes], fast_load: bool = False
-    ) -> None:
-
+    def __init__(self, data: ProcessMemory | bytes, fast_load: bool = False) -> None:
         if isinstance(data, ProcessMemory):
             self.pe = MemoryDnPEData(data, fast_load).pe
         else:
             self.pe = dnfile.dnPE(data=data, fast_load=fast_load)
 
     @property
-    def dn_metadata(self) -> Optional[dnfile.stream.MetaDataTables]:
+    def dn_metadata(self) -> dnfile.stream.MetaDataTables | None:
         return self.pe.net.metadata
 
     @property
-    def dn_strings(self) -> Optional[dnfile.stream.StringsHeap]:
+    def dn_strings(self) -> dnfile.stream.StringsHeap | None:
         return self.pe.net.strings
 
     @property
-    def dn_user_strings(self) -> Optional[dnfile.stream.UserStringHeap]:
+    def dn_user_strings(self) -> dnfile.stream.UserStringHeap | None:
         return self.pe.net.user_strings
 
     @property
-    def dn_guid(self) -> Optional[dnfile.stream.GuidHeap]:
+    def dn_guid(self) -> dnfile.stream.GuidHeap | None:
         return self.pe.net.guids
 
     @property
-    def dn_mdtables(self) -> Optional[dnfile.stream.MetaDataTables]:
+    def dn_mdtables(self) -> dnfile.stream.MetaDataTables | None:
         return self.pe.net.mdtables
 
     @property
-    def dn_resources(self) -> List:
+    def dn_resources(self) -> list:
         return self.pe.net.resources
 
     @property
@@ -56,8 +59,10 @@ class DnPE(PE):
         return self.pe.net.flags
 
     def dn_user_string(
-        self, index: int, encoding="utf-16"
-    ) -> Optional[dnfile.stream.UserString]:
+        self,
+        index: int,
+        encoding="utf-16",
+    ) -> dnfile.stream.UserString | None:
         if not self.dn_user_strings or self.dn_user_strings.sizeof() == 0:
             return None
 

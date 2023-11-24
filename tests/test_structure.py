@@ -2,9 +2,7 @@
 # This file is part of Roach - https://github.com/jbremer/roach.
 # See the file 'docs/LICENSE.txt' for copying permission.
 
-from malduck import (
-    Structure, Int8, UInt8, Int16, UInt16, Int32, UInt32, Int64, UInt64
-)
+from malduck import Int8, Int16, Int32, Int64, Structure, UInt8, UInt16, UInt32, UInt64
 
 
 def test_structure():

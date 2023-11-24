@@ -1,9 +1,15 @@
+from __future__ import annotations
+
 import logging
 from abc import ABCMeta, abstractmethod
-from typing import Iterator, List, Optional, Type, TypeVar
+from typing import TYPE_CHECKING, TypeVar
 
 from .procmem import ProcessMemory, ProcessMemoryBuffer
-from .region import Region
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
+
+    from .region import Region
 
 log = logging.getLogger(__name__)
 
@@ -15,13 +21,13 @@ class ProcessMemoryBinary(ProcessMemory, metaclass=ABCMeta):
     Abstract class for memory-mapped executable binary
     """
 
-    __magic__: Optional[bytes] = None
+    __magic__: bytes | None = None
 
     def __init__(
         self: T,
         buf: ProcessMemoryBuffer,
         base: int = 0,
-        regions: Optional[List[Region]] = None,
+        regions: list[Region] | None = None,
         image: bool = False,
         detect_image: bool = False,
     ) -> None:
@@ -29,7 +35,7 @@ class ProcessMemoryBinary(ProcessMemory, metaclass=ABCMeta):
         if detect_image:
             image = self.is_image_loaded_as_memdump()
         self.is_image = image
-        self._image: Optional[T] = None
+        self._image: T | None = None
         if image:
             self._reload_as_image()
 
@@ -38,24 +44,26 @@ class ProcessMemoryBinary(ProcessMemory, metaclass=ABCMeta):
         """
         Load executable file embedded in ProcessMemory like native loader does
         """
-        raise NotImplementedError()
+        raise NotImplementedError
 
     @property
-    def image(self: T) -> Optional[T]:
+    def image(self: T) -> T | None:
         """
-        Returns ProcessMemory object loaded with image=True or None if can't be loaded or is loaded as image yet
+        Returns ProcessMemory object loaded with image=True or None
+        if can't be loaded or is loaded as image yet
         """
         if self.is_image:
             return None
         try:
             if not self._image:
-                self._image = self.__class__.from_memory(self, image=True)
+                self._image = type(self).from_memory(self, image=True)
             return self._image
         except Exception:
             import traceback
 
             log.debug(
-                "image construction raised an exception: %s", traceback.format_exc()
+                "image construction raised an exception: %s",
+                traceback.format_exc(),
             )
             return None
 
@@ -64,12 +72,13 @@ class ProcessMemoryBinary(ProcessMemory, metaclass=ABCMeta):
         """
         Checks whether imgbase is pointing at valid binary header
         """
-        raise NotImplementedError()
+        raise NotImplementedError
 
     @classmethod
-    def load_binaries_from_memory(cls: Type[T], procmem: ProcessMemory) -> Iterator[T]:
+    def load_binaries_from_memory(cls: type[T], procmem: ProcessMemory) -> Iterator[T]:
         """
-        Looks for binaries in ProcessMemory object and yields specialized ProcessMemoryBinary objects
+        Looks for binaries in ProcessMemory object and yields specialized
+        ProcessMemoryBinary objects
         :param procmem: ProcessMemory object to search
 
         .. versionchanged:: 4.4.0
@@ -79,7 +88,7 @@ class ProcessMemoryBinary(ProcessMemory, metaclass=ABCMeta):
             if memory-aligned version was also "valid".
         """
         if cls.__magic__ is None:
-            raise NotImplementedError()
+            raise NotImplementedError
         for binary_va in procmem.findv(cls.__magic__):
             binary_procmem_dmp = cls.from_memory(procmem, base=binary_va)
             if binary_procmem_dmp.is_valid():
@@ -94,7 +103,13 @@ class ProcessMemoryBinary(ProcessMemory, metaclass=ABCMeta):
         Uses some heuristics to deduce whether contents can be loaded with `image=True`.
         Used by `detect_image`
         """
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def __repr__(self):
-        return f"{self.__class__.__name__}:{'IMG' if self.is_image else 'DMP'}:{hex(self.imgbase)[2:]}"
+        return ":".join(
+            (
+                type(self).__name__,
+                "IMG" if self.is_image else "DMP",
+                f"{self.imgbase:x}",
+            )
+        )

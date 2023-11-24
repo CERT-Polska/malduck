@@ -1,7 +1,8 @@
+from __future__ import annotations
+
 import logging
 import struct
 from binascii import crc32
-from typing import Optional
 
 from .components.aplib import APLib
 
@@ -19,18 +20,25 @@ class aPLib:
         from malduck import aplib
 
         # Headerless compressed buffer
-        aplib(b'T\x00he quick\xecb\x0erown\xcef\xaex\x80jumps\xed\xe4veur`t?lazy\xead\xfeg\xc0\x00')
+        aplib(
+            b'T\x00he quick\xecb\x0erown\xcef\xaex\x80'
+            b'jumps\xed\xe4veur`t?lazy\xead\xfeg\xc0\x00'
+        )
         # Header included
-        aplib(b'AP32\x18\x00\x00\x00\r\x00\x00\x00\xbc\x9ab\x9b\x0b\x00\x00\x00\x85\x11J\rh8el\x8eo wnr\xecd\x00')
+        aplib(
+            b'AP32\x18\x00\x00\x00\r\x00\x00\x00\xbc\x9ab'
+            b'\x9b\x0b\x00\x00\x00\x85\x11J\rh8el\x8eo wnr\xecd\x00'
+        )
 
     :param buf: Buffer to decompress
     :type buf: bytes
-    :param headerless: Force headerless decompression (don't perform 'AP32' magic detection)
+    :param headerless:
+        Force headerless decompression (don't perform 'AP32' magic detection)
     :type headerless: bool (default: `True`)
     :rtype: bytes
     """
 
-    def decompress(self, buf: bytes, headerless: bool = True) -> Optional[bytes]:
+    def decompress(self, buf: bytes, headerless: bool = True) -> bytes | None:
         packed_size = None
         packed_crc = None
         orig_size = None

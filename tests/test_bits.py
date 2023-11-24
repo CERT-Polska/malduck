@@ -2,7 +2,7 @@
 # This file is part of Roach - https://github.com/jbremer/roach.
 # See the file 'docs/LICENSE.txt' for copying permission.
 
-from malduck import rol, ror, align, align_down
+from malduck import align, align_down, rol, ror
 
 
 def test_rotate():

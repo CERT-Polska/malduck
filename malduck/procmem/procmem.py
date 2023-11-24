@@ -1,12 +1,20 @@
+from __future__ import annotations
+
 import mmap
 import re
-from typing import BinaryIO, List, Optional, Union, cast
+from pathlib import Path
+from typing import TYPE_CHECKING, cast
 
 from ..disasm import disasm
 from ..string.bin import int8, int16, int32, int64, uint8, uint16, uint32, uint64
 from ..string.ops import utf16z
 from ..yara import Yara, YaraString
 from .region import PAGE_EXECUTE_READWRITE, Region
+
+if TYPE_CHECKING:
+    from typing import BinaryIO
+
+    from typing_extensions import TypeAlias
 
 __all__ = ["ProcessMemory", "procmem"]
 
@@ -22,7 +30,7 @@ class MemoryBuffer:
         raise NotImplementedError("__len__ not implemented")
 
 
-ProcessMemoryBuffer = Union[bytes, bytearray, mmap.mmap, MemoryBuffer]
+ProcessMemoryBuffer: TypeAlias = "bytes | bytearray | mmap.mmap | MemoryBuffer"
 
 
 class ProcessMemory:
@@ -33,14 +41,18 @@ class ProcessMemory:
 
     :param buf: Object with memory contents
     :type buf: bytes, mmap, memoryview, bytearray or MemoryBuffer object
-    :param base: Virtual address of the region of interest (or beginning of buf when no regions provided)
+    :param base:
+        Virtual address of the region of interest
+        (or beginning of buf when no regions provided)
     :type base: int, optional (default: 0)
-    :param regions: Regions mapping. If set to None (default), buf is mapped into single-region with VA specified in
-                    `base` argument
+    :param regions:
+        Regions mapping. If set to None (default), buf is mapped
+        into single-region with VA specified in `base` argument
     :type regions: List[:class:`Region`]
 
-    Let's assume that `notepad.exe_400000.bin` contains raw memory dump starting at 0x400000 base address. We can
-    easily load that file to :class:`ProcessMemory` object, using :py:meth:`from_file` method:
+    Let's assume that `notepad.exe_400000.bin` contains raw memory dump
+    starting at 0x400000 base address. We can easily load that file
+    to :class:`ProcessMemory` object, using :py:meth:`from_file` method:
 
     .. code-block:: python
 
@@ -61,8 +73,8 @@ class ProcessMemory:
 
         p = procmem(payload, base=0x400000)
 
-    Then you can work with PE image contained in dump by creating :class:`ProcessMemoryPE` object, using its
-    :py:meth:`from_memory` constructor method
+    Then you can work with PE image contained in dump by creating
+    :class:`ProcessMemoryPE` object, using its :py:meth:`from_memory` constructor method
 
     .. code-block:: python
 
@@ -75,9 +87,11 @@ class ProcessMemory:
         ppe = procmempe.from_memory(p)
         ppe.pe.resource("NPENCODINGDIALOG")
 
-    If you want to load PE file directly and work with it in a similar way as with memory-mapped files, just use
-    `image` parameter. It also works with :py:meth:`ProcessMemoryPE.from_memory` for embedded binaries. Your file
-    will be loaded and relocated in similar way as it's done by Windows loader.
+    If you want to load PE file directly and work with it in a similar way
+    as with memory-mapped files, just use `image` parameter.
+    It also works with :py:meth:`ProcessMemoryPE.from_memory` for embedded binaries.
+    Your file will be loaded and relocated in similar way as it's done by Windows
+    loader.
 
     .. code-block:: python
 
@@ -88,9 +102,9 @@ class ProcessMemory:
     """
 
     def __init__(self, buf, base=0, regions=None, **_):
-        self.opened_file: Optional[BinaryIO] = None
-        self.mapped_memory: Optional[mmap.mmap] = None
-        self.memory: Optional[bytearray] = None
+        self.opened_file: BinaryIO | None = None
+        self.mapped_memory: mmap.mmap | None = None
+        self.memory: bytearray | None = None
 
         if isinstance(buf, mmap.mmap):
             self.mapped_memory = buf
@@ -102,7 +116,8 @@ class ProcessMemory:
             self.memory = buf
         else:
             raise TypeError(
-                "Wrong buffer type - must be bytes, bytearray, mmap object or MemoryBuffer"
+                "Wrong buffer type - must be "
+                "bytes, bytearray, mmap object or MemoryBuffer",
             )
 
         self.imgbase = base
@@ -135,7 +150,8 @@ class ProcessMemory:
 
         If copy is False (default): invalidates the object.
 
-        :param copy: Copy data into string before closing the mmap object (default: False)
+        :param copy:
+            Copy data into string before closing the mmap object (default: False)
         :type copy: bool
         """
         if self.mapped_memory is None:
@@ -146,12 +162,13 @@ class ProcessMemory:
             # Get object contents from mapped_memory
             self.mapped_memory.seek(0)
             contents = self.mapped_memory.read()
-            buf: Optional[bytearray] = bytearray(contents)
+            buf: bytearray | None = bytearray(contents)
         else:
             # Invalidate object
             buf = None
 
-        # If self.opened_file is not None: mapped_memory is owned by this ProcessMemory object
+        # If self.opened_file is not None:
+        # mapped_memory is owned by this ProcessMemory object
         # We should close all descriptors
         if self.opened_file is not None:
             self.mapped_memory.close()
@@ -179,7 +196,7 @@ class ProcessMemory:
                 mem = p.readv(...)
                 ...
         """
-        file = open(filename, "rb")
+        file = Path(filename).open("rb")
         try:
             # Allow copy-on-write
             if hasattr(mmap, "ACCESS_COPY"):
@@ -210,7 +227,10 @@ class ProcessMemory:
         :rtype: :class:`ProcessMemory`
         """
         copied = cls(
-            memory.m, base=base or memory.imgbase, regions=memory.regions, **kwargs
+            memory.m,
+            base=base or memory.imgbase,
+            regions=memory.regions,
+            **kwargs,
         )
         return copied
 
@@ -228,7 +248,12 @@ class ProcessMemory:
             return 0
 
     def iter_regions(
-        self, addr=None, offset=None, length=None, contiguous=False, trim=False
+        self,
+        addr=None,
+        offset=None,
+        length=None,
+        contiguous=False,
+        trim=False,
     ):
         """
         Iterates over Region objects starting at provided virtual address or offset
@@ -236,19 +261,23 @@ class ProcessMemory:
         This method is used internally to enumerate regions using provided strategy.
 
         .. warning::
-            If starting point is not provided, iteration will start from the first mapped region. This could
-            be counter-intuitive when length is set. It literally means "get <length> of mapped bytes".
-            If you want to look for regions from address 0, you need to explicitly provide this address as an argument.
+            If starting point is not provided, iteration will start from the first
+            mapped region. This could be counter-intuitive when length is set.
+            It literally means "get <length> of mapped bytes".
+            If you want to look for regions from address 0,
+            you need to explicitly provide this address as an argument.
 
         .. versionadded:: 3.0.0
 
         :param addr: Virtual address of starting point
         :type addr: int (default: None)
-        :param offset: Offset of starting point, which will be translated to virtual address
+        :param offset:
+            Offset of starting point, which will be translated to virtual address
         :type offset: int (default: None)
         :param length: Length of queried range in VM mapping context
         :type length: int (default: None, unlimited)
-        :param contiguous: If True, break after first gap. Starting point must be inside mapped region.
+        :param contiguous:
+            If True, break after first gap. Starting point must be inside mapped region.
         :type contiguous: bool (default: False)
         :param trim: Trim Region objects to range boundaries (addr, addr+length)
         :type trim: bool (default: False)
@@ -256,11 +285,12 @@ class ProcessMemory:
         """
         if addr is not None and offset is not None:
             raise ValueError(
-                "'addr' and 'offset' arguments should be provided exclusively"
+                "'addr' and 'offset' arguments should be provided exclusively",
             )
         if addr is None and offset is None and contiguous:
             raise ValueError(
-                "Starting point (addr or offset) must be provided for contiguous regions"
+                "Starting point (addr or offset) must be provided "
+                "for contiguous regions",
             )
         if length and length < 0:
             raise ValueError("Length can't be less than 0")
@@ -294,7 +324,8 @@ class ProcessMemory:
             else:
                 if length is not None:
                     raise ValueError(
-                        "Don't know how to retrieve length-limited regions with offset from unmapped area"
+                        "Don't know how to retrieve length-limited regions"
+                        "with offset from unmapped area",
                     )
                 offset = region.offset
             # If we're out of length after adjustment: time to stop
@@ -305,7 +336,7 @@ class ProcessMemory:
         if addr is None:
             if offset is None:
                 raise RuntimeError(
-                    "Something went wrong, starting region offset is set to None?"
+                    "Something went wrong, starting region offset is set to None?",
                 )
             addr = region.p2v(offset)
         # Continue enumeration
@@ -337,7 +368,10 @@ class ProcessMemory:
             return None
         mapping_length = 0
         for region in self.iter_regions(
-            addr=addr, length=length, contiguous=True, trim=True
+            addr=addr,
+            length=length,
+            contiguous=True,
+            trim=True,
         ):
             if length is None:
                 return region.v2p(addr)
@@ -363,7 +397,10 @@ class ProcessMemory:
             return None
         mapping_length = 0
         for region in self.iter_regions(
-            offset=off, length=length, contiguous=True, trim=True
+            offset=off,
+            length=length,
+            contiguous=True,
+            trim=True,
         ):
             if length is None:
                 return region.p2v(off)
@@ -398,7 +435,8 @@ class ProcessMemory:
 
             Family of \\*p methods doesn't care about contiguity of regions.
 
-            Use :py:meth:`p2v` and :py:meth:`readv` if you want to operate on contiguous regions only
+            Use :py:meth:`p2v` and :py:meth:`readv` if you want to operate on contiguous
+            regions only
 
         :param offset: Buffer offset
         :param length: Length of chunk (optional)
@@ -412,7 +450,8 @@ class ProcessMemory:
 
     def readv_regions(self, addr=None, length=None, contiguous=True):
         """
-        Generate chunks of memory from next contiguous regions, starting from the specified virtual address,
+        Generate chunks of memory from next contiguous regions,
+        starting from the specified virtual address,
         until specified length of read data is reached.
 
         Used internally.
@@ -427,10 +466,13 @@ class ProcessMemory:
         :rtype: Iterator[Tuple[int, bytes]]
         """
         current_addr = 0
-        current_strings: List[bytes] = []
+        current_strings: list[bytes] = []
         prev_region = None
         for region in self.iter_regions(
-            addr=addr, length=length, contiguous=contiguous, trim=True
+            addr=addr,
+            length=length,
+            contiguous=contiguous,
+            trim=True,
         ):
             if not prev_region or prev_region.end != region.addr:
                 if current_strings:
@@ -481,7 +523,8 @@ class ProcessMemory:
 
            Family of \\*p methods doesn't care about contiguity of regions.
 
-           Use :py:meth:`p2v` and :py:meth:`patchv` if you want to operate on contiguous regions only
+           Use :py:meth:`p2v` and :py:meth:`patchv` if you want to operate on contiguous
+           regions only
 
         :param offset: Buffer offset
         :type offset: int
@@ -513,7 +556,8 @@ class ProcessMemory:
         """
         Patch bytes under specified virtual address
 
-        Patched address range must be within single region, ValueError is raised otherwise.
+        Patched address range must be within single region, ValueError is raised
+        otherwise.
 
         :param addr: Virtual address
         :type addr: int
@@ -524,7 +568,7 @@ class ProcessMemory:
         # Boundary check
         if region is None or region.end < (addr + len(buf)):
             raise ValueError(
-                "Patched bytes range must be contained within single, existing region"
+                "Patched bytes range must be contained within single, existing region",
             )
         return self.patchp(region.v2p(addr), buf)
 
@@ -741,11 +785,15 @@ class ProcessMemory:
         """
         Tries to extract config from ProcessMemory object
 
-        :param modules: Extractor modules object (optional, loads '~/.malduck' by default)
+        :param modules:
+            Extractor modules object (optional, loads '~/.malduck' by default)
         :type modules: :class:`malduck.extractor.ExtractorModules`
-        :param extract_manager: ExtractManager object (optional, creates ExtractManager by default)
+        :param extract_manager:
+            ExtractManager object (optional, creates ExtractManager by default)
         :type extract_manager: :class:`malduck.extractor.ExtractManager`
-        :return: Static configuration(s) (:py:attr:`malduck.extractor.ExtractManager.config`) or None if not extracted
+        :return:
+            Static configuration(s) (:py:attr:`malduck.extractor.ExtractManager.config`)
+            or None if not extracted
         :rtype: List[dict] or None
         """
         from ..extractor import ExtractManager, ExtractorModules
@@ -765,7 +813,8 @@ class ProcessMemory:
 
         .. versionchanged:: 4.0.0
 
-            Added `extended` option which allows to get extended information about matched strings and rules.
+            Added `extended` option which allows to get extended information
+            about matched strings and rules.
             Default is False for backwards compatibility.
 
         :param ruleset: Yara object with loaded yara rules
@@ -788,7 +837,8 @@ class ProcessMemory:
 
         .. versionchanged:: 4.0.0
 
-            Added `extended` option which allows to get extended information about matched strings and rules.
+            Added `extended` option which allows to get extended information
+            about matched strings and rules.
             Default is False for backwards compatibility.
 
         :param ruleset: Yara object with loaded yara rules
@@ -799,8 +849,9 @@ class ProcessMemory:
         :type length: int (optional)
         :param extended: Returns extended information about matched strings and rules
         :type extended: bool (optional, default False)
-        :rtype: :class:`malduck.yara.YaraRulesetOffsets` or :class:`malduck.yara.YaraRulesetMatches`
-                if extended is set to True
+        :rtype:
+            :class:`malduck.yara.YaraRulesetOffsets`
+            or :class:`malduck.yara.YaraRulesetMatches` if extended is set to True
         """
         if addr is None:
             addr = self.regions[0].addr
@@ -813,7 +864,9 @@ class ProcessMemory:
                 return ptr
 
         return ruleset.match(
-            offset_mapper=map_offset, extended=extended, data=self.readp(0)
+            offset_mapper=map_offset,
+            extended=extended,
+            data=self.readp(0),
         )
 
     def _findbytes(self, yara_fn, query, addr, length):
@@ -828,12 +881,14 @@ class ProcessMemory:
 
     def findbytesp(self, query, offset=None, length=None):
         """
-        Search for byte sequences (e.g., `4? AA BB ?? DD`). Uses :py:meth:`yarap` internally
+        Search for byte sequences (e.g., `4? AA BB ?? DD`).
+        Uses :py:meth:`yarap` internally
 
         If offset is None, looks for match from the beginning of memory
 
         .. versionadded:: 1.4.0
-           Query is passed to yarap as single hexadecimal string rule. Use Yara-compatible strings only
+           Query is passed to yarap as single hexadecimal string rule.
+           Use Yara-compatible strings only
 
         :param query: Sequence of wildcarded hexadecimal bytes, separated by spaces
         :type query: str or bytes
@@ -848,12 +903,14 @@ class ProcessMemory:
 
     def findbytesv(self, query, addr=None, length=None):
         """
-        Search for byte sequences (e.g., `4? AA BB ?? DD`). Uses :py:meth:`yarav` internally
+        Search for byte sequences (e.g., `4? AA BB ?? DD`).
+        Uses :py:meth:`yarav` internally
 
         If addr is None, looks for match from the beginning of memory
 
         .. versionadded:: 1.4.0
-           Query is passed to yarav as single hexadecimal string rule. Use Yara-compatible strings only
+           Query is passed to yarav as single hexadecimal string rule.
+           Use Yara-compatible strings only
 
         :param query: Sequence of wildcarded hexadecimal bytes, separated by spaces
         :type query: str or bytes
@@ -896,7 +953,7 @@ class ProcessMemory:
             addr -= 0x1000
 
     def __repr__(self):
-        return f"{self.__class__.__name__}:DMP:{hex(self.imgbase)[2:]}"
+        return f"{type(self).__name__}:DMP:{self.imgbase:x}"
 
 
 procmem = ProcessMemory

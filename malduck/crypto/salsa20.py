@@ -1,4 +1,4 @@
-from typing import Optional
+from __future__ import annotations
 
 from Cryptodome.Cipher import Salsa20 as Salsa20Cipher
 
@@ -6,7 +6,7 @@ __all__ = ["salsa20"]
 
 
 class Salsa20:
-    def encrypt(self, key: bytes, data: bytes, nonce: Optional[bytes] = None) -> bytes:
+    def encrypt(self, key: bytes, data: bytes, nonce: bytes | None = None) -> bytes:
         """
         Encrypts buffer using Salsa20 algorithm.
 
@@ -23,7 +23,7 @@ class Salsa20:
             nonce = b"\x00" * 8
         return Salsa20Cipher.new(key=key, nonce=nonce).encrypt(data)
 
-    def decrypt(self, key: bytes, data: bytes, nonce: Optional[bytes] = None) -> bytes:
+    def decrypt(self, key: bytes, data: bytes, nonce: bytes | None = None) -> bytes:
         """
         Decrypts buffer using Salsa20 algorithm.
 

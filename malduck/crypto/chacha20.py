@@ -1,4 +1,4 @@
-from typing import Optional
+from __future__ import annotations
 
 from Cryptodome.Cipher import ChaCha20 as ChaCha20Cipher
 
@@ -6,7 +6,7 @@ __all__ = ["chacha20"]
 
 
 class ChaCha20:
-    def encrypt(self, key: bytes, data: bytes, nonce: Optional[bytes] = None) -> bytes:
+    def encrypt(self, key: bytes, data: bytes, nonce: bytes | None = None) -> bytes:
         """
         Encrypts buffer using ChaCha20 algorithm.
 
@@ -23,7 +23,7 @@ class ChaCha20:
             nonce = b"\x00" * 8
         return ChaCha20Cipher.new(key=key, nonce=nonce).encrypt(data)
 
-    def decrypt(self, key: bytes, data: bytes, nonce: Optional[bytes] = None) -> bytes:
+    def decrypt(self, key: bytes, data: bytes, nonce: bytes | None = None) -> bytes:
         """
         Decrypts buffer using ChaCha20 algorithm.
 

@@ -1,10 +1,10 @@
 # Copyright (C) 2018 Jurriaan Bremer.
 # This file is part of Roach - https://github.com/jbremer/roach.
 # See the file 'docs/LICENSE.txt' for copying permission.
+from __future__ import annotations
 
 import re
 import socket
-from typing import Optional, Union
 
 from ..string.bin import p32
 
@@ -12,11 +12,11 @@ __all__ = ["ipv4"]
 
 ipv4_regex = re.compile(
     b"^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}"
-    b"([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$"
+    b"([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$",
 )
 
 
-def ipv4(s: Union[bytes, int]) -> Optional[str]:
+def ipv4(s: bytes | int) -> str | None:
     """
     Decodes IPv4 address and returns dot-decimal notation
 

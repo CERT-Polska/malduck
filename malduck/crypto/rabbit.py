@@ -1,9 +1,9 @@
 # Copyright (C) 2018 Jurriaan Bremer.
 # This file is part of Roach - https://github.com/jbremer/roach.
 # See the file 'docs/LICENSE.txt' for copying permission.
+from __future__ import annotations
 
 import struct
-from typing import Optional
 
 from ..bits import rol
 from .xor import xor
@@ -25,7 +25,7 @@ class Context:
 
 
 class Rabbit:
-    def __init__(self, key: bytes, iv: Optional[bytes]) -> None:
+    def __init__(self, key: bytes, iv: bytes | None) -> None:
         self.ctx = Context()
         self.set_key(key)
         if iv:

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from .procmem import MemoryBuffer, ProcessMemory
 from .region import Region
 
@@ -31,13 +33,9 @@ class IDAVM(MemoryBuffer):
                 yield (ea_start, ea_end)
 
     def __setitem__(self, item, value):
-        value_bytes = iter(value)
         for ea_start, ea_end in self._get_ea_range(item):
-            for ea in range(ea_start, ea_end):
-                try:
-                    ida_bytes.patch_byte(ea, next(value_bytes))
-                except StopIteration:
-                    return
+            for ea, byte in zip(range(ea_start, ea_end), value):
+                ida_bytes.patch_byte(ea, byte)
 
     def __getitem__(self, item):
         data = []
@@ -70,7 +68,7 @@ class IDAProcessMemory(ProcessMemory):
     def __init__(self):
         if not IDAPYTHON:
             raise RuntimeError(
-                "This class is intended to work only in IDAPython context"
+                "This class is intended to work only in IDAPython context",
             )
         regions = []
         for seg in idautils.Segments():

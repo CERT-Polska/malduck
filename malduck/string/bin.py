@@ -1,9 +1,10 @@
 # Copyright (C) 2018 Jurriaan Bremer.
 # This file is part of Roach - https://github.com/jbremer/roach.
 # See the file 'docs/LICENSE.txt' for copying permission.
+from __future__ import annotations
+
 import struct
 import warnings
-from typing import Optional
 
 from ..ints import Int8, Int16, Int32, Int64, UInt8, UInt16, UInt32, UInt64
 from ..string.ops import Padding, enhex, unhex
@@ -56,7 +57,7 @@ __all__ = [
 
 
 class Bigint:
-    def unpack(self, other: bytes, size: Optional[int] = None) -> int:
+    def unpack(self, other: bytes, size: int | None = None) -> int:
         """
         Unpacks bigint value from provided buffer with little-endian order
 
@@ -75,7 +76,7 @@ class Bigint:
             other = other[:size]
         return int(enhex(other[::-1]), 16)
 
-    def pack(self, other: int, size: Optional[int] = None) -> bytes:
+    def pack(self, other: int, size: int | None = None) -> bytes:
         """
         Packs bigint value into bytes with little-endian order
 
@@ -92,7 +93,7 @@ class Bigint:
             size = (other.bit_length() + 7) // 8
         return other.to_bytes(size, byteorder="little")
 
-    def unpack_be(self, other: bytes, size: Optional[int] = None) -> int:
+    def unpack_be(self, other: bytes, size: int | None = None) -> int:
         """
         Unpacks bigint value from provided buffer with big-endian order
 
@@ -108,7 +109,7 @@ class Bigint:
             other = other[:size]
         return int(enhex(other), 16)
 
-    def pack_be(self, other: int, size: Optional[int] = None) -> bytes:
+    def pack_be(self, other: int, size: int | None = None) -> bytes:
         """
         Packs bigint value into bytes with big-endian order
 

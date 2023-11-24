@@ -1,28 +1,35 @@
-from typing import List, Optional
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 from ..dnpe import DnPE
-from .binmem import ProcessMemoryBuffer
 from .procmempe import ProcessMemoryPE
-from .region import Region
+
+if TYPE_CHECKING:
+    from .binmem import ProcessMemoryBuffer
+    from .region import Region
 
 __all__ = ["ProcessMemoryDnPE", "procmemdnpe"]
 
 
 class ProcessMemoryDnPE(ProcessMemoryPE):
-
     __magic__ = b"MZ"
 
     def __init__(
         self,
         buf: ProcessMemoryBuffer,
         base: int = 0,
-        regions: Optional[List[Region]] = None,
+        regions: list[Region] | None = None,
         image: bool = False,
         detect_image: bool = False,
     ) -> None:
-        self._pe: Optional[DnPE] = None
-        super(ProcessMemoryPE, self).__init__(
-            buf, base=base, regions=regions, image=image, detect_image=detect_image
+        self._pe: DnPE | None = None
+        super().__init__(
+            buf,
+            base=base,
+            regions=regions,
+            image=image,
+            detect_image=detect_image,
         )
 
     def _pe_direct_load(self, fast_load: bool = True) -> DnPE:
