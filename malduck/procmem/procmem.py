@@ -2,7 +2,7 @@ import mmap
 import re
 from typing import BinaryIO, List, Optional, Union, cast
 
-from ..disasm import disasm
+from ..disasm import disasm, Architecture, Mode
 from ..string.bin import int8, int16, int32, int64, uint8, uint16, uint32, uint64
 from ..string.ops import utf16z
 from ..yara import Yara, YaraString
@@ -87,10 +87,12 @@ class ProcessMemory:
             p.pe.resource("NPENCODINGDIALOG")
     """
 
-    def __init__(self, buf, base=0, regions=None, **_):
+    def __init__(self, buf, base=0, regions=None, architecture=None, mode=32, **_):
         self.opened_file: Optional[BinaryIO] = None
         self.mapped_memory: Optional[mmap.mmap] = None
         self.memory: Optional[bytearray] = None
+        self._architecture = None
+        self._mode = None
 
         if isinstance(buf, mmap.mmap):
             self.mapped_memory = buf
@@ -112,11 +114,43 @@ class ProcessMemory:
         else:
             self.regions = [Region(base, self.length, 0, 0, PAGE_EXECUTE_READWRITE, 0)]
 
+        if architecture:
+            if isinstance(architecture, Architecture):
+                self._architecture = architecture
+            elif isinstance(architecture, int):
+                self._architecture = Architecture(architecture)
+            elif isinstance(architecture, str):
+                try:
+                    self._architecture = Architecture._member_map_[architecture.upper()]
+                except KeyError:
+                    raise ValueError(f"Incorrect promcmem architecture passed, available options: {Architecture._member_map_.keys()}")
+
+        if mode:
+            if isinstance(mode, Mode):
+                self._mode = mode
+            else:
+                # TODO: how to actually handle this?
+                pass
+
     def __enter__(self):
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
+
+    @property
+    def architecture(self):
+        if self._architecture:
+            return self._architecture
+        else:
+            return Architecture.X86
+
+    @property
+    def mode(self):
+        if self._mode:
+            return self._mode
+        else:
+            return Mode._32
 
     @property
     def m(self):
@@ -735,7 +769,7 @@ class ProcessMemory:
         if count:
             # Get the the maximum possible code size assuming maximum instruction size
             size = count * 15
-        return disasm(data=self.readv(addr, size), addr=addr, x64=x64, count=count or 0)
+        return disasm(data=self.readv(addr, size), addr=addr, x64=x64, count=count or 0, architecture=self.architecture, mode=self.mode)
 
     def extract(self, modules=None, extract_manager=None):
         """
