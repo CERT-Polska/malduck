@@ -1,14 +1,28 @@
 import io
+import logging
 from typing import List, Optional
 
 import elftools
 import elftools.elf.elffile
 
+from ..disasm import Architecture, Mode
 from .binmem import ProcessMemoryBinary
 from .procmem import ProcessMemoryBuffer
 from .region import Region
 
 __all__ = ["ProcessMemoryELF", "procmemelf"]
+
+log = logging.getLogger(__name__)
+
+
+ARCHITECTURE_MAPPING = {
+    'EM_386': (Architecture.X86, Mode._32),
+    'EM_X86_64': (Architecture.X86, Mode._64),
+    'EM_PPC': (Architecture.PPC, Mode._32),
+    'EM_PPC64': (Architecture.PPC, Mode._64),
+    'EM_ARM': (Architecture.ARM, Mode.ARM),
+    'EM_MIPS_X': (Architecture.MIPS, Mode._32)
+}
 
 
 class ProcessMemoryELF(ProcessMemoryBinary):
@@ -45,7 +59,26 @@ class ProcessMemoryELF(ProcessMemoryBinary):
         elf = elftools.elf.elffile.ELFFile(stream)
         # Try to iter_segments to check whether ELFFile is really correct
         list(elf.iter_segments())
+
+        em = elf["e_machine"]
+        if em in ARCHITECTURE_MAPPING:
+            self._architecture, self._mode = ARCHITECTURE_MAPPING[em]
+        else:
+            log.error("Architecture %s not supported by procmemelf", em)
+
         return elf
+
+    @property
+    def architecture(self):
+        if self._architecture is None:
+            self._elf_direct_load()
+        return self._architecture
+
+    @property
+    def mode(self):
+        if self._mode is None:
+            self._elf_direct_load()
+        return self._mode
 
     def is_valid(self) -> bool:
         if self.readv(self.imgbase, 4) != self.__magic__:
