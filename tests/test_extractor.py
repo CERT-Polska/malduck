@@ -80,3 +80,24 @@ def test_multirules():
         'matched': ['v2'],
         'third': ['ThIrD string']
     }]
+
+
+def test_configmerge():
+    modules = ExtractorModules("tests/files/modules")
+    calc_exe_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), "files", "calc.exe")
+    extractor = ExtractManager(modules)
+    extractor.push_file(calc_exe_path)
+    assert len(extractor.config) == 1
+
+    conf = extractor.config[0]
+    assert conf == {
+        'family': "ConfigMerge",
+        'constant': "CONST",
+        'mem_types': [str(procmem), str(procmempe)],
+        'dict': {
+            '0x0': "imagebase",
+            '0x1000000': "imagebase"
+        }
+    }
+
+    
