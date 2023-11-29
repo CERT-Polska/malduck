@@ -51,11 +51,21 @@ class Yara:
             str, "YaraString", Dict[str, Union[str, "YaraString"]], None
         ] = None,
         condition: str = "any of them",
+        sources: Optional[Dict[str, str]] = None,
     ) -> None: ...
+    @staticmethod
+    def from_dir_and_sources(
+        path: Optional[str] = None,
+        recursive: bool = True,
+        followlinks: bool = True,
+        sources: Optional[Dict[str, str]] = None,
+    ) -> "Yara": ...
     @staticmethod
     def from_dir(
         path: str, recursive: bool = True, followlinks: bool = True
     ) -> "Yara": ...
+    @staticmethod
+    def from_sources(sources: Dict[str, str]) -> "Yara": ...
     # match(...)
     # match(offset_mapper, ...)
     # match(offset_mapper, extended=False, ...)

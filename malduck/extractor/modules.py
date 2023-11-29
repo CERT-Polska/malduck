@@ -20,15 +20,16 @@ class ExtractorModules:
 
     :param modules_path: Path with module files (Extractor classes and Yara files, default '~/.malduck')
     :type modules_path: str
+    :type modules_path: list
     """
 
-    def __init__(self, modules_path: Optional[str] = None) -> None:
+    def __init__(
+        self,
+        modules_path: Optional[str] = None,
+    ) -> None:
         if modules_path is None:
             modules_path = os.path.join(os.path.expanduser("~"), ".malduck")
-            if not os.path.exists(modules_path):
-                os.makedirs(modules_path)
-        # Load Yara rules
-        self.rules: Yara = Yara.from_dir(modules_path)
+
         # Preload modules
         loaded_modules = load_modules(modules_path, onerror=self.on_error)
         self.extractors: List[Type[Extractor]] = Extractor.__subclasses__()
@@ -43,6 +44,16 @@ class ExtractorModules:
                     f"Make sure the Extractor class is imported into __init__.py",
                 )
         self.override_paths = make_override_paths(self.extractors)
+
+        # Load Yara rules
+        self.rules: Yara = Yara.from_dir_and_sources(
+            path=modules_path,
+            sources={
+                extractor.family: extractor.yara_source
+                for extractor in self.extractors
+                if extractor.yara_source and extractor.family
+            },
+        )
 
     def on_error(self, exc: Exception, module_name: str) -> None:
         """
