@@ -1,7 +1,7 @@
 import logging
 from abc import ABCMeta, abstractmethod
-from typing import Iterator, List, Optional, Type, TypeVar
 from hashlib import sha256
+from typing import Iterator, List, Optional, Type, TypeVar
 
 from .procmem import ProcessMemory, ProcessMemoryBuffer
 from .region import Region
