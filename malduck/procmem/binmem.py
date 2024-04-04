@@ -1,6 +1,7 @@
 import logging
 from abc import ABCMeta, abstractmethod
 from typing import Iterator, List, Optional, Type, TypeVar
+from hashlib import sha256
 
 from .procmem import ProcessMemory, ProcessMemoryBuffer
 from .region import Region
@@ -78,10 +79,18 @@ class ProcessMemoryBinary(ProcessMemory, metaclass=ABCMeta):
             In previous versions it was done by extractor, so it was working only
             if memory-aligned version was also "valid".
         """
+        seen_hashes = set()
         if cls.__magic__ is None:
             raise NotImplementedError()
         for binary_va in procmem.findv(cls.__magic__):
             binary_procmem_dmp = cls.from_memory(procmem, base=binary_va)
+
+            # Deduplicate procmems by the content hash
+            next_hash = sha256(binary_procmem_dmp.m).digest()
+            if next_hash in seen_hashes:
+                continue
+            seen_hashes.add(next_hash)
+
             if binary_procmem_dmp.is_valid():
                 yield binary_procmem_dmp
             binary_procmem_img = binary_procmem_dmp.image
