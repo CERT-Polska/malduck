@@ -31,7 +31,7 @@ class ProcessMemoryELF(ProcessMemoryBinary):
         image: bool = False,
         detect_image: bool = False,
     ) -> None:
-        self._elf = None
+        self._elf: Optional[elftools.elf.elffile.ELFFile] = None
         super().__init__(
             buf, base=base, regions=regions, image=image, detect_image=detect_image
         )
@@ -107,7 +107,7 @@ class ProcessMemoryELF(ProcessMemoryBinary):
     @property
     def imgend(self) -> int:
         """Address where ELF image ends"""
-        lastSegment = self.elf.get_segment(self.elf.num_segment() - 1)
+        lastSegment = self.elf.get_segment(self.elf.num_segments() - 1)
         return lastSegment.header["p_vaddr"] + lastSegment.header["p_memsz"]
 
 
