@@ -62,7 +62,7 @@ class DnPE(PE):
             return None
 
         try:
-            us_string = self.dn_user_strings.get_us(index, encoding=encoding)
+            us_string = self.dn_user_strings.get(index, encoding=encoding)
         except UnicodeDecodeError:
             return None
 
