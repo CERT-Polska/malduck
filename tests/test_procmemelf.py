@@ -17,6 +17,7 @@ def test_hello_static():
         assert pelf.elf.elfclass == 64
         assert pelf.elf.get_machine_arch() == 'x64'
         assert pelf.elf.little_endian
+        assert pelf.imgend == 7159808
         
 
 def test_hello_32():
@@ -26,6 +27,7 @@ def test_hello_32():
         assert pelf.elf.elfclass == 32
         assert pelf.elf.get_machine_arch() == 'x86'
         assert pelf.elf.little_endian
+        assert pelf.imgend == 8192
         
 
 def test_hello_32_static():
@@ -35,6 +37,7 @@ def test_hello_32_static():
         assert pelf.elf.elfclass == 32
         assert pelf.elf.get_machine_arch() == 'x86'
         assert pelf.elf.little_endian
+        assert pelf.imgend == 135200768
 
 
 def test_hidden_32_static():
@@ -48,3 +51,4 @@ def test_hidden_32_static():
                       b"\x00\xcd\x80\x5a\x59\x5b\x58\x68\x73\x87\x04\x08\xc3\x28\x68\x69\x64\x64\x65\x6e\x20\x63\x6f"\
                       b"\x64\x65\x21\x29\x0a"
         assert pelf.readv(0x80ed200, len(hidden_code)) == hidden_code
+        assert pelf.imgend == 135200768

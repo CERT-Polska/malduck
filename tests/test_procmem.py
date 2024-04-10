@@ -271,4 +271,4 @@ def test_procmemdnpe():
         assert p.pe is not None
         assert p.pe.dn_metadata.struct.Version == b'v4.0.30319\x00\x00'
         assert p.pe.dn_metadata.struct.NumberOfStreams == len(p.pe.dn_metadata.streams)
-
+        assert p.pe.dn_user_string(1).value == "Hello World!"
