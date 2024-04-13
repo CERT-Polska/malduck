@@ -27,6 +27,8 @@ http://msdn.microsoft.com/en-us/library/jj665697.aspx
 https://github.com/libyal/reviveit/
 https://github.com/sleuthkit/sleuthkit/blob/develop/tsk/fs/ntfs.c
 """
+from __future__ import annotations
+
 import array
 import struct
 from io import BytesIO

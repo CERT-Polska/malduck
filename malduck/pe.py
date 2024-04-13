@@ -1,12 +1,16 @@
 # Copyright (C) 2018 Jurriaan Bremer.
 # This file is part of Roach - https://github.com/jbremer/roach.
 # See the file 'docs/LICENSE.txt' for copying permission.
+from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Iterator, Optional, Tuple, Union
+from typing import TYPE_CHECKING
 
 import pefile
 
 if TYPE_CHECKING:
+    from collections.abc import Iterator
+    from typing import Any
+
     from .procmem import ProcessMemory
 
 __all__ = ["pe", "PE", "MemoryPEData"]
@@ -48,26 +52,22 @@ class MemoryPEData:
             stop = start
         return self.memory.readv(start, stop - start + 1)
 
-    def find(self, str: bytes, beg: int = 0, end: Optional[int] = None) -> int:
+    def find(self, str: bytes, beg: int = 0, end: int | None = None) -> int:
         if end and beg >= end:
             return -1
-        try:
-            return next(
-                self.memory.regexv(str, self.memory.imgbase + beg, end and end - beg)
-            )
-        except StopIteration:
-            return -1
+        return next(
+            self.memory.regexv(str, self.memory.imgbase + beg, end and end - beg),
+            -1,
+        )
 
 
-class PE(object):
+class PE:
     """
     Wrapper around :class:`pefile.PE`, accepts either bytes (raw file contents) or
     :class:`ProcessMemory` instance.
     """
 
-    def __init__(
-        self, data: Union["ProcessMemory", bytes], fast_load: bool = False
-    ) -> None:
+    def __init__(self, data: ProcessMemory | bytes, fast_load: bool = False) -> None:
         from .procmem import ProcessMemory
 
         if isinstance(data, ProcessMemory):
@@ -122,7 +122,8 @@ class PE(object):
     def headers_size(self) -> int:
         """
         Estimated size of PE headers (first section offset).
-        If there are no sections: returns 0x1000 or size of input if provided data are shorter than single page
+        If there are no sections: returns 0x1000 or size of input
+        if provided data are shorter than single page
         """
         return (
             self.sections[0].PointerToRawData
@@ -130,7 +131,7 @@ class PE(object):
             else min(len(self.pe.__data__), 0x1000)
         )
 
-    def section(self, name: Union[str, bytes]) -> Any:
+    def section(self, name: str | bytes) -> Any:
         """
         Get section by name
 
@@ -148,7 +149,9 @@ class PE(object):
         """
         Get pefile directory entry by identifier
 
-        :param name: shortened pefile directory entry identifier (e.g. 'IMPORT' for 'IMAGE_DIRECTORY_ENTRY_IMPORT')
+        :param name:
+            shortened pefile directory entry identifier
+            (e.g. 'IMPORT' for 'IMAGE_DIRECTORY_ENTRY_IMPORT')
         :rtype: :class:`pefile.Structure`
         """
         return self.optional_header.DATA_DIRECTORY[
@@ -160,8 +163,9 @@ class PE(object):
         Get internal pefile Structure from specified rva
 
         :param rva: Relative virtual address of structure
-        :param format: :class:`pefile.Structure` format
-                       (e.g. :py:attr:`pefile.PE.__IMAGE_LOAD_CONFIG_DIRECTORY64_format__`)
+        :param format:
+            :class:`pefile.Structure` format
+            (e.g. :py:attr:`pefile.PE.__IMAGE_LOAD_CONFIG_DIRECTORY64_format__`)
         :rtype: :class:`pefile.Structure`
         """
         structure = pefile.Structure(format)
@@ -181,13 +185,15 @@ class PE(object):
             # Don't go further than 8 entries
             for _ in range(8):
                 import_desc = self.structure(
-                    import_rva, pefile.PE.__IMAGE_IMPORT_DESCRIPTOR_format__
+                    import_rva,
+                    pefile.PE.__IMAGE_IMPORT_DESCRIPTOR_format__,
                 )
                 if import_desc.all_zeroes():
                     # End of import-table
                     break
                 import_dllname = self.pe.get_string_at_rva(
-                    import_desc.Name, pefile.MAX_DLL_LENGTH
+                    import_desc.Name,
+                    pefile.MAX_DLL_LENGTH,
                 )
                 if not pefile.is_valid_dos_filename(import_dllname):
                     # Invalid import filename found
@@ -208,7 +214,8 @@ class PE(object):
         try:
             resource_rva = resource_dir.VirtualAddress
             resource_desc = self.structure(
-                resource_rva, pefile.PE.__IMAGE_RESOURCE_DIRECTORY_format__
+                resource_rva,
+                pefile.PE.__IMAGE_RESOURCE_DIRECTORY_format__,
             )
             resource_no = (
                 resource_desc.NumberOfNamedEntries + resource_desc.NumberOfIdEntries
@@ -223,7 +230,7 @@ class PE(object):
                 )
                 if (
                     self.pe.get_word_at_rva(
-                        resource_rva + resource_entry_desc.OffsetToData & 0x7FFFFFFF
+                        resource_rva + resource_entry_desc.OffsetToData & 0x7FFFFFFF,
                     )
                     is None
                 ):
@@ -234,7 +241,8 @@ class PE(object):
 
     def validate_padding(self) -> bool:
         """
-        Returns True if area between first non-bss section and first 4kB doesn't have only null-bytes
+        Returns True if area between first non-bss section
+        and first 4kB doesn't have only null-bytes
         """
         section_start_offs = None
         for section in self.sections:
@@ -253,7 +261,7 @@ class PE(object):
                 # Probably fixpe'd - seems to be ok
                 return True
             return not all(
-                b in [0, "\0"]
+                b in (0, "\0")
                 for b in self.pe.__data__[
                     section_start_offs : section_start_offs + data_len
                 ]
@@ -264,7 +272,7 @@ class PE(object):
     def iterate_resources(
         self,
     ) -> Iterator[
-        Tuple[
+        tuple[
             pefile.ResourceDirEntryData,
             pefile.ResourceDirEntryData,
             pefile.ResourceDirEntryData,
@@ -275,11 +283,13 @@ class PE(object):
                 for e3 in e2.directory.entries:
                     yield (e1, e2, e3)
 
-    def resources(self, name: Union[int, str, bytes]) -> Iterator[bytes]:
+    def resources(self, name: int | str | bytes) -> Iterator[bytes]:
         """
         Finds resource objects by specified name or type
 
-        :param name: String name (e2) or type (e1), numeric identifier name (e2) or RT_* type (e1)
+        :param name:
+            String name (e2) or type (e1),
+            numeric identifier name (e2) or RT_* type (e1)
         :type name: int or str or bytes
         :rtype: Iterator[bytes]
         """
@@ -295,7 +305,8 @@ class PE(object):
         def type_int(e1, e2, e3):
             return e1.id == type_id
 
-        # Broken PE files will not have this directory and it's better to return no value
+        # Broken PE files will not have this directory
+        # and it's better to return no value
         # than to throw a meaningless exception
         if not hasattr(self.pe, "DIRECTORY_ENTRY_RESOURCE"):
             return
@@ -316,18 +327,17 @@ class PE(object):
             if compare(e1, e2, e3):
                 yield self.pe.get_data(e3.data.struct.OffsetToData, e3.data.struct.Size)
 
-    def resource(self, name: Union[int, str, bytes]) -> Optional[bytes]:
+    def resource(self, name: int | str | bytes) -> bytes | None:
         """
         Retrieves single resource by specified name or type
 
-        :param name: String name (e2) or type (e1), numeric identifier name (e2) or RT_* type (e1)
+        :param name:
+            String name (e2) or type (e1),
+            numeric identifier name (e2) or RT_* type (e1)
         :type name: int or str or bytes
         :rtype: bytes or None
         """
-        try:
-            return next(self.resources(name))
-        except StopIteration:
-            return None
+        return next(self.resources(name), None)
 
 
 pe = PE

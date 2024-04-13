@@ -1,7 +1,7 @@
 import os
 
 from malduck import Yara, YaraString
-from malduck.procmem import Region, ProcessMemory
+from malduck.procmem import ProcessMemory, Region
 
 
 def test_yara_match():

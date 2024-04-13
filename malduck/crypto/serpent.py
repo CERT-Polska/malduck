@@ -1,4 +1,4 @@
-from typing import Optional
+from __future__ import annotations
 
 from .components.pyserpent import serpent_cbc_decrypt, serpent_cbc_encrypt
 
@@ -6,7 +6,7 @@ __all__ = ["serpent"]
 
 
 class SerpentCbc:
-    def encrypt(self, key: bytes, data: bytes, iv: Optional[bytes] = None) -> bytes:
+    def encrypt(self, key: bytes, data: bytes, iv: bytes | None = None) -> bytes:
         """
         Encrypts buffer using Serpent algorithm in CBC mode.
 
@@ -21,7 +21,7 @@ class SerpentCbc:
         """
         return serpent_cbc_encrypt(key, data, iv=iv or b"\x00" * 16)
 
-    def decrypt(self, key: bytes, data: bytes, iv: Optional[bytes] = None) -> bytes:
+    def decrypt(self, key: bytes, data: bytes, iv: bytes | None = None) -> bytes:
         """
         Decrypts buffer using Serpent algorithm in CBC mode.
 

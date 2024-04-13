@@ -30,7 +30,7 @@ URL_REGEX = (
 )
 
 
-class Verify(object):
+class Verify:
     @staticmethod
     def ascii(s: bytes) -> bool:
         return bool(re.match(b"^[\\x20-\\x7f]*$", s, re.DOTALL))

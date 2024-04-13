@@ -1,10 +1,18 @@
+from __future__ import annotations
+
 import logging
-from typing import Any, Dict
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from typing import Any
+
+    from typing_extensions import TypeAlias
+
+    Config: TypeAlias = dict[str, Any]
+    ConfigSet: TypeAlias = dict[str, Config]
+
 
 log = logging.getLogger(__name__)
-
-Config = Dict[str, Any]
-ConfigSet = Dict[str, Config]
 
 
 def is_config_better(base_config: Config, new_config: Config) -> bool:
@@ -12,9 +20,9 @@ def is_config_better(base_config: Config, new_config: Config) -> bool:
     Checks whether new config looks more reliable than base.
     Currently just checking the amount of non-empty keys.
     """
-    base = [(k, v) for k, v in base_config.items() if v]
-    new = [(k, v) for k, v in new_config.items() if v]
-    return len(new) > len(base)
+    return len(tuple(filter(None, new_config.values()))) > len(
+        tuple(filter(None, base_config.values()))
+    )
 
 
 def encode_for_json(data: Any) -> Any:
@@ -35,7 +43,7 @@ def sanitize_config(config: Config) -> Config:
     :param config: Configuration to sanitize
     :return: Sanitized configuration
     """
-    return {k: v for k, v in config.items() if v in [0, False] or v}
+    return {k: v for k, v in config.items() if v == 0 or v}
 
 
 def apply_config_part(base_config: Config, new_config_part: Config) -> Config:
@@ -55,10 +63,10 @@ def apply_config_part(base_config: Config, new_config_part: Config) -> Config:
         elif isinstance(config[k], list):
             for el in v:
                 if el not in config[k]:
-                    config[k] = config[k] + [el]
+                    config[k] += [el]
         else:
             raise RuntimeError(
                 f"Extractor tries to override '{config[k]}' "
-                f"value of '{k}' with '{v}'"
+                f"value of '{k}' with '{v}'",
             )
     return config

@@ -4,19 +4,19 @@
 
 from malduck import (
     aes,
-    camellia,
+    base64,
     blowfish,
+    camellia,
+    chacha20,
     des3,
+    p8,
+    rabbit,
     rc4,
     rsa,
-    xor,
-    base64,
-    unhex,
-    rabbit,
-    p8,
-    serpent,
-    chacha20,
     salsa20,
+    serpent,
+    unhex,
+    xor,
 )
 
 

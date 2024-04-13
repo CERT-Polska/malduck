@@ -1,12 +1,16 @@
+from __future__ import annotations
+
 import io
-from typing import List, Optional
+from typing import TYPE_CHECKING
 
 import elftools
 import elftools.elf.elffile
 
 from .binmem import ProcessMemoryBinary
-from .procmem import ProcessMemoryBuffer
 from .region import Region
+
+if TYPE_CHECKING:
+    from .procmem import ProcessMemoryBuffer
 
 __all__ = ["ProcessMemoryELF", "procmemelf"]
 
@@ -17,8 +21,8 @@ class ProcessMemoryELF(ProcessMemoryBinary):
 
     Short name: `procmemelf`
 
-    ELF files can be read directly using inherited :py:meth:`ProcessMemory.from_file` with `image` argument set
-    (look at :py:meth:`from_memory` method).
+    ELF files can be read directly using inherited :py:meth:`ProcessMemory.from_file`
+    with `image` argument set (look at :py:meth:`from_memory` method).
     """
 
     __magic__ = b"\x7fELF"
@@ -27,13 +31,17 @@ class ProcessMemoryELF(ProcessMemoryBinary):
         self,
         buf: ProcessMemoryBuffer,
         base: int = 0,
-        regions: Optional[List[Region]] = None,
+        regions: list[Region] | None = None,
         image: bool = False,
         detect_image: bool = False,
     ) -> None:
         self._elf: Optional[elftools.elf.elffile.ELFFile] = None
         super().__init__(
-            buf, base=base, regions=regions, image=image, detect_image=detect_image
+            buf,
+            base=base,
+            regions=regions,
+            image=image,
+            detect_image=detect_image,
         )
 
     def _elf_direct_load(self) -> elftools.elf.elffile.ELFFile:
@@ -85,7 +93,7 @@ class ProcessMemoryELF(ProcessMemoryBinary):
                         segment.header["p_type"],
                         0,  # TODO: protect flags
                         segment.header["p_offset"] - presegment_len,
-                    )
+                    ),
                 )
         if len(regions) == 0:
             raise elftools.elf.elffile.ELFError("No regions in ELF file!")
@@ -102,7 +110,7 @@ class ProcessMemoryELF(ProcessMemoryBinary):
         return self._elf
 
     def is_image_loaded_as_memdump(self):
-        raise NotImplementedError()
+        raise NotImplementedError
 
     @property
     def imgend(self) -> int:

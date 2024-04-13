@@ -5,7 +5,7 @@
 from malduck import disasm
 
 
-class TestDisasm(object):
+class TestDisasm:
     streams = b"".join((
         # mov esi, [edi+4]
         b"\x8b\x77\x04",
@@ -66,7 +66,7 @@ class TestDisasm(object):
         assert list(disasm(b"hAAAA", 0)) == list(disasm(b"hAAAA", 0))
 
 
-class TestDisasm64bit(object):
+class TestDisasm64bit:
     streams = b"".join((
         # inc rax
         b"\x48\xff\xc0",

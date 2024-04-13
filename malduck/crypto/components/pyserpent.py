@@ -34,16 +34,17 @@
 # Anyone thinking of using this code should reconsider. It's slow.
 # Try python-mcrypt instead. In case a faster library is not installed
 # on the target system, this code can be used as a portable fallback.
+from __future__ import annotations
+
 import struct
 import sys
-from typing import List, Optional
 
 block_size = 16
 key_size = 32
 
 
 class Serpent:
-    def __init__(self, key: Optional[bytes] = None) -> None:
+    def __init__(self, key: bytes | None = None) -> None:
         """Serpent."""
 
         if key:
@@ -133,7 +134,7 @@ def byteswap32(x: int) -> int:
     )
 
 
-def set_key(l_key: List[int], key: List[int], key_len: int) -> None:
+def set_key(l_key: list[int], key: list[int], key_len: int) -> None:
     key_len *= 8
     if key_len > 256:
         return None
@@ -962,7 +963,7 @@ def set_key(l_key: List[int], key: List[int], key_len: int) -> None:
     key[4 * 32 + 11] = h
 
 
-def encrypt(key: List[int], in_blk: List[int]) -> None:
+def encrypt(key: list[int], in_blk: list[int]) -> None:
     # serpent_generate.py
     a = in_blk[0]
     b = in_blk[1]
@@ -1946,7 +1947,7 @@ def encrypt(key: List[int], in_blk: List[int]) -> None:
     in_blk[3] = d
 
 
-def decrypt(key: List[int], in_blk: List[int]) -> None:
+def decrypt(key: list[int], in_blk: list[int]) -> None:
     # serpent_generate.py
     a = in_blk[0]
     b = in_blk[1]
@@ -2957,10 +2958,10 @@ __testkey = (
 )
 __testdat = b"\x00\x01\x02\x03\x04\x05\x06\x07\x08\t\n\x0b\x0c\r\x0e\x0f"
 assert b"\xde&\x9f\xf83\xe42\xb8[.\x88\xd2p\x1c\xe7\\" == Serpent(__testkey).encrypt(
-    __testdat
+    __testdat,
 )
 assert __testdat == Serpent(__testkey).decrypt(
-    b"\xde&\x9f\xf83\xe42\xb8[.\x88\xd2p\x1c\xe7\\"
+    b"\xde&\x9f\xf83\xe42\xb8[.\x88\xd2p\x1c\xe7\\",
 )
 
 

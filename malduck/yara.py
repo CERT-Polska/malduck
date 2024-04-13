@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import enum
 import json
 import logging
@@ -5,9 +7,17 @@ import os
 import re
 import textwrap
 from collections import defaultdict, namedtuple
-from typing import Callable, Dict, Optional, Tuple, TypeVar
+from typing import TYPE_CHECKING, TypeVar
 
 import yara
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
+    from typing_extensions import TypeAlias
+
+    YaraRulesString: TypeAlias = tuple[int, str, bytes]
+    OffsetMapper: TypeAlias = Callable[[int | None, int | None], int | None]
 
 __all__ = [
     "Yara",
@@ -24,9 +34,6 @@ __all__ = [
 log = logging.getLogger(__name__)
 
 T = TypeVar("T")
-OffsetMapper = Callable[[Optional[int], Optional[int]], Optional[int]]
-
-YaraRulesString = Tuple[int, str, bytes]
 
 
 class _Mapper:
@@ -58,12 +65,13 @@ class _Mapper:
         try:
             return self[item]
         except IndexError:
-            raise AttributeError()
+            raise AttributeError
 
 
 class Yara:
     """
-    Represents Yara ruleset. Rules can be compiled from set of files or defined in code (single rule only).
+    Represents Yara ruleset.
+    Rules can be compiled from set of files or defined in code (single rule only).
 
     Most simple rule (with default identifiers left):
 
@@ -100,18 +108,25 @@ class Yara:
                 # Note: Order of offsets for grouped strings is undetermined
                 print("mal*", match.MalwareRule["mal"])
 
-    :param rule_paths: Dictionary of {"namespace": "rule_path"}. See also :py:meth:`Yara.from_dir`.
+    :param rule_paths:
+        Dictionary of {"namespace": "rule_path"}. See also :py:meth:`Yara.from_dir`.
     :type rule_paths: dict
     :param name: Name of generated rule (default: "r")
     :type name: str
-    :param strings: Dictionary representing set of string patterns ({"string_identifier": YaraString or plain str})
+    :param strings:
+        Dictionary representing set of string patterns
+        ({"string_identifier": YaraString or plain str})
     :type strings: dict or str or :class:`YaraString`
     :param condition: Yara rule condition (default: "any of them")
     :type condition: str
     """
 
     def __init__(
-        self, rule_paths=None, name="r", strings=None, condition="any of them"
+        self,
+        rule_paths=None,
+        name="r",
+        strings=None,
+        condition="any of them",
     ):
         if rule_paths:
             self.rules = yara.compile(filepaths=rule_paths)
@@ -125,9 +140,9 @@ class Yara:
 
         yara_strings = "\n        ".join(
             [
-                f"${key} = {str(YaraString(value) if isinstance(value, str) else value)}"
+                f"${key} = {YaraString(value) if isinstance(value, str) else value!s}"
                 for key, value in strings.items()
-            ]
+            ],
         )
         yara_source = textwrap.dedent(
             f"""
@@ -137,7 +152,7 @@ class Yara:
                 condition:
                     {condition}
             }}
-        """
+        """,
         )
 
         self.rules = yara.compile(source=yara_source)
@@ -145,7 +160,8 @@ class Yara:
     @staticmethod
     def from_dir(path, recursive=True, followlinks=True):
         """
-        Find rules (recursively) in specified path. Supported extensions: \\*.yar, \\*.yara
+        Find rules (recursively) in specified path.
+        Supported extensions: \\*.yar, \\*.yara
 
         :param path: Root path for searching
         :type path: str
@@ -155,7 +171,7 @@ class Yara:
         :type followlinks: bool
         :rtype: :class:`Yara`
         """
-        rule_paths: Dict[str, str] = {}
+        rule_paths: dict[str, str] = {}
         for root, _, files in os.walk(path, followlinks=followlinks):
             for fname in files:
                 if not fname.endswith(".yar") and not fname.endswith(".yara"):
@@ -165,7 +181,7 @@ class Yara:
                 if ruleset_name in rule_paths:
                     log.warning(
                         f"Yara file name collision - {rule_paths[ruleset_name]} "
-                        f"overridden by {ruleset_path}"
+                        f"overridden by {ruleset_path}",
                     )
                 rule_paths[ruleset_name] = ruleset_path
             if not recursive:
@@ -180,16 +196,19 @@ class Yara:
         :type filepath: str
         :param data: Data to be scanned
         :type data: str
-        :param offset_mapper: Offset mapping function. For unmapped region, should returned None.
-                              Used by :py:meth:`malduck.procmem.ProcessMemory.yarav`
+        :param offset_mapper:
+            Offset mapping function. For unmapped region, should returned None.
+            Used by :py:meth:`malduck.procmem.ProcessMemory.yarav`
         :type offset_mapper: function
         :param extended: Returns extended information about matched strings and rules
         :type extended: bool (optional, default False)
-        :rtype: :class:`malduck.yara.YaraRulesetOffsets` or :class:`malduck.yara.YaraRulesetMatches`
-                if extended is set to True
+        :rtype:
+            :class:`malduck.yara.YaraRulesetOffsets`
+            or :class:`malduck.yara.YaraRulesetMatches` if extended is set to True
         """
         matches = YaraRulesetMatch(
-            self.rules.match(**kwargs), offset_mapper=offset_mapper
+            self.rules.match(**kwargs),
+            offset_mapper=offset_mapper,
         )
         return YaraRulesetOffsets(matches) if not extended else matches
 
@@ -207,7 +226,10 @@ class YaraString:
     :param value: Pattern value
     :type value: str
     :param type: Pattern type (default is :py:attr:`YaraString.TEXT`)
-    :type type: :py:attr:`YaraString.TEXT` / :py:attr:`YaraString.HEX` / :py:attr:`YaraString.REGEX`
+    :type type:
+        :py:attr:`YaraString.TEXT`
+        / :py:attr:`YaraString.HEX`
+        / :py:attr:`YaraString.REGEX`
     :param modifiers: Yara string modifier flags
     """
 
@@ -251,7 +273,11 @@ class YaraRulesetMatch(_Mapper):
         ]
         return {
             match.rule: YaraRuleMatch(
-                match.rule, strings, match.meta, match.namespace, match.tags
+                match.rule,
+                strings,
+                match.meta,
+                match.namespace,
+                match.tags,
             )
             for match, strings in mapped_matches
             if strings
@@ -260,7 +286,8 @@ class YaraRulesetMatch(_Mapper):
     def _map_strings(self, strings, offset_mapper):
         mapped_strings = defaultdict(list)
         for yara_string in strings:
-            # yara-python 4.3.0 broke compatibilty and started returning a StringMatch object
+            # yara-python 4.3.0 broke compatibilty
+            # and started returning a StringMatch object
             if type(yara_string) is tuple:
                 offsets = [yara_string[0]]
                 identifier = yara_string[1]
@@ -283,12 +310,12 @@ class YaraRulesetMatch(_Mapper):
                     offset = _offset
                 # Register offset for full identifier
                 mapped_strings[real_ident].append(
-                    YaraStringMatch(real_ident, offset, content)
+                    YaraStringMatch(real_ident, offset, content),
                 )
                 # Register offset for grouped identifier
                 if real_ident != group_ident:
                     mapped_strings[group_ident].append(
-                        YaraStringMatch(real_ident, offset, content)
+                        YaraStringMatch(real_ident, offset, content),
                     )
         return mapped_strings
 
@@ -307,7 +334,7 @@ class YaraRulesetOffsets(_Mapper):
     def __init__(self, matches):
         self._matches = matches
         super().__init__(
-            elements={k: YaraRuleOffsets(v) for k, v in matches.elements.items()}
+            elements={k: YaraRuleOffsets(v) for k, v in matches.elements.items()},
         )
 
     def remap(self, offset_mapper=None):
@@ -330,7 +357,7 @@ class YaraRuleMatch(_Mapper):
         self.namespace = namespace
         self.tags = tags
         super().__init__(
-            elements={k: sorted(v, key=lambda s: s.offset) for k, v in strings.items()}
+            elements={k: sorted(v, key=lambda s: s.offset) for k, v in strings.items()},
         )
 
     def get_offsets(self, string):

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import importlib.util
 import logging
 import os
@@ -6,10 +8,16 @@ import sys
 import warnings
 from collections import defaultdict
 from importlib.abc import FileLoader, PathEntryFinder
-from typing import Any, Callable, DefaultDict, Dict, List, Optional, Type, cast
+from operator import attrgetter
+from typing import TYPE_CHECKING, cast
 
 from ..yara import Yara
 from .extractor import Extractor
+
+if TYPE_CHECKING:
+    from typing import Any
+
+    from collecions.abc import Callable
 
 log = logging.getLogger(__name__)
 
@@ -18,11 +26,12 @@ class ExtractorModules:
     """
     Configuration object with loaded Extractor modules for ExtractManager
 
-    :param modules_path: Path with module files (Extractor classes and Yara files, default '~/.malduck')
+    :param modules_path:
+        Path with module files (Extractor classes and Yara files, default '~/.malduck')
     :type modules_path: str
     """
 
-    def __init__(self, modules_path: Optional[str] = None) -> None:
+    def __init__(self, modules_path: str | None = None) -> None:
         if modules_path is None:
             modules_path = os.path.join(os.path.expanduser("~"), ".malduck")
             if not os.path.exists(modules_path):
@@ -31,16 +40,17 @@ class ExtractorModules:
         self.rules: Yara = Yara.from_dir(modules_path)
         # Preload modules
         loaded_modules = load_modules(modules_path, onerror=self.on_error)
-        self.extractors: List[Type[Extractor]] = Extractor.__subclasses__()
+        self.extractors: list[type[Extractor]] = Extractor.__subclasses__()
 
-        loaded_extractors = [x.__module__ for x in self.extractors]
+        loaded_extractors = [*map(attrgetter("__module__"), self.extractors)]
 
         for module in loaded_modules.values():
             module_name = module.__name__
             if not any(x.startswith(module_name) for x in loaded_extractors):
                 warnings.warn(
-                    f"The extractor engine couldn't import any Extractors from module {module_name}. "
-                    f"Make sure the Extractor class is imported into __init__.py",
+                    "The extractor engine couldn't import any Extractors "
+                    f"from module {module_name}. "
+                    "Make sure the Extractor class is imported into __init__.py",
                 )
         self.override_paths = make_override_paths(self.extractors)
 
@@ -76,9 +86,9 @@ class ExtractorModules:
         return 0
 
 
-def make_override_paths(extractors: List[Type[Extractor]]) -> Dict[str, List[str]]:
+def make_override_paths(extractors: list[type[Extractor]]) -> dict[str, list[str]]:
     # Make override trees and get roots
-    overrides: DefaultDict[str, List[str]] = defaultdict(list)
+    overrides: defaultdict[str, list[str]] = defaultdict(list)
     parents = set()
     children = set()
     for extractor in extractors:
@@ -96,7 +106,8 @@ def make_override_paths(extractors: List[Type[Extractor]]) -> Dict[str, List[str
     def make_override_path(node, visited, current_path=None):
         if node in visited:
             raise RuntimeError(
-                f"Override cycle detected: {node} already visited during tree traversal"
+                "Override cycle detected: "
+                f"{node} already visited during tree traversal",
             )
         visited.add(node)
         unvisited.remove(node)
@@ -115,7 +126,8 @@ def make_override_paths(extractors: List[Type[Extractor]]) -> Dict[str, List[str
     # Root undetected
     if unvisited:
         raise RuntimeError(
-            f"Override cycle detected: {list(unvisited)} not visited during tree traversal"
+            "Override cycle detected: "
+            f"{list(unvisited)} not visited during tree traversal",
         )
     return dict(override_paths)
 
@@ -143,23 +155,26 @@ def import_module_by_finder(finder: PathEntryFinder, module_name: str) -> Any:
 
 
 def load_modules(
-    search_path: str, onerror: Optional[Callable[[Exception, str], None]] = None
-) -> Dict[str, Any]:
+    search_path: str,
+    onerror: Callable[[Exception, str], None] | None = None,
+) -> dict[str, Any]:
     """
     Loads plugin modules under specified paths
 
     .. note::
 
-        This method is considered to be used internally (see also :class:`extractor.ExtractorModules`)
+        This method is considered to be used internally
+        (see also :class:`extractor.ExtractorModules`)
 
     :param search_path: Path searched for modules
     :type search_path: str
     :param onerror: Exception handler (default: ignore exceptions)
     :return: dict {name: module}
     """
-    modules: Dict[str, Any] = {}
+    modules: dict[str, Any] = {}
     for finder, module_name, is_pkg in pkgutil.iter_modules(
-        [search_path], "malduck.extractor.modules."
+        [search_path],
+        "malduck.extractor.modules.",
     ):
         if not is_pkg:
             continue
@@ -167,7 +182,8 @@ def load_modules(
             log.warning("Module collision - %s overridden", module_name)
         try:
             modules[module_name] = import_module_by_finder(
-                cast(PathEntryFinder, finder), module_name
+                cast(PathEntryFinder, finder),
+                module_name,
             )
         except Exception as exc:
             if onerror:

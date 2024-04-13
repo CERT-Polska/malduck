@@ -3,7 +3,7 @@
 # See the file 'docs/LICENSE.txt' for copying permission.
 
 
-from malduck import pe, base64
+from malduck import base64, pe
 
 
 def test_pe_header():

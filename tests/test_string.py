@@ -2,13 +2,28 @@
 # This file is part of Roach - https://github.com/jbremer/roach.
 # See the file 'docs/LICENSE.txt' for copying permission.
 
-import pytest
-
 from malduck import (
-    uint8, uint16, uint32, uint64, bigint,
-    p8, p16, p32, p64,
-    asciiz, pad, unpad, ipv4, pack, unpack, enhex, unhex, base64, uleb128,
-    chunks, utf16z
+    asciiz,
+    base64,
+    bigint,
+    chunks,
+    enhex,
+    ipv4,
+    p8,
+    p16,
+    p32,
+    p64,
+    pack,
+    pad,
+    uint8,
+    uint16,
+    uint32,
+    uint64,
+    uleb128,
+    unhex,
+    unpack,
+    unpad,
+    utf16z,
 )
 
 

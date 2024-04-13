@@ -1,3 +1,5 @@
+from pathlib import Path
+
 try:
     from setuptools import setup
 except ImportError:
@@ -7,7 +9,7 @@ setup(
     name="malduck",
     version="4.4.0",
     description="Malduck is your ducky companion in malware analysis journeys",
-    long_description=open("README.md").read(),
+    long_description=Path("README.md").read_text(),
     long_description_content_type="text/markdown",
     author="CERT Polska",
     author_email="info@cert.pl",
@@ -20,11 +22,11 @@ setup(
     },
     license="GPLv3",
     include_package_data=True,
-    install_requires=open("requirements.txt").read().splitlines(),
+    install_requires=Path("requirements.txt").read_text().splitlines(),
     url="https://github.com/CERT-Polska/malduck",
     classifiers=[
         "Programming Language :: Python :: 3",
         "Operating System :: POSIX :: Linux",
     ],
-    python_requires='>=3.8'
+    python_requires=">=3.8",
 )

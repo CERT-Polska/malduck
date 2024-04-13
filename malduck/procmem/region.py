@@ -1,7 +1,7 @@
 # Copyright (C) 2018 Jurriaan Bremer.
 # This file is part of Roach - https://github.com/jbremer/roach.
 # See the file 'docs/LICENSE.txt' for copying permission.
-from typing import Dict, Optional, Union
+from __future__ import annotations
 
 __all__ = [
     "Region",
@@ -37,7 +37,13 @@ class Region:
     """Represents single mapped region in :class:`ProcessMemory`"""
 
     def __init__(
-        self, addr: int, size: int, state: int, type_: int, protect: int, offset: int
+        self,
+        addr: int,
+        size: int,
+        state: int,
+        type_: int,
+        protect: int,
+        offset: int,
     ) -> None:
         self.addr = addr
         self.size = size
@@ -46,7 +52,7 @@ class Region:
         self.protect = protect
         self.offset = offset
 
-    def to_json(self) -> Dict[str, Union[int, Optional[str]]]:
+    def to_json(self) -> dict[str, int | str | None]:
         """
         Returns JSON-like dict representation
         """
@@ -90,7 +96,8 @@ class Region:
 
     def v2p(self, addr: int) -> int:
         """
-        Virtual address to physical offset translation. Assumes that address is valid within Region.
+        Virtual address to physical offset translation.
+        Assumes that address is valid within Region.
         :param addr: Virtual address
         :return: Physical offset
         """
@@ -122,7 +129,7 @@ class Region:
         """
         return self.addr < addr + length and addr < self.end
 
-    def trim_range(self, addr: int, length: Optional[int] = None) -> Optional["Region"]:
+    def trim_range(self, addr: int, length: int | None = None) -> Region | None:
         """
         Returns region intersection with provided range
         :param addr: Virtual address of starting point
