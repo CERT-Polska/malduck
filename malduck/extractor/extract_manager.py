@@ -1,7 +1,7 @@
 import json
 import logging
 import warnings
-from typing import Any, Dict, List, Optional, Type
+from typing import Any, Dict, Iterator, List, Optional, Type
 
 from ..procmem import ProcessMemory, ProcessMemoryELF, ProcessMemoryPE
 from ..procmem.binmem import ProcessMemoryBinary
@@ -114,21 +114,19 @@ class ExtractManager:
         log.debug("Matched rules: %s", ",".join(list(matches.keys())))
         return matches
 
-    def carve_procmem(self, p: ProcessMemory) -> List[ProcessMemoryBinary]:
+    def carve_procmem(self, p: ProcessMemory) -> Iterator[ProcessMemoryBinary]:
         """
         Carves binaries from ProcessMemory to try configuration extraction
         using every possible address mapping.
         """
-        binaries = []
         for binclass in self.binary_classes:
-            carved_bins = list(binclass.load_binaries_from_memory(p))
+            carved_bins = binclass.load_binaries_from_memory(p)
             for carved_bin in carved_bins:
                 log.debug(
                     f"carve: Found {carved_bin.__class__.__name__} "
                     f"at offset {carved_bin.regions[0].offset}"
                 )
-            binaries += carved_bins
-        return binaries
+                yield carved_bin
 
     def push_config(self, config: Config) -> bool:
         if not config.get("family"):
@@ -209,7 +207,7 @@ class ExtractManager:
             log.debug("No Yara matches.")
             return None
 
-        binaries = self.carve_procmem(p) if rip_binaries else []
+        binaries = self.carve_procmem(p) if rip_binaries else iter([])
 
         family = self._extract_procmem(p, matches)
         for binary in binaries:
