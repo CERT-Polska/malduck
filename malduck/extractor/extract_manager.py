@@ -124,7 +124,7 @@ class ExtractManager:
             for carved_bin in carved_bins:
                 log.debug(
                     f"carve: Found {carved_bin.__class__.__name__} "
-                    f"at offset {carved_bin.regions[0].offset}"
+                    f"at {carved_bin.imgbase}"
                 )
                 yield carved_bin
 
