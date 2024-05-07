@@ -20,6 +20,42 @@ log = logging.getLogger(__name__)
 
 __all__ = ["ExtractManager"]
 
+def merge_configs(base_config: Config, new_config: Config) -> Config:
+    """
+    Merge static configurations.
+
+    :param base_config: Base configuration
+    :param new_config: Changes to apply
+    :return: Merged configuration
+    """
+    config = dict(base_config)
+    for k, v in new_config.items():
+        if k == "family":
+            continue
+        if k not in config:
+            config[k] = v
+        elif config[k] == v:
+            continue
+        elif type(config[k]) == type(v):
+            if isinstance(config[k], list):
+                for el in v:
+                    if el not in config[k]:
+                        config[k] = config[k] + [el]
+            elif isinstance(config[k], dict):
+                config[k] = merge_configs(config[k], v)
+            else:
+                log.warning(
+                    f"Merge error for key '{k}' of type {type(v)}: Merging not implemented, "
+                    "using value from base_config"
+                )
+        else:
+            log.warning(
+                f"TypeError for key '{k}': Failed to merge existing value ({type(config[k])}) "
+                f"'{config[k]}' with new value (new type: {type(v)}) '{v}', "
+                "using value from base_config"
+            )
+    return config
+
 
 class ExtractManager:
     """
@@ -134,13 +170,18 @@ class ExtractManager:
 
         family = config["family"]
         if family in self.configs:
+            base_config = None
+            new_config = None
             if is_config_better(base_config=self.configs[family], new_config=config):
-                self.configs[family] = config
-                log.debug("%s config looks better than previous one", family)
-                return True
+                log.debug(f"{family} new config looks better - use as base and merge existing")
+                base_config = config
+                new_config = self.configs[family]
             else:
-                log.debug("%s config doesn't look better than previous one", family)
-                return False
+                log.debug(f"{family} new config doesn't look better - try merging into existing.")
+                base_config = self.configs[family]
+                new_config = config
+            self.configs[family] = merge_configs(base_config=base_config, new_config=new_config)
+            return True
 
         if family in self.modules.override_paths:
             # 'citadel' > 'zeus'
