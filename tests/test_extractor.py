@@ -80,3 +80,12 @@ def test_multirules():
         'matched': ['v2'],
         'third': ['ThIrD string']
     }]
+
+
+def test_embedded():
+    modules = ExtractorModules("tests/files/modules")
+    p = procmem.from_file("tests/files/embedded.txt")
+    assert p.extract(modules) == [{
+        "embedded": True,
+        "family": "embedded",
+    }]
