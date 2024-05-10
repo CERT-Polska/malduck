@@ -49,7 +49,7 @@ class IDAMemoryBuffer(MemoryBuffer):
         return self.idamem.regions[-1].end_offset
 
     def slice(
-        self, from_offset: Optional[int], to_offset: Optional[int]
+        self, from_offset: Optional[int] = None, to_offset: Optional[int] = None
     ) -> "MemoryBuffer":
         # HACK: IDAMemoryBuffer depends on region information from IDAProcessMemory
         # Let's assume that MemoryBuffer is never directly sliced and regions

@@ -18,7 +18,7 @@ class MemoryBuffer(ABC):
 
     @abstractmethod
     def slice(
-        self, from_offset: Optional[int], to_offset: Optional[int]
+        self, from_offset: Optional[int] = None, to_offset: Optional[int] = None
     ) -> "MemoryBuffer":
         raise NotImplementedError
 
@@ -34,27 +34,38 @@ class PlainMemoryBuffer(MemoryBuffer):
     ) -> None:
         if type(buf) is memoryview:
             self.buf = buf
-        elif type(buf) is bytearray:
+        elif type(buf) in (bytearray, bytes):
             self.buf = memoryview(buf)
-        elif type(buf) is bytes:
-            # Copy bytes to bytearray to make it patchable
-            self.buf = memoryview(bytearray(buf))
         else:
-            raise TypeError("Buffer in PlainMemoryBuffer must be bytes or bytearray")
+            raise TypeError(
+                "Buffer in PlainMemoryBuffer must be memoryview, bytes or bytearray"
+            )
 
     def __getitem__(self, item: slice) -> bytes:
         return bytes(self.buf[item])
 
     def __setitem__(self, item: slice, value: bytes) -> None:
+        if self.buf.readonly:
+            # If buffer is read-only, make a copy (on write)
+            patchable_buf = memoryview(bytearray(self.buf))
+            self.buf.release()
+            self.buf = patchable_buf
         self.buf[item] = value
 
     def __len__(self) -> int:
         return len(self.buf)
 
     def slice(
-        self, from_offset: Optional[int], to_offset: Optional[int]
+        self, from_offset: Optional[int] = None, to_offset: Optional[int] = None
     ) -> "MemoryBuffer":
-        return PlainMemoryBuffer(self.buf[from_offset:to_offset])
+        """
+        Creates a derived MemoryBuffer object representing slice of an underlying memory.
+
+        Derived buffer is readonly, so __setitem__ will first make a copy before applying
+        changes. It means that changes on parent buffer may be seen in derived buffers,
+        but not the other way.
+        """
+        return PlainMemoryBuffer(self.buf[from_offset:to_offset].toreadonly())
 
     def release(self) -> None:
         self.buf.release()
@@ -83,7 +94,7 @@ class MmapMemoryBuffer(PlainMemoryBuffer):
                 super().__init__(memoryview(self.mapped_buf))
             except RuntimeError:
                 # Fallback to file.read()
-                super().__init__(memoryview(bytearray(self.opened_file.read())))
+                super().__init__(memoryview(self.opened_file.read()))
                 self.opened_file.close()
                 self.opened_file = None
 

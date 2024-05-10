@@ -211,7 +211,8 @@ class ExtractManager:
 
         family = self._extract_procmem(p, matches)
         for binary in binaries:
-            family = self._extract_procmem(binary, matches) or family
+            with binary:
+                family = self._extract_procmem(binary, matches) or family
         return family
 
     @property

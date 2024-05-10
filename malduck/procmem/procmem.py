@@ -151,9 +151,46 @@ class ProcessMemory:
         :rtype: :class:`ProcessMemory`
         """
         copied = cls(
-            memory.m, base=base or memory.imgbase, regions=memory.regions, **kwargs
+            memory.memory.slice(),
+            base=base or memory.imgbase,
+            regions=memory.regions,
+            **kwargs,
         )
         return copied
+
+    @classmethod
+    def from_memory_slice(cls, memory, addr, length=None):
+        """
+        Creates a new ProcessMemory object that represents a slice of ProcessMemory.
+        Slice can't be cross-region. If you don't provide length, it will be limited to
+        the length of the region containing provided virtual address.
+
+        :param addr: Starting virtual address
+        :type addr: int
+        :param length: Length of slice (optional)
+        :type length: Optional[int]
+        """
+        region = memory.addr_region(addr)
+        # Boundary check
+        if region is None or (length is not None and region.end < (addr + length)):
+            raise ValueError(
+                "Sliced range must be contained within single, existing region"
+            )
+        new_regions = [
+            Region(
+                addr,
+                region.size if length is None else length,
+                region.state,
+                region.type_,
+                region.protect,
+                0,
+            )
+        ]
+        slice_from_offset = region.offset + (addr - region.addr)
+        slice_to_offset = region.offset + length if length is not None else None
+        new_memory = memory.memory.slice(slice_from_offset, slice_to_offset)
+        new_imgbase = addr
+        return cls(new_memory, base=new_imgbase, regions=new_regions)
 
     @property
     def length(self):
@@ -408,40 +445,6 @@ class ProcessMemory:
         _, chunk = next(self.readv_regions(addr), (0, b""))
         idx = chunk.find(s)
         return chunk[:idx] if idx >= 0 else chunk
-
-    def slicev(self, addr, length=None):
-        """
-        Creates a new ProcessMemory object that represents a slice of ProcessMemory.
-
-        Slice can't be cross-region. If you don't provide length, it will be limited to
-        the length of the region containing provided virtual address.
-
-        :param addr: Starting virtual address
-        :type addr: int
-        :param length: Length of slice (optional)
-        :type length: Optional[int]
-        """
-        region = self.addr_region(addr)
-        # Boundary check
-        if region is None or (length is not None and region.end < (addr + length)):
-            raise ValueError(
-                "Sliced range must be contained within single, existing region"
-            )
-        new_regions = [
-            Region(
-                addr,
-                region.size if length is None else length,
-                region.state,
-                region.type_,
-                region.protect,
-                0,
-            )
-        ]
-        slice_from_offset = region.offset + (addr - region.addr)
-        slice_to_offset = region.offset + length if length is not None else None
-        new_memory = self.memory.slice(slice_from_offset, slice_to_offset)
-        new_imgbase = addr
-        return self.__class__(new_memory, base=new_imgbase, regions=new_regions)
 
     def patchp(self, offset, buf):
         """
