@@ -68,6 +68,10 @@ class ProcessMemory:
     def from_memory(
         cls: Type[T], memory: "ProcessMemory", base: int = None, **kwargs
     ) -> T: ...
+    @classmethod
+    def from_memory_slice(
+        cls: Type[T], memory: "ProcessMemory", addr: int, length: Optional[int] = None
+    ) -> T: ...
     @property
     def length(self) -> int: ...
     def iter_regions(

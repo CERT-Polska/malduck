@@ -32,6 +32,7 @@ class PlainMemoryBuffer(MemoryBuffer):
         self,
         buf: Union[bytes, bytearray, memoryview],
     ) -> None:
+        print("created ", self, id(self))
         if type(buf) is memoryview:
             self.buf = buf
         elif type(buf) in (bytearray, bytes):
@@ -68,6 +69,7 @@ class PlainMemoryBuffer(MemoryBuffer):
         return PlainMemoryBuffer(self.buf[from_offset:to_offset].toreadonly())
 
     def release(self) -> None:
+        print("released ", self, id(self))
         self.buf.release()
 
 

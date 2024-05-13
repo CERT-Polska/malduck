@@ -82,9 +82,11 @@ class ProcessMemoryBinary(ProcessMemory, metaclass=ABCMeta):
             raise NotImplementedError()
         for binary_va in procmem.findv(cls.__magic__):
             binary_procmem_dmp = cls.from_memory_slice(procmem, binary_va)
+            binary_procmem_img = binary_procmem_dmp.image
+            # Binaries must be yielded at the end as they may be
+            # released by caller after that
             if binary_procmem_dmp.is_valid():
                 yield binary_procmem_dmp
-            binary_procmem_img = binary_procmem_dmp.image
             if binary_procmem_img and binary_procmem_img.is_valid():
                 yield binary_procmem_img
 
