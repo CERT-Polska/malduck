@@ -1,4 +1,5 @@
 import mmap
+import weakref
 from abc import ABC, abstractmethod
 from typing import Optional, Union
 
@@ -32,7 +33,6 @@ class PlainMemoryBuffer(MemoryBuffer):
         self,
         buf: Union[bytes, bytearray, memoryview],
     ) -> None:
-        print("created ", self, id(self))
         if type(buf) is memoryview:
             self.buf = buf
         elif type(buf) in (bytearray, bytes):
@@ -49,12 +49,17 @@ class PlainMemoryBuffer(MemoryBuffer):
         if self.buf.readonly:
             # If buffer is read-only, make a copy (on write)
             patchable_buf = memoryview(bytearray(self.buf))
-            self.buf.release()
+            self.release()
             self.buf = patchable_buf
         self.buf[item] = value
 
     def __len__(self) -> int:
         return len(self.buf)
+
+    def _slice(
+        self, from_offset: Optional[int], to_offset: Optional[int]
+    ) -> memoryview:
+        return self.buf[from_offset:to_offset].toreadonly()
 
     def slice(
         self, from_offset: Optional[int] = None, to_offset: Optional[int] = None
@@ -66,10 +71,9 @@ class PlainMemoryBuffer(MemoryBuffer):
         changes. It means that changes on parent buffer may be seen in derived buffers,
         but not the other way.
         """
-        return PlainMemoryBuffer(self.buf[from_offset:to_offset].toreadonly())
+        return PlainMemoryBuffer(self._slice(from_offset, to_offset))
 
     def release(self) -> None:
-        print("released ", self, id(self))
         self.buf.release()
 
 
@@ -81,6 +85,7 @@ class MmapMemoryBuffer(PlainMemoryBuffer):
     ):
         self.opened_file = None
         self.mapped_buf = mapped_buf
+        self._slices: weakref.WeakSet = weakref.WeakSet()
         if mapped_buf is None and file_name is None:
             raise ValueError("Either file_name or map is required.")
         if file_name is not None:
@@ -101,6 +106,8 @@ class MmapMemoryBuffer(PlainMemoryBuffer):
                 self.opened_file = None
 
     def release(self) -> None:
+        for memory_slice in self._slices:
+            memory_slice.release()
         super().release()
         if self.mapped_buf is not None:
             self.mapped_buf.close()
@@ -108,3 +115,31 @@ class MmapMemoryBuffer(PlainMemoryBuffer):
         if self.opened_file is not None:
             self.opened_file.close()
             self.opened_file = None
+
+    def slice(
+        self, from_offset: Optional[int] = None, to_offset: Optional[int] = None
+    ) -> "MemoryBuffer":
+        return self.acquire_slice(self._slice(from_offset, to_offset))
+
+    def acquire_slice(self, buf: memoryview) -> "MemoryBuffer":
+        memory_slice = MmapSliceMemoryBuffer(buf, self)
+        self._slices.add(memory_slice)
+        return memory_slice
+
+    def release_slice(self, memory_slice: "MmapSliceMemoryBuffer") -> None:
+        self._slices.remove(memory_slice)
+
+
+class MmapSliceMemoryBuffer(PlainMemoryBuffer):
+    def __init__(self, buf: memoryview, parent: MmapMemoryBuffer):
+        super().__init__(buf)
+        self.parent = parent
+
+    def slice(
+        self, from_offset: Optional[int] = None, to_offset: Optional[int] = None
+    ) -> "MemoryBuffer":
+        return self.parent.acquire_slice(self._slice(from_offset, to_offset))
+
+    def release(self) -> None:
+        super().release()
+        self.parent.release_slice(self)
