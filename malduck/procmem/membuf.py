@@ -106,9 +106,9 @@ class MmapMemoryBuffer(PlainMemoryBuffer):
                 self.opened_file = None
 
     def release(self) -> None:
+        super().release()
         for memory_slice in self._slices:
             memory_slice.release()
-        super().release()
         if self.mapped_buf is not None:
             self.mapped_buf.close()
             self.mapped_buf = None
@@ -126,9 +126,6 @@ class MmapMemoryBuffer(PlainMemoryBuffer):
         self._slices.add(memory_slice)
         return memory_slice
 
-    def release_slice(self, memory_slice: "MmapSliceMemoryBuffer") -> None:
-        self._slices.remove(memory_slice)
-
 
 class MmapSliceMemoryBuffer(PlainMemoryBuffer):
     def __init__(self, buf: memoryview, parent: MmapMemoryBuffer):
@@ -139,7 +136,3 @@ class MmapSliceMemoryBuffer(PlainMemoryBuffer):
         self, from_offset: Optional[int] = None, to_offset: Optional[int] = None
     ) -> "MemoryBuffer":
         return self.parent.acquire_slice(self._slice(from_offset, to_offset))
-
-    def release(self) -> None:
-        super().release()
-        self.parent.release_slice(self)
