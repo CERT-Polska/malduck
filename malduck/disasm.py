@@ -24,12 +24,7 @@ class Operand:
     _x86_op_mem = None
     regs: Dict[str, Union[str, int]] = {}
 
-    sizes = {
-        1: "byte",
-        2: "word",
-        4: "dword",
-        8: "qword",
-    }
+    sizes = {1: "byte", 2: "word", 4: "dword", 8: "qword", 16: "xmmword"}
 
     def __init__(self, op: X86Op, x64: bool) -> None:
         self.op = op

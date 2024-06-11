@@ -21,6 +21,8 @@ class TestDisasm(object):
         b"\xe8\x00\x00\x00\x00",
         # movxz eax, byte [0x400000]
         b"\x0f\xb6\x05\x00\x00\x04\x00",
+        # movups xmmword ptr [esi+0Ch], xmm0
+        b"\x0f\x11\x46\x0c"
     ))
 
     def setup_method(self):
@@ -59,6 +61,10 @@ class TestDisasm(object):
         insn7 = self.insns[6]
         assert insn7.op2.reg is None
         assert insn7.op2 == (None, None, None, 0x400000)
+
+        insn8 = self.insns[7]
+        assert insn8.op2.reg == "xmm0"
+        assert insn8.op1.mem == ("xmmword", "esi", None, None, 0x0C)
 
     def test_equal(self):
         assert next(disasm(b"hAAAA", 0)).mnem == "push"
