@@ -92,20 +92,20 @@ def test_cuckoomem_dummy_dmp():
 
 def test_calc_dmp():
     with cuckoomem.from_file("tests/files/calc.dmp") as p:
-        ppe = procmempe.from_memory(p, 0xd0000)
-        assert p.regions == ppe.regions
-        assert p.findmz(0x129abc) == 0xd0000
-        # Old/regular method with PE header.
-        assert pe(p.readv(p.imgbase, 0x1000)).dos_header.e_lfanew == 0xd8
-        assert p.readv(p.imgbase + 0xd8, 4) == b"PE\x00\x00"
+        with procmempe.from_memory(p, 0xd0000) as ppe:
+            assert p.regions == ppe.regions
+            assert p.findmz(0x129abc) == 0xd0000
+            # Old/regular method with PE header.
+            assert pe(p.readv(p.imgbase, 0x1000)).dos_header.e_lfanew == 0xd8
+            assert p.readv(p.imgbase + 0xd8, 4) == b"PE\x00\x00"
 
-        assert pe(p).is32bit is True
-        d = pe(p).optional_header.DATA_DIRECTORY[2]
-        assert d.VirtualAddress == 0x59000 and d.Size == 0x62798
-        data = pe(p).resource(b"WEVT_TEMPLATE")
-        assert data.startswith(b"CRIM")
-        assert len(data) == 4750
-        assert len(ppe.pe.section(".text").get_data()) == 0x52e00
+            assert pe(p).is32bit is True
+            d = pe(p).optional_header.DATA_DIRECTORY[2]
+            assert d.VirtualAddress == 0x59000 and d.Size == 0x62798
+            data = pe(p).resource(b"WEVT_TEMPLATE")
+            assert data.startswith(b"CRIM")
+            assert len(data) == 4750
+            assert len(ppe.pe.section(".text").get_data()) == 0x52e00
 
 
 def test_calc_exe():

@@ -1,4 +1,7 @@
-from .procmem import MemoryBuffer, ProcessMemory
+from typing import Iterator, Optional, Tuple
+
+from .membuf import MemoryBuffer
+from .procmem import ProcessMemory
 from .region import Region
 
 try:
@@ -13,24 +16,21 @@ except ImportError:
 __all__ = ["IDAProcessMemory", "idamem"]
 
 
-class IDAVM(MemoryBuffer):
-    def __init__(self, idamem):
+class IDAMemoryBuffer(MemoryBuffer):
+    def __init__(self, idamem: "IDAProcessMemory") -> None:
+        # Depends on region information from IDAProcessMemory
         self.idamem = idamem
 
-    def _get_ea_range(self, item):
-        if isinstance(item, slice):
-            offset = item.start or 0
-            length = (item.stop or len(self)) - offset
-        else:
-            offset = item
-            length = 1
+    def _get_ea_range(self, item: slice) -> Iterator[Tuple[int, int]]:
+        offset = item.start or 0
+        length = (item.stop or len(self)) - offset
         for region in self.idamem.regions:
             if region.offset < offset + length and offset < region.end_offset:
                 ea_start = min(max(region.p2v(offset), region.addr), region.end)
                 ea_end = min(max(region.p2v(offset + length), region.addr), region.end)
                 yield (ea_start, ea_end)
 
-    def __setitem__(self, item, value):
+    def __setitem__(self, item: slice, value: bytes) -> None:
         value_bytes = iter(value)
         for ea_start, ea_end in self._get_ea_range(item):
             for ea in range(ea_start, ea_end):
@@ -39,14 +39,26 @@ class IDAVM(MemoryBuffer):
                 except StopIteration:
                     return
 
-    def __getitem__(self, item):
+    def __getitem__(self, item: slice) -> bytes:
         data = []
         for ea_start, ea_end in self._get_ea_range(item):
             data.append(idc.get_bytes(ea_start, ea_end - ea_start))
         return b"".join(data)
 
-    def __len__(self):
+    def __len__(self) -> int:
         return self.idamem.regions[-1].end_offset
+
+    def slice(
+        self, from_offset: Optional[int] = None, to_offset: Optional[int] = None
+    ) -> "MemoryBuffer":
+        # HACK: IDAMemoryBuffer depends on region information from IDAProcessMemory
+        # Let's assume that MemoryBuffer is never directly sliced and regions
+        # are properly managed by slicev
+        return self
+
+    def release(self) -> None:
+        # Nothing to release
+        return
 
 
 class IDAProcessMemory(ProcessMemory):
@@ -77,7 +89,8 @@ class IDAProcessMemory(ProcessMemory):
             off = 0 if not regions else regions[-1].end_offset
             region = Region(seg, idc.get_segm_end(seg) - seg, 0, 0, 0, off)
             regions.append(region)
-        super().__init__(IDAVM(self), regions=regions)
+        super().__init__(IDAMemoryBuffer(self), regions=regions)
 
 
 idamem = IDAProcessMemory
+IDAVM = IDAMemoryBuffer

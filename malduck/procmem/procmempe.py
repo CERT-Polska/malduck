@@ -3,6 +3,7 @@ from typing import List, Optional
 from ..bits import align
 from ..pe import PE
 from .binmem import ProcessMemoryBinary
+from .membuf import PlainMemoryBuffer
 from .procmem import ProcessMemoryBuffer
 from .region import Region
 
@@ -81,7 +82,7 @@ class ProcessMemoryPE(ProcessMemoryBinary):
         # nullify references if mmap is not owned by current object
         self.close()
         # Set memory to the pe.data buffer
-        self.memory = bytearray(pe.data)
+        self.memory = PlainMemoryBuffer(pe.data)
         self.imgbase = pe.optional_header.ImageBase
         # Reset regions
         self.regions = [Region(self.imgbase, pe.headers_size, 0, 0, 0, 0)]
