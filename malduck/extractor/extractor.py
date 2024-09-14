@@ -3,6 +3,8 @@ import inspect
 import logging
 from typing import List, cast
 
+import yara
+
 from ..procmem import ProcessMemory, ProcessMemoryELF, ProcessMemoryPE
 
 log = logging.getLogger(__name__)
@@ -77,6 +79,7 @@ class Extractor:
 
     * :py:attr:`family` (see :py:attr:`extractor.Extractor.family`)
     * :py:attr:`yara_rules`
+    * :py:attr:`yara_source`
     * :py:attr:`overrides` (optional, see :py:attr:`extractor.Extractor.overrides`)
 
     Example extractor code for Citadel:
@@ -114,6 +117,31 @@ class Extractor:
     - `@Extractor.string` methods
     - `@Extractor.rule` methods
     - `@Extractor.final` methods
+
+    .. py:decoratormethod:: Extractor.yara
+
+        Decorator for extractor classes to embed Yara rules and compute the `yara_rules` property.
+
+        The above example can embed the rule as follow:
+
+        .. code-block:: Python
+
+            from malduck import Extractor
+
+            @Extractor.yara(r\"\"\"
+            rule possible_citadel {
+                strings:
+                    $briankerbs = ...
+                    $cit_login  = ...
+                conditions:
+                    all of them
+            }
+            \"\"\")
+            class Citadel(Extractor):
+                family = "citadel"
+                overrides = ("zeus",)
+
+                ...
 
     .. py:decoratormethod:: Extractor.string
 
@@ -327,6 +355,7 @@ class Extractor:
     """
 
     yara_rules = ()  #: Names of Yara rules for which handle_match is called
+    yara_source = None
     family = None  #: Extracted malware family, automatically added to "family" key for strong extraction methods
     overrides = []  #: Family match overrides another match e.g. citadel overrides zeus
 
@@ -572,3 +601,19 @@ class Extractor:
             )
         method.weak = True
         return method
+
+    @staticmethod
+    def yara(source):
+        if not isinstance(source, str):
+            raise TypeError("Expected string argument")
+
+        def modifier(extractor):
+            if not issubclass(extractor, Extractor):
+                raise TypeError("Expected Extractor argument")
+            extractor.yara_source = source
+            extractor.yara_rules = [
+                rule.identifier for rule in yara.compile(source=source)
+            ]
+            return extractor
+
+        return modifier

@@ -7,7 +7,7 @@ setup(
     name="malduck",
     version="4.4.1",
     description="Malduck is your ducky companion in malware analysis journeys",
-    long_description=open("README.md").read(),
+    long_description=open("README.md", encoding="utf8").read(),
     long_description_content_type="text/markdown",
     author="CERT Polska",
     author_email="info@cert.pl",
@@ -20,7 +20,7 @@ setup(
     },
     license="GPLv3",
     include_package_data=True,
-    install_requires=open("requirements.txt").read().splitlines(),
+    install_requires=open("requirements.txt", encoding="utf8").read().splitlines(),
     url="https://github.com/CERT-Polska/malduck",
     classifiers=[
         "Programming Language :: Python :: 3",
