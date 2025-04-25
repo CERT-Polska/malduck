@@ -265,6 +265,7 @@ class ExtractionContext:
         :type _matches: :class:`malduck.yara.YaraRulesetMatch`
         """
         matches = _matches or p.yarav(self.parent.rules, extended=True)
+        used_matches = set()  # Which yara rules had a matching extractor
         # For each extractor...
         for ext_class in self.parent.extractors:
             extractor = ext_class(self)
@@ -277,6 +278,7 @@ class ExtractionContext:
             # For each rule identifier in extractor.yara_rules...
             for rule in extractor.yara_rules:
                 if rule in matches:
+                    used_matches.add(rule)
                     try:
                         if hasattr(extractor, "handle_yara"):
                             warnings.warn(
@@ -290,6 +292,10 @@ class ExtractionContext:
                             extractor.handle_match(p, matches[rule])
                     except Exception as exc:
                         self.parent.on_error(exc, extractor)
+
+        log.info("The following matches had a corresponding extractor: %s", list(used_matches))
+        if not used_matches:
+            log.warning("No extractor matched yara rules! Is there a typo?")
 
     def push_config(self, config: Config, extractor: Extractor) -> None:
         """
