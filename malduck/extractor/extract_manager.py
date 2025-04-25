@@ -293,9 +293,9 @@ class ExtractionContext:
                     except Exception as exc:
                         self.parent.on_error(exc, extractor)
 
-        log.info("The following matches had a corresponding extractor: %s", list(used_matches))
+        log.info("The following matches were used: %s", list(used_matches))
         if not used_matches:
-            log.warning("No extractor matched yara rules! Is there a typo?")
+            log.warning("Yara rules didn't trigger any extractor! Is there a typo?")
 
     def push_config(self, config: Config, extractor: Extractor) -> None:
         """
