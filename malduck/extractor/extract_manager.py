@@ -295,7 +295,7 @@ class ExtractionContext:
 
         log.info("The following matches were used: %s", list(used_matches))
         if not used_matches:
-            log.warning("Yara rules didn't trigger any extractor! Is there a typo?")
+            log.warning("YARA rules didn't trigger any extractor! Is there a typo?")
 
     def push_config(self, config: Config, extractor: Extractor) -> None:
         """
