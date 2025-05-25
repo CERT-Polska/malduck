@@ -3,14 +3,32 @@
 # See the file 'docs/LICENSE.txt' for copying permission.
 
 import collections
+from enum import Enum
 from typing import Any, Dict, Iterator, List, Optional, Union
 
 from capstone import CsInsn
 from capstone.x86 import X86Op
+from capstone import CS_MODE_THUMB, CS_MODE_ARM, CS_ARCH_ARM, CS_ARCH_MIPS, CS_ARCH_X86, CS_ARCH_PPC, CS_ARCH_SPARC, CS_MODE_16, CS_MODE_32, CS_MODE_64
+
 
 __all__ = ["disasm", "insn", "Disassemble", "Instruction", "Operand", "Memory"]
 
 Memory = collections.namedtuple("Memory", ("size", "base", "scale", "index", "disp"))
+
+
+class Architecture(Enum):
+    ARM =  CS_ARCH_ARM
+    MIPS =  CS_ARCH_MIPS
+    X86 =  CS_ARCH_X86
+    PPC =  CS_ARCH_PPC
+
+
+class Mode(Enum):
+    _16 = CS_MODE_16
+    _32 = CS_MODE_32
+    _64 = CS_MODE_64
+    ARM = CS_MODE_ARM
+    THUMB = CS_MODE_THUMB
 
 
 class Operand:
@@ -256,7 +274,8 @@ class Disassemble:
             Operand.regs[getattr(capstone.x86, reg)] = reg.split("_")[2].lower()
 
     def disassemble(
-        self, data: bytes, addr: int, x64: bool = False, count: int = 0
+        self, data: bytes, addr: int, x64: bool = False, count: int = 0,
+        architecture: int = Architecture.X86, mode: Optional[Mode] = Mode._32
     ) -> Iterator[Instruction]:
         """
         Disassembles data from specific address
@@ -281,8 +300,12 @@ class Disassemble:
         """
         import capstone
 
+        # something something backwards compatible
+        if x64:
+            mode = Mode._64
+
         cs = capstone.Cs(
-            capstone.CS_ARCH_X86, capstone.CS_MODE_64 if x64 else capstone.CS_MODE_32
+            architecture.value, mode.value
         )
         cs.detail = True
         for insn in cs.disasm(data, addr, count):
