@@ -4,6 +4,6 @@ pyelftools
 pycryptodomex>=3.8.2
 capstone>=4.0.1
 yara-python
-typing-extensions>=3.7.4.2
+typing-extensions>=4.0.0
 cryptography>=3.1
 dnfile>=0.15.0

@@ -1,6 +1,7 @@
 import logging
 from abc import ABCMeta, abstractmethod
 from typing import Iterator, List, Optional, Type, TypeVar
+from typing_extensions import Self
 
 from .procmem import ProcessMemory, ProcessMemoryBuffer
 from .region import Region
@@ -18,7 +19,7 @@ class ProcessMemoryBinary(ProcessMemory, metaclass=ABCMeta):
     __magic__: Optional[bytes] = None
 
     def __init__(
-        self: T,
+        self,
         buf: ProcessMemoryBuffer,
         base: int = 0,
         regions: Optional[List[Region]] = None,
@@ -29,7 +30,7 @@ class ProcessMemoryBinary(ProcessMemory, metaclass=ABCMeta):
         if detect_image:
             image = self.is_image_loaded_as_memdump()
         self.is_image = image
-        self._image: Optional[T] = None
+        self._image: Optional[Self] = None
         if image:
             self._reload_as_image()
 
@@ -41,7 +42,7 @@ class ProcessMemoryBinary(ProcessMemory, metaclass=ABCMeta):
         raise NotImplementedError()
 
     @property
-    def image(self: T) -> Optional[T]:
+    def image(self) -> Optional[Self]:
         """
         Returns ProcessMemory object loaded with image=True or None if can't be loaded or is loaded as image yet
         """
@@ -49,7 +50,7 @@ class ProcessMemoryBinary(ProcessMemory, metaclass=ABCMeta):
             return None
         try:
             if not self._image:
-                self._image = self.__class__.from_memory(self, image=True)
+                self._image = self.from_memory(self, image=True)
             return self._image
         except Exception:
             import traceback

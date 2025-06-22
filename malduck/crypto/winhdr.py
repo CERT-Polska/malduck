@@ -18,6 +18,7 @@ class BLOBHEADER(Structure):
         BLOBHEADER structure description (Microsoft Docs):
         https://docs.microsoft.com/en-us/windows/win32/api/wincrypt/ns-wincrypt-publickeystruc
     """
+
     _pack_ = 1
     _fields_ = [
         ("bType", UInt8),

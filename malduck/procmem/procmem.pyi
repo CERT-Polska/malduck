@@ -71,7 +71,7 @@ class ProcessMemory:
     def from_file(cls: Type[T], filename: str, **kwargs) -> T: ...
     @classmethod
     def from_memory(
-        cls: Type[T], memory: "ProcessMemory", base: int = None, **kwargs
+        cls: Type[T], memory: "ProcessMemory", base: Optional[int] = None, **kwargs
     ) -> T: ...
     @property
     def length(self) -> int: ...
@@ -228,8 +228,8 @@ class ProcessMemory:
     ) -> Iterator[Instruction]: ...
     def extract(
         self,
-        modules: ExtractorModules = None,
-        extract_manager: ExtractManager = None,
+        modules: Optional[ExtractorModules] = None,
+        extract_manager: Optional[ExtractManager] = None,
     ) -> Optional[List[Dict[str, Any]]]: ...
     # yarap(ruleset)
     # yarap(ruleset, offset)
