@@ -1,6 +1,7 @@
 import logging
 from abc import ABCMeta, abstractmethod
 from typing import Iterator, List, Optional, Type, TypeVar
+
 from typing_extensions import Self
 
 from .procmem import ProcessMemory, ProcessMemoryBuffer
