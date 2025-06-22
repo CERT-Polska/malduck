@@ -14,9 +14,10 @@ formats: all
 
 python:
   install:
-    - requirements: docs/requirements.txt
-    - method: setuptools
+    - method: pip
       path: .
+      extra_requirements:
+        - docs
 
 build:
   os: ubuntu-22.04
