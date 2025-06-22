@@ -101,6 +101,7 @@ class YaraRulesetMatch(_Mapper["YaraRuleMatch"]):
         offset_mapper: Optional[OffsetMapper] = None,
     ) -> None:
         super().__init__(elements={})
+
     def _map_matches(
         self, matches: List[YaraRulesMatch], offset_mapper: Optional[OffsetMapper]
     ) -> Dict[str, "YaraRuleMatch"]: ...
@@ -116,6 +117,7 @@ class YaraRulesetOffsets(_Mapper["YaraRuleOffsets"]):
     _matches: YaraRulesetMatch
     def __init__(self, matches: YaraRulesetMatch) -> None:
         super().__init__(elements={})
+
     def remap(
         self, offset_mapper: Optional[OffsetMapper] = None
     ) -> "YaraRulesetOffsets": ...
@@ -137,6 +139,7 @@ class YaraRuleMatch(_Mapper[List[YaraStringMatch]]):
         tags: List[str],
     ) -> None:
         super().__init__({})
+
     def get_offsets(self, string) -> List[int]: ...
 
 class YaraRuleOffsets(_Mapper[List[int]]):

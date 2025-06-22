@@ -19,6 +19,7 @@ class PlaintextKeyBlob(BaseBlob):
 
     .. seealso:: :class:`malduck.crypto.BLOBHEADER`
     """
+
     types = {
         16: "AES-128",
         24: "AES-192",
