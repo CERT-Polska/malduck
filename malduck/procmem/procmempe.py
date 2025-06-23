@@ -1,13 +1,26 @@
 from typing import List, Optional
+import logging
 
 from ..bits import align
 from ..pe import PE
+from ..disasm import Architecture, Mode
 from .binmem import ProcessMemoryBinary
 from .procmem import ProcessMemoryBuffer
 from .region import Region
 
+from pefile import MACHINE_TYPE
+
 __all__ = ["ProcessMemoryPE", "procmempe"]
 
+log = logging.getLogger(__name__)
+
+ARCHITECTURE_MAPPING = {
+    MACHINE_TYPE['IMAGE_FILE_MACHINE_I386']: (Architecture.X86, Mode._32),
+    MACHINE_TYPE['IMAGE_FILE_MACHINE_AMD64']: (Architecture.X86, Mode._64),
+    MACHINE_TYPE['IMAGE_FILE_MACHINE_MIPS16']: (Architecture.MIPS, Mode._16),
+    MACHINE_TYPE['IMAGE_FILE_MACHINE_POWERPC']: (Architecture.PPC, Mode._32),
+    MACHINE_TYPE['IMAGE_FILE_MACHINE_ARM64']: (Architecture.ARM, Mode._64),
+}
 
 class ProcessMemoryPE(ProcessMemoryBinary):
     """
@@ -113,6 +126,18 @@ class ProcessMemoryPE(ProcessMemoryBinary):
         except Exception:
             return False
 
+    @property
+    def architecture(self):
+        if self._architecture is None:
+            self.pe
+        return self._architecture
+
+    @property
+    def mode(self):
+        if self._mode is None:
+            self.pe
+        return self._mode
+
     def is_image_loaded_as_memdump(self) -> bool:
         """
         Checks whether memory region contains image incorrectly loaded as memory-mapped PE dump (image=False).
@@ -142,6 +167,13 @@ class ProcessMemoryPE(ProcessMemoryBinary):
         """Related :class:`PE` object"""
         if self._pe is None:
             self._pe = PE(self)
+
+            machine = self._pe.file_header.Machine
+            if machine in ARCHITECTURE_MAPPING:
+                self._architecture, self._mode = ARCHITECTURE_MAPPING[machine]
+            else:
+                log.error("Architecture %s not supported by procmemelf", machine)
+
         return self._pe
 
     @property
