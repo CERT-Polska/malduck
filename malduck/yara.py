@@ -108,13 +108,25 @@ class Yara:
     :type strings: dict or str or :class:`YaraString`
     :param condition: Yara rule condition (default: "any of them")
     :type condition: str
+    :param sources: Dictionary of {"namespace": "rule_source"}. See also :py:meth:`Yara.from_source`.
+    :type rule_paths: dict
     """
 
     def __init__(
-        self, rule_paths=None, name="r", strings=None, condition="any of them"
+        self,
+        rule_paths=None,
+        name="r",
+        strings=None,
+        condition="any of them",
+        sources=None,
     ):
-        if rule_paths:
-            self.rules = yara.compile(filepaths=rule_paths)
+        if rule_paths or sources:
+            if not sources:
+                sources = {}
+            for namespace in rule_paths:
+                with open(rule_paths[namespace], "r") as source:
+                    sources[namespace] = source.read()
+            self.rules = yara.compile(sources=sources)
             return
 
         if not strings:
@@ -143,6 +155,39 @@ class Yara:
         self.rules = yara.compile(source=yara_source)
 
     @staticmethod
+    def from_dir_and_sources(path=None, recursive=True, followlinks=True, sources=None):
+        """
+        Find rules (recursively) in specified path. Supported extensions: \\*.yar, \\*.yara
+
+        :param path: Root path for searching
+        :type path: str
+        :param recursive: Search recursively (default: enabled)
+        :type recursive: bool
+        :param followlinks: Follow symbolic links (default: enabled)
+        :type followlinks: bool
+        :param sources: Dictionary of {"namespace": "rule_source"}
+        :type sources: dict
+        :rtype: :class:`Yara`
+        """
+        rule_paths: Dict[str, str] = {}
+        if path:
+            for root, _, files in os.walk(path, followlinks=followlinks):
+                for fname in files:
+                    if not fname.endswith(".yar") and not fname.endswith(".yara"):
+                        continue
+                    ruleset_name = os.path.splitext(os.path.basename(fname))[0]
+                    ruleset_path = os.path.join(root, fname)
+                    if ruleset_name in rule_paths:
+                        log.warning(
+                            f"Yara file name collision - {rule_paths[ruleset_name]} "
+                            f"overridden by {ruleset_path}"
+                        )
+                    rule_paths[ruleset_name] = ruleset_path
+                if not recursive:
+                    break
+        return Yara(rule_paths=rule_paths, sources=sources)
+
+    @staticmethod
     def from_dir(path, recursive=True, followlinks=True):
         """
         Find rules (recursively) in specified path. Supported extensions: \\*.yar, \\*.yara
@@ -155,22 +200,20 @@ class Yara:
         :type followlinks: bool
         :rtype: :class:`Yara`
         """
-        rule_paths: Dict[str, str] = {}
-        for root, _, files in os.walk(path, followlinks=followlinks):
-            for fname in files:
-                if not fname.endswith(".yar") and not fname.endswith(".yara"):
-                    continue
-                ruleset_name = os.path.splitext(os.path.basename(fname))[0]
-                ruleset_path = os.path.join(root, fname)
-                if ruleset_name in rule_paths:
-                    log.warning(
-                        f"Yara file name collision - {rule_paths[ruleset_name]} "
-                        f"overridden by {ruleset_path}"
-                    )
-                rule_paths[ruleset_name] = ruleset_path
-            if not recursive:
-                break
-        return Yara(rule_paths=rule_paths)
+        return Yara.from_dir_and_sources(
+            path=path, recursive=recursive, followlinks=followlinks
+        )
+
+    @staticmethod
+    def from_sources(sources):
+        """
+        Loads rules for the specified namespaces.
+
+        :param sources: Dictionary of {"namespace": "rule_source"}
+        :type sources: dict
+        :rtype: :class:`Yara`
+        """
+        return Yara.from_dir_and_sources(sources=sources)
 
     def match(self, offset_mapper=None, extended=False, **kwargs):
         """

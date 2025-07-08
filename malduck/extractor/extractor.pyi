@@ -93,6 +93,7 @@ class FinalExtractorMethod(ExtractorMethod[T, U]):
 
 class Extractor:
     yara_rules: Tuple[str, ...]
+    yara_source: Optional[str]
     family: Optional[str]
     overrides: List[str]
     parent: ExtractionContext
@@ -151,3 +152,5 @@ class Extractor:
     ) -> ExtractorMethod[T, ProcessMemoryELF]: ...
     @staticmethod
     def weak(method: ExtractorMethod[T, U]) -> ExtractorMethod[T, U]: ...
+    @staticmethod
+    def yara(source: str) -> Callable[[Extractor], Extractor]: ...
