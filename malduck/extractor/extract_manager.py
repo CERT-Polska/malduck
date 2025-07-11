@@ -124,7 +124,7 @@ class ExtractManager:
             for carved_bin in carved_bins:
                 log.debug(
                     f"carve: Found {carved_bin.__class__.__name__} "
-                    f"at offset {carved_bin.regions[0].offset}"
+                    f"at {hex(carved_bin.imgbase)}"
                 )
                 yield carved_bin
 
@@ -211,7 +211,8 @@ class ExtractManager:
 
         family = self._extract_procmem(p, matches)
         for binary in binaries:
-            family = self._extract_procmem(binary, matches) or family
+            with binary:
+                family = self._extract_procmem(binary, matches) or family
         return family
 
     @property

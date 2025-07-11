@@ -19,14 +19,10 @@ from ..disasm import Instruction
 from ..extractor import ExtractManager, ExtractorModules
 from ..ints import IntType
 from ..yara import Yara, YaraRulesetMatch, YaraRulesetOffsets
+from .membuf import MemoryBuffer
 from .region import Region
 
-class MemoryBuffer(object):
-    def __setitem__(self, item: Union[int, slice], value: Union[int, slice]): ...
-    def __getitem__(self, item: Union[int, slice]): ...
-    def __len__(self) -> int: ...
-
-ProcessMemoryBuffer = Union[bytes, bytearray, mmap.mmap, MemoryBuffer]
+ProcessMemoryBuffer = Union[bytes, bytearray, memoryview, mmap.mmap, MemoryBuffer]
 T = TypeVar("T", bound="ProcessMemory")
 
 procmem: Type["ProcessMemory"]
@@ -51,8 +47,7 @@ class ProcessMemoryYaraCallback(Protocol):
 
 class ProcessMemory:
     f: Optional[BinaryIO]
-    memory: Optional[bytearray]
-    mapped_memory: Optional[mmap.mmap]
+    memory: MemoryBuffer
     imgbase: int
     regions: List[Region]
     def __init__(
@@ -65,13 +60,17 @@ class ProcessMemory:
     def __enter__(self): ...
     def __exit__(self, exc_type, exc_val, exc_tb): ...
     @property
-    def m(self) -> bytearray: ...
+    def m(self) -> bytes: ...
     def close(self, copy: bool = False) -> None: ...
     @classmethod
     def from_file(cls: Type[T], filename: str, **kwargs) -> T: ...
     @classmethod
     def from_memory(
         cls: Type[T], memory: "ProcessMemory", base: Optional[int] = None, **kwargs
+    ) -> T: ...
+    @classmethod
+    def from_memory_slice(
+        cls: Type[T], memory: "ProcessMemory", addr: int, length: Optional[int] = None
     ) -> T: ...
     @property
     def length(self) -> int: ...
