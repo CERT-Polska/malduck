@@ -57,40 +57,59 @@ class ProcessMemoryELF(ProcessMemoryBinary):
             return False
 
     def _reload_as_image(self) -> None:
-        page_size = 0x1000
-        # Reset regions
-        imgbase = None
-        regions = []
-        # Load image segments
+        # For embedded ELFs, segment offsets are relative to ELF start, not buffer start
+        elf_base_offset = self.v2p(self.imgbase)
+        if elf_base_offset is None:
+            raise RuntimeError("imgbase out of regions")
+
+        # Collect PT_LOAD segments (only these are mapped into memory)
+        segments = []
         for segment in self.elf.iter_segments():
-            if segment.header["p_type"] == "PT_LOAD":
-                if segment.header["p_offset"] == 0:
-                    # virtual address of ELF file header
-                    imgbase = segment.header["p_vaddr"]
-                if page_size is None:
-                    presegment_len = 0
-                    postsegment_len = 0
-                else:
-                    presegment_len = segment.header["p_vaddr"] % page_size
-                    postsegment_len = (
-                        page_size
-                        - (segment.header["p_vaddr"] + segment.header["p_filesz"])
-                        % page_size
-                    )
-                regions.append(
-                    Region(
-                        segment.header["p_vaddr"] - presegment_len,
-                        segment.header["p_filesz"] + presegment_len + postsegment_len,
-                        0,
-                        segment.header["p_type"],
-                        0,  # TODO: protect flags
-                        segment.header["p_offset"] - presegment_len,
-                    )
-                )
-        if len(regions) == 0:
+            if segment.header["p_type"] == "PT_LOAD" and segment.header["p_filesz"] > 0:
+                segments.append({
+                    "vaddr": segment.header["p_vaddr"],
+                    "filesz": segment.header["p_filesz"],
+                    "offset": segment.header["p_offset"],
+                    "type": segment.header["p_type"],
+                })
+
+        if len(segments) == 0:
             raise elftools.elf.elffile.ELFError("No regions in ELF file!")
-        if imgbase is None:
-            raise elftools.elf.elffile.ELFError("Can't find ELF image base!")
+
+        # Sort by file offset to process gaps between segments
+        segments.sort(key=lambda s: s["offset"])
+
+        # imgbase = VA where file offset 0 would be mapped
+        # Uses ELF invariant: p_vaddr and p_offset have same alignment
+        first_seg = segments[0]
+        imgbase = first_seg["vaddr"] - first_seg["offset"]
+
+        regions = []
+
+        # If first segment doesn't start at offset 0, create region for ELF header
+        if first_seg["offset"] > 0:
+            regions.append(
+                Region(imgbase, first_seg["offset"], 0, 0, 0, elf_base_offset)
+            )
+
+        for i, seg in enumerate(segments):
+            # Extend region to next segment to expose gaps (may contain hidden data)
+            if i + 1 < len(segments):
+                region_size = segments[i + 1]["offset"] - seg["offset"]
+            else:
+                region_size = seg["filesz"]
+
+            regions.append(
+                Region(
+                    seg["vaddr"],
+                    region_size,
+                    0,
+                    seg["type"],
+                    0,
+                    elf_base_offset + seg["offset"],
+                )
+            )
+
         self.imgbase = imgbase
         self.regions = regions
 
