@@ -3,6 +3,10 @@ import logging
 import warnings
 from typing import Any, Dict, Iterator, List, Optional, Type
 
+<<<<<<< HEAD
+from ..procmem import ProcessMemory
+from ..yara import RulesetMatch, Yara
+=======
 from ..procmem import ProcessMemory, ProcessMemoryELF, ProcessMemoryPE
 from ..procmem.binmem import ProcessMemoryBinary
 from ..yara import Yara, YaraRuleOffsets, YaraRulesetMatch
@@ -13,6 +17,7 @@ from .config_utils import (
     is_config_better,
     sanitize_config,
 )
+>>>>>>> origin/master
 from .extractor import Extractor
 from .modules import ExtractorModules
 
@@ -255,15 +260,15 @@ class ExtractionContext:
         self.parent.on_extractor_error(exc, extractor, method_name)
 
     def push_procmem(
-        self, p: ProcessMemory, _matches: Optional[YaraRulesetMatch] = None
+        self, p: ProcessMemory, _matches: Optional[RulesetMatch] = None
     ) -> None:
         """
         Pushes ProcessMemory object for extraction
 
         :param p: ProcessMemory object
         :type p: :class:`malduck.procmem.ProcessMemory`
-        :param _matches: YaraRulesetMatch object (used internally)
-        :type _matches: :class:`malduck.yara.YaraRulesetMatch`
+        :param _matches: RulesetMatch object (used internally)
+        :type _matches: :class:`malduck.yara.RulesetMatch`
         """
         matches = _matches or p.yarav(self.parent.rules, extended=True)
         used_matches = set()  # Which yara rules had a matching extractor
@@ -287,7 +292,7 @@ class ExtractionContext:
                                 DeprecationWarning,
                             )
                             getattr(extractor, "handle_yara")(
-                                p, YaraRuleOffsets(matches[rule])
+                                p, matches.get_ruleset_offsets()[rule]
                             )
                         else:
                             extractor.handle_match(p, matches[rule])

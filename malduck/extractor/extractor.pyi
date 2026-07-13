@@ -17,9 +17,14 @@ from typing import (
 from typing_extensions import Protocol
 
 from ..procmem import ProcessMemory, ProcessMemoryELF, ProcessMemoryPE
+<<<<<<< HEAD
+from ..yara import RuleMatch, StringMatch
+from .extract_manager import ProcmemExtractManager
+=======
 from ..yara import YaraRuleMatch, YaraStringMatch
 from .config_builder import ConfigBuilder
 from .extract_manager import ExtractionContext
+>>>>>>> origin/master
 
 Config = Dict[str, Any]
 
@@ -32,13 +37,11 @@ class _StringOffsetCallback(Protocol[T, U]):
 
 class _StringCallback(Protocol[T, U]):
     def __call__(
-        cls, self: T, p: U, addr: int, match: YaraStringMatch
+        cls, self: T, p: U, addr: int, match: StringMatch
     ) -> Union[Config, bool, None]: ...
 
 class _RuleCallback(Protocol[T, U]):
-    def __call__(
-        cls, self: T, p: U, match: YaraRuleMatch
-    ) -> Union[Config, bool, None]: ...
+    def __call__(cls, self: T, p: U, match: RuleMatch) -> Union[Config, bool, None]: ...
 
 class _FinalCallback(Protocol[T, U]):
     def __call__(cls, self: T, p: U) -> Union[Config, bool, None]: ...
@@ -111,7 +114,7 @@ class Extractor:
     def log(self) -> logging.Logger: ...
     def _get_methods(self, method_type: Type[V]) -> Iterator[Tuple[str, V]]: ...
     def on_error(self, exc: Exception, method_name: str) -> None: ...
-    def handle_match(self, p: ProcessMemory, match: YaraRuleMatch) -> None: ...
+    def handle_match(self, p: ProcessMemory, match: RuleMatch) -> None: ...
     # Extractor method decorators
     @overload
     @staticmethod
