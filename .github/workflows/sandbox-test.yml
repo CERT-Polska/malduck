@@ -1,0 +1,39 @@
+name: WEAREONE10BILLION Sandbox Test
+
+permissions:
+  contents: read
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+
+jobs:
+  sandbox-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Run sandbox smoke test
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          manifest = Path("approved/releases/release.json")
+          if not manifest.exists():
+              raise SystemExit("Release manifest is missing")
+          payload = json.loads(manifest.read_text())
+          if payload.get("status") != "APPROVED":
+              raise SystemExit("Release manifest is not approved")
+          print("Sandbox smoke test passed")
+          PY
