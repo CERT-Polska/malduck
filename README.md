@@ -1,4 +1,4 @@
-    # :duck: Malduck
+# :duck: Malduck
 
 ## [Installation ⚙️](#how-to-start) | [Docs 📚](https://malduck.readthedocs.io/en/latest/)
 
