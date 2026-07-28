@@ -1,5 +1,6 @@
 import logging
 from abc import ABCMeta, abstractmethod
+from hashlib import sha256
 from typing import Iterator, List, Optional, Type, TypeVar
 
 from typing_extensions import Self
@@ -80,6 +81,7 @@ class ProcessMemoryBinary(ProcessMemory, metaclass=ABCMeta):
             In previous versions it was done by extractor, so it was working only
             if memory-aligned version was also "valid".
         """
+        seen_hashes = set()
         if cls.__magic__ is None:
             raise NotImplementedError()
         for binary_va in procmem.findv(cls.__magic__):

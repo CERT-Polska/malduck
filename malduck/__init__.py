@@ -240,7 +240,7 @@ __all__ = [
     # verify
     "verify",
     # yara
-    "YaraStringMatch",
     "YaraString",
     "Yara",
+    "YaraStringMatch",
 ]

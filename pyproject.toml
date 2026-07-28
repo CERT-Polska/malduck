@@ -1,3 +1,6 @@
+[build-system]
+requires = ["setuptools", "wheel", "Cython>=3.0.0b3"]
+
 [tool.black]
 target-version = ["py36"]
 

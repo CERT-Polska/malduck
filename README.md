@@ -113,5 +113,6 @@ pip install malduck
 ```
 
 More documentation can be found on [readthedocs](https://malduck.readthedocs.io/en/latest/).
+Usage documentation can be found [on readthedocs](https://malduck.readthedocs.io/en/stable/).
 
 ![Co-financed by the Connecting Europe Facility by of the European Union](https://www.cert.pl/uploads/2019/02/en_horizontal_cef_logo-e1550495232540.png)
