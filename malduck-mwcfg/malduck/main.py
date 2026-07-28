@@ -1,3 +1,4 @@
+import importlib.util
 import json
 import logging
 import os
@@ -6,7 +7,7 @@ from pathlib import Path
 import click
 
 from .pe import PE
-from .procmem import ProcessMemoryPE
+from .procmem import ProcessMemory, ProcessMemoryPE
 
 
 @click.group()
@@ -138,6 +139,64 @@ def extract(ctx, paths, base, analysis, modules):
                 extract_manager = ExtractManager(extractor_modules)
         if analysis:
             echo_config(extract_manager)
+
+
+def _load_script(script_path: str):
+    """Load a Python script and return the module."""
+    spec = importlib.util.spec_from_file_location("_malduck_script", script_path)
+    if spec is None or spec.loader is None:
+        raise click.ClickException(f"Cannot load script: {script_path}")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+@main.command("execute")
+@click.argument("script", type=click.Path(exists=True))
+@click.argument("paths", nargs=-1, type=click.Path(exists=True), required=True)
+@click.option(
+    "--base",
+    "-b",
+    default=None,
+    help="Base address of dump (use '0x' prefix for hexadecimal value)",
+)
+def execute(script, paths, base):
+    """Execute a Python script against memory dumps.
+
+    SCRIPT must define a run(p) function that accepts a ProcessMemory object
+    and returns a JSON-serializable result or None.
+    """
+    module = _load_script(script)
+
+    if not hasattr(module, "run") or not callable(module.run):
+        raise click.ClickException(
+            f"Script '{script}' must define a callable run(p) function"
+        )
+
+    base_addr = 0 if base is None else int(base, 0)
+
+    for path in paths:
+        if os.path.isdir(path):
+            files = sorted(
+                filter(
+                    os.path.isfile,
+                    (os.path.join(path, f) for f in os.listdir(path)),
+                )
+            )
+        elif os.path.isfile(path):
+            files = [path]
+        else:
+            files = []
+            click.echo(
+                f"[!] Path is not a regular file or directory, {path} ignored.",
+                err=True,
+            )
+
+        for file_path in files:
+            with ProcessMemory.from_file(file_path, base=base_addr) as p:
+                result = module.run(p)
+            if result is not None:
+                click.echo(json.dumps(result, indent=4, sort_keys=True))
 
 
 @main.command("resources")

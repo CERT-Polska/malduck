@@ -501,7 +501,7 @@ class ConfigBuilder:
         :param ransom_amount: Number of coins required (if hardcoded)
         :param usage: Purpose of cryptocurrency usage
         """
-        cryptocurrency = ExtractorModel.Service(
+        cryptocurrency = ExtractorModel.Cryptocurrency(
             coin=coin, address=address, ransom_amount=ransom_amount, usage=usage
         )
         return self.push_config(dict(cryptocurrency=[cryptocurrency]))

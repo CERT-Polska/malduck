@@ -25,7 +25,11 @@ class TestDisasm(object):
         b"\x0f\x11\x46\x0c"
     ))
 
+<<<<<<< HEAD
+    def setup_method(self, method=None):
+=======
     def setup_method(self):
+>>>>>>> origin/master
         self.insns = list(disasm(self.streams, 0x1000))
 
     def test_insns(self):
@@ -96,7 +100,11 @@ class TestDisasm64bit(object):
         b"\x48\x8d\x04\x85\x33\x33\x33\x00",
     ))
 
+<<<<<<< HEAD
+    def setup_method(self, method=None):
+=======
     def setup_method(self):
+>>>>>>> origin/master
         self.insns = list(disasm(self.streams, 0x1000, x64=True))
 
     def test_insns(self):

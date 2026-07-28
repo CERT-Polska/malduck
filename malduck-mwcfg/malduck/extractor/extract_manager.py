@@ -124,7 +124,7 @@ class ExtractManager:
             for carved_bin in carved_bins:
                 log.debug(
                     f"carve: Found {carved_bin.__class__.__name__} "
-                    f"at offset {carved_bin.regions[0].offset}"
+                    f"at {hex(carved_bin.imgbase)}"
                 )
                 yield carved_bin
 
@@ -211,7 +211,8 @@ class ExtractManager:
 
         family = self._extract_procmem(p, matches)
         for binary in binaries:
-            family = self._extract_procmem(binary, matches) or family
+            with binary:
+                family = self._extract_procmem(binary, matches) or family
         return family
 
     @property
@@ -297,7 +298,7 @@ class ExtractionContext:
         if not used_matches:
             log.warning("YARA rules didn't trigger any extractor! Is there a typo?")
 
-    def push_config(self, config: Config, extractor: Extractor) -> None:
+    def push_config(self, config: Config, extractor: Extractor, jsonable=True) -> None:
         """
         Pushes new partial config
 
@@ -309,13 +310,16 @@ class ExtractionContext:
         :type config: dict
         :param extractor: Extractor object reference
         :type extractor: :class:`malduck.extractor.Extractor`
+        :param jsonable: Try to decode 'bytes' as UTF-8 and check if config can be converted to JSON (default: True)
+        :type jsonable: bool
         """
-        config = encode_for_json(config)
-        try:
-            json.dumps(config)
-        except (TypeError, OverflowError) as e:
-            log.debug("Config is not JSON-encodable (%s): %s", str(e), repr(config))
-            raise RuntimeError("Config must be JSON-encodable")
+        if jsonable:
+            config = encode_for_json(config)
+            try:
+                json.dumps(config)
+            except (TypeError, OverflowError) as e:
+                log.debug("Config is not JSON-encodable (%s): %s", str(e), repr(config))
+                raise RuntimeError("Config must be JSON-encodable")
 
         config = sanitize_config(config)
 

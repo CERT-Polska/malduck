@@ -1,28 +1,17 @@
 import mmap
 import re
-from typing import BinaryIO, List, Optional, Union, cast
+from typing import List, Union
 
 from ..disasm import disasm
 from ..string.bin import int8, int16, int32, int64, uint8, uint16, uint32, uint64
 from ..string.ops import utf16z
 from ..yara import Yara, YaraString
+from .membuf import MemoryBuffer, MmapMemoryBuffer, PlainMemoryBuffer
 from .region import PAGE_EXECUTE_READWRITE, Region
 
 __all__ = ["ProcessMemory", "procmem"]
 
-
-class MemoryBuffer:
-    def __setitem__(self, item, value):
-        raise NotImplementedError("__setitem__ not implemented")
-
-    def __getitem__(self, item):
-        raise NotImplementedError("__getitem__ not implemented")
-
-    def __len__(self):
-        raise NotImplementedError("__len__ not implemented")
-
-
-ProcessMemoryBuffer = Union[bytes, bytearray, mmap.mmap, MemoryBuffer]
+ProcessMemoryBuffer = Union[bytes, bytearray, memoryview, mmap.mmap, MemoryBuffer]
 
 
 class ProcessMemory:
@@ -88,18 +77,12 @@ class ProcessMemory:
     """
 
     def __init__(self, buf, base=0, regions=None, **_):
-        self.opened_file: Optional[BinaryIO] = None
-        self.mapped_memory: Optional[mmap.mmap] = None
-        self.memory: Optional[bytearray] = None
-
-        if isinstance(buf, mmap.mmap):
-            self.mapped_memory = buf
-        elif isinstance(buf, bytes):
-            self.memory = bytearray(buf)
-        elif isinstance(buf, bytearray):
+        if isinstance(buf, MemoryBuffer):
             self.memory = buf
-        elif isinstance(buf, MemoryBuffer):
-            self.memory = buf
+        elif isinstance(buf, (bytes, bytearray, memoryview)):
+            self.memory = PlainMemoryBuffer(buf)
+        elif isinstance(buf, mmap.mmap):
+            self.memory = MmapMemoryBuffer(mapped_buf=buf)
         else:
             raise TypeError(
                 "Wrong buffer type - must be bytes, bytearray, mmap object or MemoryBuffer"
@@ -120,14 +103,7 @@ class ProcessMemory:
 
     @property
     def m(self):
-        memory = (
-            cast(bytearray, self.mapped_memory)
-            if self.mapped_memory is not None
-            else self.memory
-        )
-        if memory is None:
-            raise RuntimeError("ProcessMemory object is invalidated")
-        return memory
+        return self.memory[:]
 
     def close(self, copy=False):
         """
@@ -138,28 +114,7 @@ class ProcessMemory:
         :param copy: Copy data into string before closing the mmap object (default: False)
         :type copy: bool
         """
-        if self.mapped_memory is None:
-            # Nothing to close
-            return
-
-        if copy:
-            # Get object contents from mapped_memory
-            self.mapped_memory.seek(0)
-            contents = self.mapped_memory.read()
-            buf: Optional[bytearray] = bytearray(contents)
-        else:
-            # Invalidate object
-            buf = None
-
-        # If self.opened_file is not None: mapped_memory is owned by this ProcessMemory object
-        # We should close all descriptors
-        if self.opened_file is not None:
-            self.mapped_memory.close()
-            self.opened_file.close()
-        # In both cases: nullify all references and set memory to buf
-        self.mapped_memory = None
-        self.opened_file = None
-        self.memory = buf
+        self.memory.release()
 
     @classmethod
     def from_file(cls, filename, **kwargs):
@@ -179,22 +134,8 @@ class ProcessMemory:
                 mem = p.readv(...)
                 ...
         """
-        file = open(filename, "rb")
-        try:
-            # Allow copy-on-write
-            if hasattr(mmap, "ACCESS_COPY"):
-                m = mmap.mmap(file.fileno(), 0, access=mmap.ACCESS_COPY)
-            else:
-                raise RuntimeError("mmap is not supported on your OS")
-            memory = cls(m, **kwargs)
-        except RuntimeError:
-            # Fallback to file.read()
-            memory = cls(file.read(), **kwargs)
-            file.close()
-            memory.opened_file = None
-        else:
-            memory.opened_file = file
-        return memory
+        memory = MmapMemoryBuffer(filename)
+        return cls(memory, **kwargs)
 
     @classmethod
     def from_memory(cls, memory, base=None, **kwargs):
@@ -210,9 +151,46 @@ class ProcessMemory:
         :rtype: :class:`ProcessMemory`
         """
         copied = cls(
-            memory.m, base=base or memory.imgbase, regions=memory.regions, **kwargs
+            memory.memory.slice(),
+            base=base or memory.imgbase,
+            regions=memory.regions,
+            **kwargs,
         )
         return copied
+
+    @classmethod
+    def from_memory_slice(cls, memory, addr, length=None):
+        """
+        Creates a new ProcessMemory object that represents a slice of ProcessMemory.
+        Slice can't be cross-region. If you don't provide length, it will be limited to
+        the length of the region containing provided virtual address.
+
+        :param addr: Starting virtual address
+        :type addr: int
+        :param length: Length of slice (optional)
+        :type length: Optional[int]
+        """
+        region = memory.addr_region(addr)
+        # Boundary check
+        if region is None or (length is not None and region.end < (addr + length)):
+            raise ValueError(
+                "Sliced range must be contained within single, existing region"
+            )
+        new_regions = [
+            Region(
+                addr,
+                region.size if length is None else length,
+                region.state,
+                region.type_,
+                region.protect,
+                0,
+            )
+        ]
+        slice_from_offset = region.offset + (addr - region.addr)
+        slice_to_offset = region.offset + length if length is not None else None
+        new_memory = memory.memory.slice(slice_from_offset, slice_to_offset)
+        new_imgbase = addr
+        return cls(new_memory, base=new_imgbase, regions=new_regions)
 
     @property
     def length(self):
@@ -220,12 +198,7 @@ class ProcessMemory:
         Returns length of raw memory contents
         :rtype: int
         """
-        if self.mapped_memory is not None:
-            return self.mapped_memory.size()
-        elif self.memory is not None:
-            return len(self.memory)
-        else:
-            return 0
+        return len(self.memory)
 
     def iter_regions(
         self, addr=None, offset=None, length=None, contiguous=False, trim=False
@@ -406,9 +379,9 @@ class ProcessMemory:
         :rtype: bytes
         """
         if length is None:
-            return bytes(self.m[offset:])
+            return self.memory[offset:]
         else:
-            return bytes(self.m[offset : offset + length])
+            return self.memory[offset : offset + length]
 
     def readv_regions(self, addr=None, length=None, contiguous=True):
         """
@@ -473,6 +446,62 @@ class ProcessMemory:
         idx = chunk.find(s)
         return chunk[:idx] if idx >= 0 else chunk
 
+    def read_all_bytes(self) -> bytes:
+        """
+        Read all mapped memory regions and concatenate them into a single bytes object.
+
+        Regions are concatenated in order without filling gaps between non-contiguous regions.
+
+        :return: All mapped memory regions concatenated
+        :rtype: bytes
+        """
+        if not self.regions:
+            return b""
+        return b"".join(
+            chunk for _, chunk in self.readv_regions(contiguous=False)
+        )
+
+    def fuse_all(self) -> "ProcessMemory":
+        """
+        Create a new :class:`ProcessMemory` by fusing all mapped regions into a single
+        contiguous buffer. Gaps between non-contiguous regions are filled with zeros.
+
+        The resulting object has a single region starting at the first mapped virtual
+        address and ending at the last mapped virtual address.
+
+        :return: New :class:`ProcessMemory` with all regions fused into one
+        :rtype: :class:`ProcessMemory`
+
+        Usage example:
+
+        .. code-block:: python
+
+            from malduck import procmem
+            from malduck.procmem import Region
+
+            payload = b"AAAA" + b"BBBB"
+            regions = [
+                Region(0x1000, 4, 0, 0, 0, 0),
+                Region(0x1200, 4, 0, 0, 0, 4),
+            ]
+            mem = procmem(payload, regions=regions)
+            fused = mem.fuse_all()
+            # fused spans 0x1000..0x1204 with gap between 0x1004 and 0x1200 filled with zeros
+            assert fused.readv(0x1000, 4) == b"AAAA"
+            assert fused.readv(0x1200, 4) == b"BBBB"
+        """
+        if not self.regions:
+            return ProcessMemory(b"", base=0)
+        first_addr = self.regions[0].addr
+        last_addr = self.regions[-1].end
+        total_size = last_addr - first_addr
+        buf = bytearray(total_size)
+        for region in self.regions:
+            data = self.readp(region.offset, region.size)
+            offset = region.addr - first_addr
+            buf[offset : offset + len(data)] = data
+        return ProcessMemory(bytes(buf), base=first_addr)
+
     def patchp(self, offset, buf):
         """
         Patch bytes under specified offset
@@ -507,7 +536,7 @@ class ProcessMemory:
                 embed_pe = procmempe.from_memory(embed_pe, image=True)
                 assert embed_pe.asciiz(0x1000a410) == b"StrToIntExA"
         """
-        self.m[offset : offset + len(buf)] = buf
+        self.memory[offset : offset + len(buf)] = buf
 
     def patchv(self, addr, buf):
         """
@@ -639,7 +668,8 @@ class ProcessMemory:
         :return: Generates offsets where bytes were found
         :rtype: Iterator[int]
         """
-        return self._find(self.m, query, offset, length)
+        chunk = self.readp(offset, length)
+        return self._find(chunk, query, offset, length)
 
     def findv(self, query, addr=None, length=None):
         """
