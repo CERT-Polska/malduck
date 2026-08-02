@@ -3,6 +3,10 @@ import logging
 import warnings
 from typing import Any, Dict, Iterator, List, Optional, Type
 
+<<<<<<< HEAD
+from ..procmem import ProcessMemory
+from ..yara import RulesetMatch, Yara
+=======
 from ..procmem import ProcessMemory, ProcessMemoryELF, ProcessMemoryPE
 from ..procmem.binmem import ProcessMemoryBinary
 from ..yara import RulesetMatch, Yara
@@ -13,6 +17,7 @@ from .config_utils import (
     is_config_better,
     sanitize_config,
 )
+>>>>>>> origin/master
 from .extractor import Extractor
 from .modules import ExtractorModules
 
