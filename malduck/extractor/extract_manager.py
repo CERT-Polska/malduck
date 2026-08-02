@@ -9,7 +9,7 @@ from ..yara import RulesetMatch, Yara
 =======
 from ..procmem import ProcessMemory, ProcessMemoryELF, ProcessMemoryPE
 from ..procmem.binmem import ProcessMemoryBinary
-from ..yara import Yara, YaraRuleOffsets, YaraRulesetMatch
+from ..yara import RulesetMatch, Yara
 from .config_utils import (
     Config,
     apply_config_part,
