@@ -41,6 +41,8 @@ class MemoryPEData:
 
     def __getitem__(self, item: Any) -> object:
         if isinstance(item, slice):
+            if item.stop <= (item.start or 0):
+                return b""
             start = self.map_offset(item.start or 0)
             stop = self.map_offset(item.stop - 1)
         else:
