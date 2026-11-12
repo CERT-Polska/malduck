@@ -272,3 +272,19 @@ def test_procmemdnpe():
         assert p.pe.dn_metadata.struct.Version == b'v4.0.30319\x00\x00'
         assert p.pe.dn_metadata.struct.NumberOfStreams == len(p.pe.dn_metadata.streams)
         assert p.pe.dn_user_string(1).value == "Hello World!"
+
+
+def test_procmempe_section_tail():
+    # PE32, one .data section: 0x200 bytes raw at 0x200, 0x2000 bytes virtual at RVA 0x1000
+    image = bytearray(b"A" * 0x3000)
+    image[:0x1000] = b"\x00" * 0x1000
+    struct.pack_into("<2s58xI", image, 0, b"MZ", 0x40)
+    struct.pack_into("<4sHHIIIHH", image, 0x40, b"PE\x00\x00", 0x14C, 1, 0, 0, 0, 0xE0, 0x102)
+    struct.pack_into("<H26xIII", image, 0x58, 0x10B, 0x400000, 0x1000, 0x200)
+    struct.pack_into("<II4xH22xI", image, 0x58 + 56, 0x3000, 0x200, 2, 16)
+    struct.pack_into("<8sIIII12xI", image, 0x138, b".data", 0x2000, 0x1000, 0x200, 0x200, 0xC0000040)
+    p = procmempe(bytes(image), base=0x400000)
+    section = p.pe.section(".data")
+    assert section.get_data(0x1010, 2) == b"AA"
+    assert section.get_data(0x1800, 2) == b""
+    assert p.pe.pe.__data__[0xA00:0x400] == b""
